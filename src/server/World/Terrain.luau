@@ -61,7 +61,7 @@ local function lerp(a: number, b: number, t: number): number
 	return a + (b - a) * t
 end
 
-function Terrain.heightAt(x: number, z: number): number
+function Terrain.naturalHeightAt(x: number, z: number): number
 	local r = math.sqrt(x * x + z * z)
 
 	-- холмистая долина
@@ -117,9 +117,79 @@ function Terrain.heightAt(x: number, z: number): number
 	return h
 end
 
+-- ── дорога и стартовая площадка ──────────────────────────────
+
+local road = nil
+local ROAD_HALF, SHOULDER = 9, 22
+
+function Terrain.setRoad(track)
+	road = track
+	ROAD_HALF, SHOULDER = track.HALF_W, track.SHOULDER
+end
+
+local function padDistance(x: number, z: number): number?
+	if not road then
+		return nil
+	end
+	local pad = road.pad
+	local lp = pad.cf:PointToObjectSpace(Vector3.new(x, pad.y, z))
+	local ex = math.max(math.abs(lp.X) - pad.halfAcross, 0)
+	local ez = math.max(math.abs(lp.Z) - pad.halfAlong, 0)
+	return math.sqrt(ex * ex + ez * ez)
+end
+
+-- расстояние до дороги или площадки (для леса), math.huge если далеко
+function Terrain.clearance(x: number, z: number): number
+	local best = math.huge
+	if road then
+		local d = road:query(x, z)
+		if d then
+			best = d - ROAD_HALF
+		end
+		local pd = padDistance(x, z)
+		if pd and pd < best then
+			best = pd
+		end
+	end
+	return best
+end
+
+function Terrain.heightAt(x: number, z: number): number
+	local h = Terrain.naturalHeightAt(x, z)
+	if not road then
+		return h
+	end
+	local d, elev = road:query(x, z)
+	if d then
+		if d < ROAD_HALF then
+			h = elev
+		elseif d < ROAD_HALF + SHOULDER then
+			h = lerp(h, elev, smoothstep(ROAD_HALF + SHOULDER, ROAD_HALF, d))
+		end
+	end
+	local pd = padDistance(x, z)
+	if pd and pd < 14 then
+		h = lerp(h, road.pad.y, smoothstep(14, 0, pd))
+	end
+	return h
+end
+
 local M = Enum.Material
 
 function Terrain.surfaceMaterial(x: number, z: number, h: number, slope: number): Enum.Material
+	if road then
+		local pd = padDistance(x, z)
+		if pd and pd < 1 then
+			return M.Concrete
+		end
+		local d = road:query(x, z)
+		if d and d < ROAD_HALF + 2 then
+			if h < WATER + 0.5 then
+				return M.Mud
+			end
+			return d < ROAD_HALF - 1.5 and M.Ground or M.Mud
+		end
+	end
 	local snowLine = 285 + fbm(x, z, 120, 2, SEED + 21) * 50
 	if h > snowLine and slope < 1.4 then
 		return M.Snow
@@ -166,6 +236,7 @@ function Terrain.applyLook()
 	t:SetMaterialColor(M.Ground, Color3.fromRGB(112, 92, 70))
 	t:SetMaterialColor(M.Sand, Color3.fromRGB(196, 178, 138))
 	t:SetMaterialColor(M.Mud, Color3.fromRGB(78, 66, 52))
+	t:SetMaterialColor(M.Concrete, Color3.fromRGB(150, 146, 140))
 	pcall(function()
 		t.Decoration = true -- колышущаяся трава
 	end)

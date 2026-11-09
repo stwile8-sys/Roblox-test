@@ -433,10 +433,10 @@ end
 caption(settingsPanel, 1, "ВРЕМЯ СУТОК")
 local highlightTime = segmented(settingsPanel, 2, { "Утро", "День", "Закат", "Ночь" }, applyPreset)
 highlightTime("Закат")
-caption(settingsPanel, 3, "ЭФФЕКТЫ (БЛУМ, ЛУЧИ, РАЗМЫТИЕ)")
+caption(settingsPanel, 3, "ЭФФЕКТЫ (СВЕЧЕНИЕ, ЛУЧИ)")
 local highlightFx = segmented(settingsPanel, 4, { "Вкл", "Выкл" }, function(choice)
 	local on = choice == "Вкл"
-	for _, name in { "Bloom", "SunRays", "DepthOfField" } do
+	for _, name in { "Bloom", "SunRays" } do
 		local e = Lighting:FindFirstChild(name)
 		if e then
 			(e :: any).Enabled = on

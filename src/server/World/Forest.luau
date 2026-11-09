@@ -25,7 +25,7 @@ function Forest.generate(parent: Instance, rng: Random, onProgress: (number) -> 
 				local chance = mask > -0.05 and 0.2 or 0.03
 				if rng:NextNumber() < chance then
 					local h = T.heightAt(px, pz)
-					if h > T.WATER + 4 and h < 235 and T.slopeAt(px, pz) < 0.8 then
+					if h > T.WATER + 4 and h < 235 and T.clearance(px, pz) > 10 and T.slopeAt(px, pz) < 0.8 then
 						local near = r < 260
 						local props = {
 							CastShadow = near,

@@ -300,7 +300,7 @@ function Lobby.deck(parent: Instance, o: CFrame)
 	return m
 end
 
--- ── портал «Скоро» ───────────────────────────────────────────
+-- ── портал на ралли ──────────────────────────────────────────
 
 function Lobby.portal(parent: Instance, o: CFrame)
 	local m = model(parent, "Портал", o)
@@ -330,10 +330,10 @@ function Lobby.portal(parent: Instance, o: CFrame)
 	swirl.Rate = 25
 	swirl.Parent = plane
 	local tablet = B.part(m, Vector3.new(8, 2, 0.6), o * CFrame.new(0, pillarH + R + 2.3, 0), Color3.fromRGB(70, 66, 62), M.Slate)
-	B.surfaceText(tablet, Enum.NormalId.Front, "СКОРО", Color3.fromRGB(230, 210, 255))
-	B.surfaceText(tablet, Enum.NormalId.Back, "СКОРО", Color3.fromRGB(230, 210, 255))
-	zone(m, "Портал · скоро откроется", 12)
-	return m
+	B.surfaceText(tablet, Enum.NormalId.Front, "РАЛЛИ", Color3.fromRGB(230, 210, 255))
+	B.surfaceText(tablet, Enum.NormalId.Back, "РАЛЛИ", Color3.fromRGB(230, 210, 255))
+	zone(m, "Портал на ралли", 12)
+	return plane
 end
 
 -- ── указатель ────────────────────────────────────────────────
@@ -355,7 +355,7 @@ end
 
 -- ── сборка всего лобби ───────────────────────────────────────
 
-function Lobby.build(parent: Instance, L: CFrame, rng: Random): CFrame
+function Lobby.build(parent: Instance, L: CFrame, rng: Random): (CFrame, BasePart, CFrame)
 	local folder = Instance.new("Folder")
 	folder.Name = "Лобби"
 	folder.Parent = parent
@@ -383,12 +383,12 @@ function Lobby.build(parent: Instance, L: CFrame, rng: Random): CFrame
 	local deckCF = at(0, -57)
 	Lobby.deck(folder, deckCF)
 	local portalCF = CFrame.lookAt(at(44, -20).Position, L.Position)
-	Lobby.portal(folder, portalCF)
+	local portalPlane = Lobby.portal(folder, portalCF)
 
 	Lobby.signpost(folder, at(9, -6).Position, {
 		{ name = "Смотровая", pos = deckCF.Position },
 		{ name = "Домик", pos = at(0, 20).Position },
-		{ name = "Портал", pos = portalCF.Position },
+		{ name = "Ралли", pos = portalCF.Position },
 	})
 
 	-- тропинки из плоских камней
@@ -445,7 +445,7 @@ function Lobby.build(parent: Instance, L: CFrame, rng: Random): CFrame
 	flies.Parent = fliesPart
 	CollectionService:AddTag(flies, "Fireflies")
 
-	return deckCF
+	return deckCF, portalPlane, spawnCF * CFrame.new(0, 3, 0)
 end
 
 return Lobby

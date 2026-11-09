@@ -25,6 +25,9 @@ function Sky.apply()
 	Lighting.ShadowSoftness = 0.25
 	Lighting.ExposureCompensation = 0.1
 	Lighting.GlobalShadows = true
+	pcall(function()
+		(Lighting :: any).LightingStyle = Enum.LightingStyle.Realistic
+	end)
 
 	make("Sky", "Sky", {
 		StarCount = 4000,
@@ -54,12 +57,6 @@ function Sky.apply()
 		Contrast = 0.12,
 		Saturation = 0.14,
 		TintColor = Color3.fromRGB(255, 244, 232),
-	})
-	make("DepthOfFieldEffect", "DepthOfField", {
-		FarIntensity = 0.12,
-		FocusDistance = 60,
-		InFocusRadius = 120,
-		NearIntensity = 0,
 	})
 end
 
