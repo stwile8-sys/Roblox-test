@@ -1,18 +1,44 @@
 {
-  "name": "FrontierEmpires",
+  "name": "ChronoHeistTycoon",
   "tree": {
     "$className": "DataModel",
     "Workspace": {
       "$className": "Workspace",
       "$properties": {
-        "StreamingEnabled": true
+        "StreamingEnabled": false,
+        "FallenPartsDestroyHeight": -120,
+        "Gravity": 196.2
       }
     },
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
-        "ClockTime": 14.5
+        "Technology": "ShadowMap",
+        "ClockTime": 20.5,
+        "Brightness": 2,
+        "Ambient": [0.102, 0.102, 0.18],
+        "OutdoorAmbient": [0.102, 0.102, 0.18],
+        "GlobalShadows": true,
+        "EnvironmentDiffuseScale": 0.4,
+        "EnvironmentSpecularScale": 0.4
       }
+    },
+    "Players": {
+      "$className": "Players",
+      "$properties": {
+        "CharacterAutoLoads": true,
+        "RespawnTime": 2
+      }
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "$properties": {
+        "ScreenOrientation": "Portrait",
+        "ResetPlayerGuiOnSpawn": false
+      }
+    },
+    "TextChatService": {
+      "$className": "TextChatService"
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
@@ -22,6 +48,11 @@
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
+      "$properties": {
+        "CharacterWalkSpeed": 16,
+        "CameraMaxZoomDistance": 60,
+        "AutoJumpEnabled": false
+      },
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "Client": {

@@ -1,6 +1,6 @@
 --!strict
 -- Переводчик. Ключ → строка на языке игрока, {имя} заменяется аргументом.
--- Язык: выбранный в настройках, иначе язык Roblox у игрока, иначе английский.
+-- Язык: выбранный в настройках, иначе язык Roblox у игрока, иначе русский (базовый).
 
 local Strings = require(script.Parent.Strings)
 
@@ -21,7 +21,7 @@ M.NATIVE = {
 	zh = "中文",
 }
 
-local current = "en"
+local current = "ru"
 local listeners: { () -> () } = {}
 
 function M.isLang(code: any): boolean
@@ -30,7 +30,7 @@ end
 
 function M.fromLocale(locale: string): string
 	local code = string.lower(string.sub(locale, 1, 2))
-	return if M.NATIVE[code] then code else "en"
+	return if M.NATIVE[code] then code else "ru"
 end
 
 function M.lang(): string
@@ -55,7 +55,7 @@ function M.t(key: string, args: { [string]: any }?): string
 	local row = Strings[key]
 	local s: string
 	if row then
-		s = row[current] or row.en or key
+		s = row[current] or row.ru or row.en or key
 	else
 		s = key
 	end
@@ -83,17 +83,40 @@ function M.num(n: number): string
 	return (if neg then "-" else "") .. out
 end
 
+-- 1234567 → "1.2M" (короткая запись для HUD)
+function M.short(n: number): string
+	local a = math.abs(n)
+	local units = { { 1e12, "T" }, { 1e9, "B" }, { 1e6, "M" }, { 1e3, "K" } }
+	for _, u in units do
+		if a >= u[1] then
+			local v = n / u[1]
+			local s = if math.abs(v) >= 100 then string.format("%d", math.floor(v)) else string.format("%.1f", math.floor(v * 10) / 10)
+			s = string.gsub(s, "%.0$", "")
+			return s .. u[2]
+		end
+	end
+	return tostring(math.floor(n))
+end
+
 function M.money(n: number): string
-	return M.num(n) .. " c"
+	return "$" .. M.short(n)
+end
+
+function M.name(t: { [string]: string }?): string
+	if not t then
+		return "?"
+	end
+	return t[current] or t.ru or t.en or "?"
 end
 
 function M.duration(seconds: number): string
 	local h = math.floor(seconds / 3600)
 	local m = math.floor((seconds % 3600) / 60)
+	local sec = math.floor(seconds % 60)
 	if h > 0 then
-		return M.t("time.hm", { h = h, m = m })
+		return string.format("%d:%02d:%02d", h, m, sec)
 	end
-	return M.t("time.m", { m = math.max(1, m) })
+	return string.format("%d:%02d", m, sec)
 end
 
 return M
