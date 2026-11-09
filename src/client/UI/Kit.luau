@@ -8,7 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Palette = require(ReplicatedStorage:WaitForChild("Shared").Config.Palette)
 
-local M = {}
+local M: any = {}
 
 M.C = {
 	bg = Color3.fromHex("#1A1A2E"),

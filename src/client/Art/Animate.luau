@@ -13,7 +13,7 @@ local Build = require(Shared.Art.Build)
 local Assets = require(Shared.Config.Assets)
 local Palette = require(Shared.Config.Palette)
 
-local M = {}
+local M: any = {}
 
 local RANGE = 220
 local LIGHTS = 24

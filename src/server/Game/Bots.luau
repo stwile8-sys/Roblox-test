@@ -93,6 +93,7 @@ function M.spawnNpc(name: string, color: Color3, cf: CFrame, opts: any?): any
 		end
 	end
 	Ctx.bots[S.botId] = S
+	rig:SetAttribute("BotId", S.botId)
 	if S.group then
 		for _, p in rig:GetDescendants() do
 			if p:IsA("BasePart") then

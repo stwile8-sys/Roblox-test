@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = require(ReplicatedStorage:WaitForChild("Shared").Net)
 local L = require(ReplicatedStorage.Shared.Lang.L)
 
-local M = {}
+local M: any = {}
 
 M.s = {} :: { [string]: any }
 M.boards = { titan = {}, collection = {}, clans = {} }
@@ -21,7 +21,7 @@ function M.on(key: string, fn: (any) -> ())
 end
 
 local function emit(key: string, v: any)
-	for _, fn in listeners[key] or {} do
+	for _, fn in (listeners[key] or {}) :: { (any) -> () } do
 		task.spawn(fn, v)
 	end
 end

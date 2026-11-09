@@ -2,7 +2,7 @@ name: Сборка и публикация
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 jobs:

@@ -2,7 +2,7 @@ name: Проверка кода
 
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, dev]
   workflow_dispatch:
   workflow_call:
 
