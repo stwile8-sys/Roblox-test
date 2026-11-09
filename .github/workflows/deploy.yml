@@ -1,0 +1,53 @@
+name: Сборка и публикация
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установить Rojo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo rojo-rbx/rojo --pattern '*linux-x86_64.zip' -O rojo.zip
+          unzip -o rojo.zip -d rojo-bin
+          chmod +x rojo-bin/rojo
+          echo "$PWD/rojo-bin" >> "$GITHUB_PATH"
+
+      - name: Собрать игру
+        run: |
+          rojo --version
+          rojo build default.project.json -o game.rbxl
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game
+          path: game.rbxl
+
+      - name: Опубликовать в Roblox
+        env:
+          API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          UNIVERSE_ID: ${{ secrets.UNIVERSE_ID }}
+          PLACE_ID: ${{ secrets.PLACE_ID }}
+        run: |
+          if [ -z "$API_KEY" ] || [ -z "$UNIVERSE_ID" ] || [ -z "$PLACE_ID" ]; then
+            echo "::warning::Не заданы ROBLOX_API_KEY / UNIVERSE_ID / PLACE_ID — публикация пропущена, игра только собрана."
+            exit 0
+          fi
+          code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST \
+            "https://apis.roblox.com/universes/v1/$UNIVERSE_ID/places/$PLACE_ID/versions?versionType=Published" \
+            -H "x-api-key: $API_KEY" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @game.rbxl)
+          cat resp.txt; echo
+          if [ "$code" != "200" ]; then
+            echo "::error::Roblox ответил кодом $code"
+            exit 1
+          fi
+          echo "Опубликовано!"
