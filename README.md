@@ -1,18 +1,16 @@
-# Тестовое обби для Roblox
+# Вершина — витринное лобби для Roblox
 
-Игра собирается из кода без Roblox Studio: GitHub Actions собирает файл места через [Rojo](https://rojo.space) и публикует его через Roblox Open Cloud.
+Всё создаётся кодом при запуске сервера, без Roblox Studio: GitHub Actions собирает место через [Rojo](https://rojo.space) и публикует его через Roblox Open Cloud.
 
 ## Что внутри
 
-- `src/server/Obby.server.luau` — строит трассу из 12 этапов (прыжки, балки над лавой, исчезающие платформы, вращающиеся балки), чекпоинты, финиш.
-- `src/client/Hud.client.luau` — плашка «Этап N / 12» и окно победы с кнопкой «Пройти заново».
-- `.github/workflows/deploy.yml` — сборка и публикация при каждом пуше в `main`.
+- `src/server/World/Terrain.luau` — ландшафт: гора с плато, лесная долина, озеро, река, кольцо снежных гор.
+- `src/server/World/Lobby.luau` — бревенчатый домик с дымящей трубой, костёр со скамейками, смотровая площадка с телескопом, портал «Скоро», указатель, фонари, камни, цветы, светлячки.
+- `src/server/World/Forest.luau` — лес из елей и осенних лиственных деревьев.
+- `src/server/World/Sky.luau` — освещение Future, атмосфера, облака, блум, лучи, цветокоррекция.
+- `src/client/Menu.client.luau` — главное меню с пролётами камеры, настройки (время суток, эффекты), телескоп, подписи мест.
+- `src/client/Ambience.client.luau` — мерцание огня и фонарей.
 
-## Настройка (один раз)
+## Публикация
 
-1. ID игры уже прописаны в `.github/workflows/deploy.yml` (Universe ID 1195242587, Place ID 3327609598).
-2. Создать API-ключ: Creator Hub → Open Cloud → API Keys → Create API Key. Добавить доступ **universe-places** (Place Publishing) для этой игры, операция **Write**. В IP-адресах указать `0.0.0.0/0`.
-3. В репозитории: Settings → Secrets and variables → Actions → New repository secret. Добавить секрет `ROBLOX_API_KEY`.
-4. Actions → «Сборка и публикация» → Run workflow.
-
-Публикация полностью заменяет содержимое места.
+При каждом пуше в `main` игра собирается и публикуется в «Место Позетюи» (Universe 1195242587, Place 3327609598). Нужен секрет репозитория `ROBLOX_API_KEY` (Open Cloud, доступ «места вселенной» → «Написать»).
