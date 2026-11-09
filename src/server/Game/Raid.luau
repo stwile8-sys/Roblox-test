@@ -13,7 +13,7 @@ local Game = Ctx.Game
 local Defs = Ctx.Defs
 local api = Ctx.api
 
-local M = {}
+local M: any = {}
 
 function M.setArmed(B: any, slot: number, armed: boolean)
 	pcall(BaseBuilder.setTrapArmed, B.model, slot, armed)
@@ -96,6 +96,7 @@ local function updateSpeed(S: any)
 end
 
 function M.stun(S: any, seconds: number, pose: string?)
+	S.acGrace = os.clock() + seconds + 1.5 -- отброс не считается читом
 	S.stunUntil = math.max(S.stunUntil or 0, os.clock() + seconds)
 	setPose(S, pose or "stun", seconds)
 	updateSpeed(S)
@@ -162,7 +163,8 @@ Ctx.actions.invade = function(S, args)
 		return false, "msg.bad"
 	end
 	S.raid = { base = B.index, t0 = os.clock() }
-	r.CFrame = Bases.frontPoint(B)
+	S.serverMoved = true
+		r.CFrame = Bases.frontPoint(B)
 	Ctx.mark(S, "raid")
 	Ctx.track(S, "raid_start", B.index)
 	return true, nil
@@ -789,7 +791,8 @@ Ctx.actions.revenge = function(S, args)
 				S.revengeBase = B.index
 				S.scanned = S.scanned or {}
 				S.scanned[B.index] = os.clock()
-				r.CFrame = Bases.frontPoint(B)
+				S.serverMoved = true
+		r.CFrame = Bases.frontPoint(B)
 				return true, "msg.revengeGo"
 			end
 		end

@@ -8,7 +8,7 @@ local Game = Ctx.Game
 local Defs = Ctx.Defs
 local api = Ctx.api
 
-local M = {}
+local M: any = {}
 
 local function today(): number
 	return math.floor(os.time() / 86400)
@@ -371,5 +371,7 @@ api.checkAch = M.checkAch
 api.quest = M.quest
 api.passXp = M.passXp
 api.canRebirth = M.canRebirth
+api.checkPass = M.checkPass
+api.checkVip = M.checkVip
 
 return M

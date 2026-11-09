@@ -2,15 +2,13 @@
 -- Экономика: доход, сбор, конвейер, покупка артефактов, апгрейды, слив в осколки,
 -- энергия, стройка стен и ловушек (таймер ≤ 3 мин, ускорение — только Build Tokens).
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local Ctx = require(script.Parent.Ctx)
 local Bases = require(script.Parent.Bases)
 
 local Game = Ctx.Game
 local Defs = Ctx.Defs
 
-local M = {}
+local M: any = {}
 local api = Ctx.api
 
 -- ── Деньги ──────────────────────────────────────────────────

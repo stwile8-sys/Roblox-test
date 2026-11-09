@@ -12,7 +12,7 @@ local Palette = require(ReplicatedStorage.Shared.Config.Palette)
 local Game = Ctx.Game
 local Defs = Ctx.Defs
 
-local M = {}
+local M: any = {}
 
 local artsFolder = Instance.new("Folder")
 artsFolder.Name = "Arts"
@@ -197,6 +197,7 @@ function M.setShield(B: any, seconds: number)
 	for _, S in Ctx.sessions do
 		local r = Ctx.root(S)
 		if r and S.base ~= B.index and M.inside(B, r.Position, 2) then
+			S.serverMoved = true
 			r.CFrame = M.frontPoint(B)
 		end
 	end

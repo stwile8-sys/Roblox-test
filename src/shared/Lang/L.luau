@@ -86,7 +86,7 @@ end
 -- 1234567 → "1.2M" (короткая запись для HUD)
 function M.short(n: number): string
 	local a = math.abs(n)
-	local units = { { 1e12, "T" }, { 1e9, "B" }, { 1e6, "M" }, { 1e3, "K" } }
+	local units: { { any } } = { { 1e12, "T" }, { 1e9, "B" }, { 1e6, "M" }, { 1e3, "K" } }
 	for _, u in units do
 		if a >= u[1] then
 			local v = n / u[1]

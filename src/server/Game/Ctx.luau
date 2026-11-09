@@ -9,7 +9,7 @@ local Net = require(ReplicatedStorage.Shared.Net)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Defs = require(ReplicatedStorage.Shared.Art.Defs)
 
-local M = {}
+local M: any = {}
 
 M.Game = Game
 M.Defs = Defs
@@ -158,7 +158,7 @@ end
 
 -- ── Персонаж ────────────────────────────────────────────────
 -- персонаж игрока или бота (у бота S.char — модель NPC)
-function M.char(p: any): Model?
+function M.char(p: any): any
 	if type(p) == "table" and p.char then
 		return p.char
 	end
@@ -166,7 +166,7 @@ function M.char(p: any): Model?
 	return plr and plr.Character
 end
 
-function M.root(p: any): BasePart?
+function M.root(p: any): any
 	local char = M.char(p)
 	local r = char and char:FindFirstChild("HumanoidRootPart")
 	return if r and r:IsA("BasePart") then r else nil
