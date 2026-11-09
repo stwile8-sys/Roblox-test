@@ -102,8 +102,13 @@ local Driving = require(script.Parent:WaitForChild("Driving"))
 local Map = require(Shared:WaitForChild("Config"):WaitForChild("Map"))
 
 while ReplicatedStorage:GetAttribute("WorldReady") ~= true do
+	local err = ReplicatedStorage:GetAttribute("WorldError")
 	local p = ReplicatedStorage:GetAttribute("WorldProgress")
-	if type(p) == "number" then
+	if type(err) == "string" then
+		loadingStatus.Text = L.t("load.error") .. "\n" .. err
+		loadingStatus.TextColor3 = Kit.C.bad
+		loadingStatus.Size = UDim2.new(0, 600, 0, 120)
+	elseif type(p) == "number" then
 		loadingStatus.Text = L.t("load.world") .. "  " .. math.floor(p * 100) .. "%"
 	end
 	task.wait(0.25)

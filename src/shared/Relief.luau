@@ -156,7 +156,7 @@ local function outside(x: number, z: number): number
 	local h = BASE
 	if dzN > 0 then
 		local ramp = smooth(0, 700, dzN)
-		h += ramp * (ridged(x, z, 420, 11.1) ^ 1.4 * 420 + 30) + smooth(0, 120, dzN) * 10
+		h += ramp * (ridged(x, z, 420, 11.1) ^ 1.4 * 300 + 30) + smooth(0, 120, dzN) * 10
 	end
 	if dx > 0 then
 		h += smooth(0, 400, dx) * (fbm(x, z, 300, 12.2) + 0.6) * 40

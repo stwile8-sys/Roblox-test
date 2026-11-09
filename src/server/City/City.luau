@@ -703,6 +703,14 @@ function M.encode(c: CityState): string
 	return table.concat(grid)
 end
 
+-- После того как дальний ландшафт догенерировался — заново выровнять землю под городами
+function M.reflattenAll()
+	for index, c in cities do
+		Render.resetFlat(index)
+		Render.sync(index, c.data)
+	end
+end
+
 function M.forgetPlayer(player: Player)
 	sentVersion[player] = nil
 end

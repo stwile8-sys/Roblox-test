@@ -25,6 +25,7 @@ local Profiles = require(script.Parent.Data.Profiles)
 local PlayerState = require(script.Parent.PlayerState)
 local Tutorial = require(script.Parent.Tutorial)
 local MapBuilder = require(script.Parent.World.MapBuilder)
+local TerrainGen = require(script.Parent.World.TerrainGen)
 local HubBuilder = require(script.Parent.World.HubBuilder)
 local Jobs = require(script.Parent.Hub.Jobs)
 local Vehicles = require(script.Parent.Vehicles.Vehicles)
@@ -57,27 +58,67 @@ end
 ReplicatedStorage:SetAttribute("WorldId", worldId)
 print("Мир", worldId)
 
--- 2. Карта и хаб (ландшафт генерируется ~полминуты, клиент показывает прогресс)
+-- 2. Мир: постройки, ландшафт (центр — сразу, дальние земли — в фоне), системы.
+-- Любая ошибка видна на экране загрузки, а не «вечная загрузка».
 workspace.StreamingTargetRadius = 2048
 workspace.StreamingMinRadius = 256
 ReplicatedStorage:SetAttribute("WorldProgress", 0)
 local started = os.clock()
-local rng = Random.new(20261109)
-local world = MapBuilder.build(rng, function(p)
-	ReplicatedStorage:SetAttribute("WorldProgress", p)
+
+local function fail(stage: string, err: any)
+	local msg = stage .. ": " .. tostring(err)
+	warn("Ошибка постройки мира —", msg)
+	ReplicatedStorage:SetAttribute("WorldError", string.sub(msg, 1, 300))
+end
+
+local okBuild, errBuild = pcall(function()
+	local rng = Random.new(20261109)
+	local world = MapBuilder.build(rng)
+	HubBuilder.build(world)
 end)
-HubBuilder.build(world)
-print(string.format("Мир построен за %.1f с", os.clock() - started))
+if not okBuild then
+	fail("map", errBuild)
+end
+
+local coreReady = false
+task.spawn(function()
+	local ok, err = pcall(function()
+		TerrainGen.generate(function(p)
+			ReplicatedStorage:SetAttribute("WorldProgress", p)
+		end, 1400, function()
+			coreReady = true
+		end, function()
+			print(string.format("Весь ландшафт готов за %.1f с", os.clock() - started))
+			City.reflattenAll()
+		end)
+	end)
+	if not ok then
+		fail("terrain", err)
+		coreReady = true
+	end
+end)
+while not coreReady do
+	task.wait(0.2)
+end
+print(string.format("Центр мира готов за %.1f с", os.clock() - started))
 
 -- 3. Системы
-Vehicles.start()
-PlayerState.start()
-Jobs.start()
-City.start()
-Market.start(worldId)
-City.loadMembers(members)
-Profiles.startAutosave()
+local okSys, errSys = pcall(function()
+	Vehicles.start()
+	PlayerState.start()
+	Jobs.start()
+	City.start()
+	Market.start(worldId)
+	City.loadMembers(members)
+	Profiles.startAutosave()
+end)
+if not okSys then
+	fail("systems", errSys)
+end
 
+if not okBuild or not okSys then
+	return -- ошибка уже показана на экране загрузки
+end
 ReplicatedStorage:SetAttribute("WorldReady", true)
 Players.CharacterAutoLoads = true
 for _, p in Players:GetPlayers() do

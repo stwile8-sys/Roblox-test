@@ -9,7 +9,6 @@ local Shared = game.ReplicatedStorage.Shared
 local Map = require(Shared.Config.Map)
 local Relief = require(Shared.Relief)
 local B = require(script.Parent.Builders)
-local TerrainGen = require(script.Parent.TerrainGen)
 
 local M = {}
 
@@ -200,11 +199,9 @@ local function roadLine(parent: Instance, alongX: boolean, offset: number, from:
 	end
 end
 
-function M.build(rng: Random, progress: (number) -> ()): Folder
+-- Постройки мира (ландшафт генерирует TerrainGen отдельно)
+function M.build(rng: Random): Folder
 	sky()
-	TerrainGen.generate(function(p)
-		progress(p * 0.85)
-	end)
 
 	local world = Instance.new("Folder")
 	world.Name = "World"
@@ -246,7 +243,6 @@ function M.build(rng: Random, progress: (number) -> ()): Folder
 	for _ = 1, 200 do
 		tree(rng:NextNumber(-2800, 2800), rng:NextNumber(-3300, -2900))
 	end
-	progress(0.9)
 
 	-- участки
 	local plots = Instance.new("Folder")
@@ -286,7 +282,6 @@ function M.build(rng: Random, progress: (number) -> ()): Folder
 		local city = Instance.new("Folder")
 		city.Name = "City"
 		city.Parent = model
-		progress(0.9 + 0.1 * p.index / #Map.plots)
 	end
 
 	return world

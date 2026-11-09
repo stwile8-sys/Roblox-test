@@ -355,6 +355,23 @@ end
 
 M.areaLevel = areaLevel
 
+-- Ландшафт перегенерирован (дальние куски дописались позже) — выровнять всё заново
+function M.resetFlat(index: number)
+	local v = views[index]
+	if v then
+		v.flat = {}
+		v.roadKey = ""
+		for _, model in v.grown do
+			model:Destroy()
+		end
+		v.grown = {}
+		for _, model in v.special do
+			model:Destroy()
+		end
+		v.special = {}
+	end
+end
+
 function M.clearDecor(index: number)
 	local plots = workspace:FindFirstChild("World") and workspace.World:FindFirstChild("Plots")
 	local model = plots and plots:FindFirstChild("Plot_" .. index)
