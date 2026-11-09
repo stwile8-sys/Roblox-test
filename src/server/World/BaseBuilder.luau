@@ -35,6 +35,47 @@ local function solid(parent: Instance, props: { [string]: any }): BasePart
 	return p
 end
 
+
+-- Милый парящий остров: травяной диск сверху и сужающийся вниз земляной конус из цилиндров
+local function floatingIsland(parent: Instance, center: Vector3, radius: number, seed: number)
+	local rng = Random.new(seed)
+	local grass = Instance.new("Part")
+	grass.Anchored = true
+	grass.CanCollide = false
+	grass.CanQuery = false
+	grass.CanTouch = false
+	grass.CastShadow = false
+	grass.Shape = Enum.PartType.Cylinder
+	grass.Size = Vector3.new(3, radius * 2, radius * 2)
+	grass.CFrame = CFrame.new(center + Vector3.new(0, -1.5, 0)) * CFrame.Angles(0, 0, math.pi / 2)
+	grass.Color = Color3.fromHex("#7DD87A")
+	grass.Material = Enum.Material.SmoothPlastic
+	grass.Parent = parent
+	local layers = { { "#E2B98A", 0.92, 6 }, { "#D4A574", 0.74, 8 }, { "#C29166", 0.52, 9 }, { "#AE7F5A", 0.3, 10 } }
+	local y = -3
+	for _, l in layers do
+		local h = l[3]
+		local p = grass:Clone()
+		p.Size = Vector3.new(h, radius * 2 * l[2], radius * 2 * l[2])
+		p.CFrame = CFrame.new(center + Vector3.new(0, y - h / 2, 0)) * CFrame.Angles(0, 0, math.pi / 2)
+		p.Color = Color3.fromHex(l[1])
+		p.Parent = parent
+		y -= h
+	end
+	-- пастельные кристаллы снизу
+	for i = 1, 5 do
+		local a = i / 5 * math.pi * 2 + rng:NextNumber(0, 1)
+		local r = radius * rng:NextNumber(0.2, 0.5)
+		local c = grass:Clone()
+		c.Shape = Enum.PartType.Block
+		c.Size = Vector3.new(3, rng:NextNumber(6, 12), 3)
+		c.CFrame = CFrame.new(center + Vector3.new(math.cos(a) * r, y + 4, math.sin(a) * r)) * CFrame.Angles(math.pi + rng:NextNumber(-0.3, 0.3), a, rng:NextNumber(-0.3, 0.3))
+		c.Color = if i % 2 == 0 then Color3.fromHex("#8FF0FF") else Color3.fromHex("#C9B3FF")
+		c.Material = Enum.Material.Neon
+		c.Parent = parent
+	end
+end
+
 function M.baseCFrame(index: number): CFrame
 	local a = math.rad((index - 1) * 45)
 	local pos = Vector3.new(math.sin(a) * R, 0, math.cos(a) * R)
@@ -54,9 +95,9 @@ for i = 1, 3 do
 end
 
 local WALL_STYLE = {
-	{ color = Palette.wood, mat = Enum.Material.WoodPlanks, trim = Color3.fromHex("#5C3A1E"), trimMat = Enum.Material.Wood },
-	{ color = Palette.stone, mat = Enum.Material.Cobblestone, trim = Color3.fromHex("#9C8660"), trimMat = Enum.Material.Slate },
-	{ color = Color3.fromHex("#9AA4B0"), mat = Enum.Material.DiamondPlate, trim = Color3.fromHex("#6B7480"), trimMat = Enum.Material.Metal },
+	{ color = Color3.fromHex("#E0A96D"), mat = Enum.Material.WoodPlanks, trim = Color3.fromHex("#B5764A"), trimMat = Enum.Material.Wood },
+	{ color = Color3.fromHex("#D9D2C5"), mat = Enum.Material.SmoothPlastic, trim = Color3.fromHex("#B8AE9C"), trimMat = Enum.Material.SmoothPlastic },
+	{ color = Color3.fromHex("#B9C6D6"), mat = Enum.Material.SmoothPlastic, trim = Color3.fromHex("#8FA0B5"), trimMat = Enum.Material.Metal },
 	{ color = Palette.steel, mat = Enum.Material.Metal, trim = Palette.gold, trimMat = Enum.Material.Metal },
 	{ color = Palette.chrono, mat = Enum.Material.ForceField, trim = Color3.fromHex("#E0FBFF"), trimMat = Enum.Material.Neon },
 }
@@ -173,7 +214,7 @@ local function pedestal(parent: Instance, name: string, cf: CFrame, rich: boolea
 	local m = Instance.new("Model")
 	m.Name = name
 	m.Parent = parent
-	solid(m, { Size = Vector3.new(7, 1, 7), CFrame = cf * CFrame.new(0, 0.5, 0), Color = Palette.stone, Material = Enum.Material.Slate })
+	solid(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, 7.5, 7.5), CFrame = cf * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
 	local col = solid(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 5, 5), CFrame = cf * CFrame.new(0, 2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = if rich then Palette.gold else Palette.wood, Material = if rich then Enum.Material.Metal else Enum.Material.Wood })
 	col.Name = "Column"
 	local top = solid(m, { Name = "Top", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.6, 5.6, 5.6), CFrame = cf * CFrame.new(0, 3.3, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.gold, Material = Enum.Material.Metal })
@@ -187,7 +228,7 @@ local function pedestal(parent: Instance, name: string, cf: CFrame, rich: boolea
 end
 
 -- ── Конвейер ────────────────────────────────────────────────
-local function belt(parent: Instance, name: string, cf: CFrame, z: number, y: number)
+function M.belt(parent: Instance, name: string, cf: CFrame, z: number, y: number)
 	local b = solid(parent, {
 		Name = name,
 		Size = Vector3.new(92, 1.2, 6),
@@ -228,6 +269,8 @@ local function belt(parent: Instance, name: string, cf: CFrame, z: number, y: nu
 	pe.Parent = b
 	return b
 end
+local belt = M.belt
+local _belt = belt
 
 -- ── Сборка базы ─────────────────────────────────────────────
 function M.build(index: number): Model
@@ -239,31 +282,12 @@ function M.build(index: number): Model
 	local folder = workspace:FindFirstChild("Bases")
 	base.Parent = folder
 
-	local floor = solid(base, { Name = "Floor", Size = Vector3.new(120, 4, 120), CFrame = cf * CFrame.new(0, -2, 0), Color = Color3.fromHex("#6E5B45"), Material = Enum.Material.WoodPlanks })
+	local floor = solid(base, { Name = "Floor", Size = Vector3.new(120, 4, 120), CFrame = cf * CFrame.new(0, -2, 0), Color = Color3.fromHex("#8EDB7E"), Material = Enum.Material.SmoothPlastic })
 	base.PrimaryPart = floor
 	-- узор на полу и дорожка к воротам
-	mk(base, { Size = Vector3.new(14, 0.1, 30), CFrame = cf * CFrame.new(0, 0.05, -44), Color = Palette.stone, Material = Enum.Material.Slate })
-	mk(base, { Size = Vector3.new(100, 0.1, 40), CFrame = cf * CFrame.new(0, 0.05, 33), Color = Color3.fromHex("#5A4836"), Material = Enum.Material.Wood })
-	-- скала под базой
-	for i = 1, 7 do
-		local a = i / 7 * math.pi * 2
-		mk(base, {
-			Size = Vector3.new(rng:NextNumber(30, 50), rng:NextNumber(20, 40), rng:NextNumber(30, 50)),
-			CFrame = cf * CFrame.new(math.cos(a) * 30, -16 - rng:NextNumber(0, 10), math.sin(a) * 30) * CFrame.Angles(rng:NextNumber(0, 0.6), rng:NextNumber(0, 3), rng:NextNumber(0, 0.6)),
-			Color = Color3.fromHex("#4A4060"),
-			Material = Enum.Material.Rock,
-		})
-	end
-	mk(base, { Size = Vector3.new(50, 40, 50), CFrame = cf * CFrame.new(0, -38, 0) * CFrame.Angles(0.3, 0.7, 0.2), Color = Color3.fromHex("#3B3350"), Material = Enum.Material.Rock })
-	for i = 1, 4 do
-		local c = mk(base, {
-			Size = Vector3.new(3, rng:NextNumber(6, 12), 3),
-			CFrame = cf * CFrame.new(rng:NextNumber(-40, 40), -30 - rng:NextNumber(0, 10), rng:NextNumber(-40, 40)) * CFrame.Angles(math.pi, 0, rng:NextNumber(-0.4, 0.4)),
-			Color = Palette.chrono,
-			Material = Enum.Material.Neon,
-		})
-		CollectionService:AddTag(c, "Pulse")
-	end
+	mk(base, { Size = Vector3.new(14, 0.1, 30), CFrame = cf * CFrame.new(0, 0.05, -44), Color = Color3.fromHex("#F3E2C4"), Material = Enum.Material.SmoothPlastic })
+	mk(base, { Size = Vector3.new(100, 0.1, 40), CFrame = cf * CFrame.new(0, 0.05, 33), Color = Color3.fromHex("#F6D7A7"), Material = Enum.Material.WoodPlanks })
+	floatingIsland(base, cf.Position + Vector3.new(0, -0.4, 0), 88, index * 7)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "Spawn"
@@ -306,7 +330,6 @@ function M.build(index: number): Model
 		pedestal(peds, "P" .. i, cf * CFrame.new(x, 0, z), false)
 	end
 
-	belt(base, "Belt", cf, 5, 0)
 
 	local collect = mk(base, { Name = "Collect", Size = Vector3.new(10, 0.4, 10), CFrame = cf * CFrame.new(0, 0.2, -22), Color = Palette.gold, Material = Enum.Material.Neon, Transparency = 0.2 })
 	collect.CanTouch = true
@@ -435,8 +458,6 @@ function M.setSecondFloor(base: any, on: boolean)
 	for i = 0, 21 do
 		solid(f2, { Size = Vector3.new(8, 1, 2), CFrame = cf * CFrame.new(51, i * 1 + 0.5, -34 + i * 2), Color = Palette.wood, Material = Enum.Material.Wood })
 	end
-	local b2 = belt(f2, "Belt2", cf, 14, y)
-	b2.Name = "Belt2"
 	local xs = { -36, -18, 0, 18, 36 }
 	for i = 11, 20 do
 		local x = xs[(i - 11) % 5 + 1]
@@ -488,7 +509,7 @@ function M.setTrap(base: any, slot: number, kind: string?, skin: string?)
 		local holder = mk(f, { Size = Vector3.new(1, 1, 1), CFrame = cf * CFrame.new(0, 1, 0), Transparency = 1 })
 		pe.Parent = holder
 	elseif kind == "decoy" then
-		mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, 4.6, 4.6), CFrame = cf * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.stone, Material = Enum.Material.Slate })
+		mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, 4.6, 4.6), CFrame = cf * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
 	end
 end
 

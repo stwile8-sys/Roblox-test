@@ -6,24 +6,27 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Palette = require(ReplicatedStorage:WaitForChild("Shared").Config.Palette)
+local _Palette = require(ReplicatedStorage:WaitForChild("Shared").Config.Palette)
 
 local M: any = {}
 
+-- Светлая «игрушечная» тема: кремовые панели, тёмный контур, яркие кнопки
 M.C = {
-	bg = Color3.fromHex("#1A1A2E"),
-	panel = Color3.fromHex("#25254A"),
-	panel2 = Color3.fromHex("#33336A"),
-	line = Color3.fromHex("#4B4B8A"),
-	text = Color3.fromHex("#FFFFFF"),
-	dim = Color3.fromHex("#B8B8D8"),
-	gold = Palette.gold,
-	orange = Palette.orange,
-	chrono = Palette.chrono,
-	thief = Palette.thief,
-	alarm = Palette.alarm,
-	ok = Palette.success,
-	grey = Color3.fromHex("#6C6C88"),
+	bg = Color3.fromHex("#FFF8EC"),
+	panel = Color3.fromHex("#FFFFFF"),
+	panel2 = Color3.fromHex("#F1E8FF"),
+	line = Color3.fromHex("#2A2140"),
+	soft = Color3.fromHex("#E4DCF2"),
+	text = Color3.fromHex("#2A2140"),
+	dim = Color3.fromHex("#6B6380"),
+	white = Color3.new(1, 1, 1),
+	gold = Color3.fromHex("#E09A00"),
+	orange = Color3.fromHex("#F08A24"),
+	chrono = Color3.fromHex("#0FA3C4"),
+	thief = Color3.fromHex("#8B5CF6"),
+	alarm = Color3.fromHex("#F0436A"),
+	ok = Color3.fromHex("#2DB84D"),
+	grey = Color3.fromHex("#9A93AD"),
 }
 
 M.FONT = Enum.Font.GothamBold
@@ -97,13 +100,13 @@ function M.label(props: { [string]: any }): TextLabel
 end
 
 local KIND = {
-	buy = { Palette.success, Color3.fromHex("#0B2A06") },
-	gold = { Palette.gold, Color3.fromHex("#3A2A00") },
-	chrono = { Palette.chrono, Color3.fromHex("#00303A") },
-	danger = { Palette.alarm, Color3.new(1, 1, 1) },
-	cancel = { Color3.fromHex("#5A5A78"), Color3.new(1, 1, 1) },
-	plain = { Color3.fromHex("#33336A"), Color3.new(1, 1, 1) },
-	thief = { Palette.thief, Color3.new(1, 1, 1) },
+	buy = { Color3.fromHex("#4CD964"), Color3.new(1, 1, 1) },
+	gold = { Color3.fromHex("#FFC93C"), Color3.fromHex("#2A2140") },
+	chrono = { Color3.fromHex("#3EC9F5"), Color3.new(1, 1, 1) },
+	danger = { Color3.fromHex("#FF5C7A"), Color3.new(1, 1, 1) },
+	cancel = { Color3.fromHex("#D6D0E4"), Color3.fromHex("#2A2140") },
+	plain = { Color3.fromHex("#EDE6FF"), Color3.fromHex("#2A2140") },
+	thief = { Color3.fromHex("#8B5CF6"), Color3.new(1, 1, 1) },
 }
 
 function M.button(text: string, kind: string?, props: { [string]: any }?, onClick: (() -> ())?): TextButton
@@ -124,7 +127,11 @@ function M.button(text: string, kind: string?, props: { [string]: any }?, onClic
 			base[key] = v
 		end
 	end
-	local b = M.new("TextButton", base, { M.corner(14) })
+	local b = M.new("TextButton", base, { M.corner(14), M.stroke(M.C.line, 3) })
+	if k[2] == Color3.new(1, 1, 1) then
+		b.TextStrokeColor3 = M.C.line
+		b.TextStrokeTransparency = 0.4
+	end
 	if onClick then
 		b.Activated:Connect(function()
 			M.click(b)
@@ -151,7 +158,7 @@ function M.iconButton(icon: string, color: Color3, size: number, props: { [strin
 			base[key] = v
 		end
 	end
-	local b = M.new("TextButton", base, { M.corner(size), M.stroke(Color3.new(1, 1, 1), 3), M.new("UIPadding", {
+	local b = M.new("TextButton", base, { M.corner(size), M.stroke(M.C.line, 4), M.new("UIPadding", {
 		PaddingTop = UDim.new(0.18, 0),
 		PaddingBottom = UDim.new(0.18, 0),
 		PaddingLeft = UDim.new(0.18, 0),
@@ -179,7 +186,7 @@ function M.scroll(props: { [string]: any }, children: { Instance }?): ScrollingF
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 6,
-		ScrollBarImageColor3 = M.C.line,
+		ScrollBarImageColor3 = M.C.grey,
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		CanvasSize = UDim2.new(),
 		ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -231,9 +238,9 @@ function M.window(parent: Instance, titleText: string, heightScale: number?): (F
 		Visible = false,
 		ZIndex = 20,
 		Parent = parent,
-	}, { M.corner(22), M.stroke(M.C.chrono, 2) })
+	}, { M.corner(22), M.stroke(M.C.line, 4) })
 	local title = M.label({ Text = titleText, Font = M.BLACK, TextSize = 26, Position = UDim2.fromOffset(16, 12), Size = UDim2.new(1, -100, 0, 34), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 21, Parent = win })
-	M.button("✕", "cancel", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(48, 48), TextSize = 22, ZIndex = 21, Parent = win }, function()
+	M.button("X", "cancel", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(48, 48), TextSize = 22, ZIndex = 21, Parent = win }, function()
 		M.close(win)
 	end)
 	local body = M.frame({ Name = "Body", BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 62), Size = UDim2.new(1, -20, 1, -70), ZIndex = 21, Parent = win })
@@ -310,7 +317,7 @@ function M.creature(id: string, props: { [string]: any }, silhouette: boolean?):
 	local Build = require(ReplicatedStorage.Shared.Art.Build)
 	local vp = M.new("ViewportFrame", {
 		BackgroundTransparency = 1,
-		Ambient = Color3.fromRGB(200, 200, 220),
+		Ambient = Color3.fromRGB(230, 225, 240),
 		LightColor = Color3.new(1, 1, 1),
 		LightDirection = Vector3.new(-1, -1, -1),
 	})

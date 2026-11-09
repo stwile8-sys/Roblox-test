@@ -36,16 +36,25 @@ Kit.new("UIStroke", { Thickness = 22, Color = C.alarm, Transparency = 0.4, Paren
 Fx.vignette = vignette
 
 -- ── Верх: валюты ────────────────────────────────────────────
-local function pill(icon: string, color: Color3, pos: UDim2, anchor: Vector2?): TextLabel
-	local f = Kit.frame({ Position = pos, AnchorPoint = anchor or Vector2.zero, Size = UDim2.fromOffset(150, 40), BackgroundColor3 = Color3.fromRGB(15, 15, 30), BackgroundTransparency = 0.25, Parent = root }, { Kit.corner(20), Kit.stroke(color, 2) })
-	Kit.label({ Text = icon, TextScaled = true, Size = UDim2.fromOffset(30, 30), Position = UDim2.fromOffset(6, 5), Parent = f })
-	return Kit.label({ Text = "0", Font = Kit.BLACK, TextSize = 21, TextColor3 = color, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(40, 0), Size = UDim2.new(1, -44, 1, 0), Parent = f })
+-- подпись поверх 3D-мира: белая с тёмным контуром
+local function cap(l: TextLabel): TextLabel
+	l.TextColor3 = C.white
+	l.TextStrokeColor3 = C.line
+	l.TextStrokeTransparency = 0
+	return l
 end
 
-local cashL = pill("💰", C.gold, UDim2.fromOffset(12, 56))
-local shardL = pill("💎", C.chrono, UDim2.fromOffset(170, 56))
+local function pill(icon: string, color: Color3, pos: UDim2, anchor: Vector2?): TextLabel
+	local f = Kit.frame({ Position = pos, AnchorPoint = anchor or Vector2.zero, Size = UDim2.fromOffset(140, 40), BackgroundColor3 = C.bg, Parent = root }, { Kit.corner(20), Kit.stroke(C.line, 3) })
+	Kit.frame({ Size = UDim2.fromOffset(40, 40), BackgroundColor3 = color, Parent = f }, { Kit.corner(20), Kit.stroke(C.line, 3) })
+	Kit.label({ Text = icon, TextScaled = true, Size = UDim2.fromOffset(28, 28), Position = UDim2.fromOffset(6, 6), ZIndex = 2, Parent = f })
+	return Kit.label({ Text = "0", Font = Kit.BLACK, TextSize = 21, TextColor3 = C.text, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.new(1, -52, 1, 0), Parent = f })
+end
+
+local cashL = pill("💰", Color3.fromHex("#FFC93C"), UDim2.fromOffset(12, 56))
+local shardL = pill("💎", Color3.fromHex("#8FF0FF"), UDim2.fromOffset(160, 56))
 local energyL = pill("⚡", Color3.fromHex("#FFE066"), UDim2.new(1, -12, 0, 10), Vector2.new(1, 0))
-local incomeL = Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 100), Size = UDim2.fromOffset(240, 20), Parent = root })
+local incomeL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 100), Size = UDim2.fromOffset(240, 20), Parent = root }))
 
 State.on("cash", function(v)
 	cashL.Text = L.money(v)
@@ -56,12 +65,12 @@ end)
 State.on("income", function(v)
 	incomeL.Text = "+" .. L.money(v.now) .. "/с" .. (if v.mult > 1 then "  ×" .. string.format("%.1f", v.mult) else "")
 end)
-local energyNext = Kit.label({ Text = "", TextSize = 16, TextColor3 = C.dim, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -170, 0, 20), Size = UDim2.fromOffset(150, 20), TextXAlignment = Enum.TextXAlignment.Right, Parent = root })
+local energyNext = cap(Kit.label({ Text = "", TextSize = 16, TextColor3 = C.dim, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -170, 0, 20), Size = UDim2.fromOffset(150, 20), TextXAlignment = Enum.TextXAlignment.Right, Parent = root }))
 task.spawn(function()
 	while true do
 		local e = State.s.energy
 		if e then
-			energyL.Text = e.n .. "/" .. e.max
+			energyL.Text = if e.n > e.max then tostring(e.n) else e.n .. "/" .. e.max
 			if e.n < e.max then
 				local left = Game.ENERGY_REGEN - (os.time() - e.t) % Game.ENERGY_REGEN
 				energyNext.Text = "+1 через " .. L.duration(left)
@@ -96,26 +105,26 @@ local _m = menuB
 -- ── Низ: Сканер / Ребёрс / Действие ─────────────────────────
 -- подняты над стиком и прыжком Roblox
 local BOTTOM = -150
-local scanB = Kit.iconButton("📡", C.thief, 66, { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, -10), Parent = root }, function()
+local scanB = Kit.iconButton("📡", Color3.fromHex("#8B5CF6"), 66, { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, -10), Parent = root }, function()
 	if M.onScan then
 		M.onScan()
 	end
 end)
-Kit.label({ Text = "Сканер", TextSize = 14, Position = UDim2.fromOffset(0, 68), Size = UDim2.new(1, 0, 0, 20), Parent = scanB })
+cap(Kit.label({ Text = "Сканер", TextSize = 15, Position = UDim2.new(0, -20, 0, 70), Size = UDim2.new(1, 40, 0, 20), Parent = scanB }))
 
-local rebirthB = Kit.iconButton("🌀", C.chrono, 60, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -128, 1, -40), Parent = root }, function()
+local rebirthB = Kit.iconButton("🌀", Color3.fromHex("#3EC9F5"), 60, { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 17, 0.5, 92), Parent = root }, function()
 	if M.onRebirth then
 		M.onRebirth()
 	end
 end)
-Kit.label({ Text = "Ребёрс", TextSize = 14, Position = UDim2.new(0, -10, 0, 62), Size = UDim2.new(1, 20, 0, 18), Parent = rebirthB })
+cap(Kit.label({ Text = "Ребёрс", TextSize = 15, Position = UDim2.new(0, -24, 0, 64), Size = UDim2.new(1, 48, 0, 18), Parent = rebirthB }))
 State.on("rebirths", function(v)
 	rebirthB.Visible = v.req ~= nil
 	Kit.pulse(rebirthB, v.can == true)
 end)
 
-local actionB = Kit.iconButton("🔒", C.gold, 78, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -22, 1, BOTTOM), Parent = root })
-local actionL = Kit.label({ Text = "Замок", TextSize = 14, Position = UDim2.new(0, -10, 0, 80), Size = UDim2.new(1, 20, 0, 18), Parent = actionB })
+local actionB = Kit.iconButton("🔒", Color3.fromHex("#FFC93C"), 78, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -22, 1, BOTTOM), Parent = root })
+local actionL = cap(Kit.label({ Text = "Замок", TextSize = 15, Position = UDim2.new(0, -20, 0, 82), Size = UDim2.new(1, 40, 0, 18), Parent = actionB }))
 local actionCd = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 28, Size = UDim2.fromScale(1, 1), ZIndex = 3, Parent = actionB })
 actionB.Activated:Connect(function()
 	Kit.click(actionB)
@@ -140,10 +149,10 @@ end)
 M.actionB = actionB
 
 local ACTION = {
-	lock = { "🔒", C.gold, "Замок" },
-	hack = { "⛏️", C.alarm, "Взлом" },
-	bat = { "🏏", C.orange, "Удар" },
-	cage = { "⛏️", C.thief, "Клетка" },
+	lock = { "🔒", Color3.fromHex("#FFC93C"), "Замок" },
+	hack = { "⛏️", Color3.fromHex("#FF5C7A"), "Взлом" },
+	bat = { "🏏", Color3.fromHex("#FF9F43"), "Удар" },
+	cage = { "⛏️", Color3.fromHex("#8B5CF6"), "Клетка" },
 	none = { "🏃", C.grey, "" },
 }
 function M.setAction(kind: string, cd: number?)
@@ -155,7 +164,7 @@ function M.setAction(kind: string, cd: number?)
 end
 
 -- таймер рейда (несёшь добычу)
-local raidBar = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12), Size = UDim2.fromOffset(280, 46), BackgroundColor3 = C.thief, Visible = false, Parent = root }, { Kit.corner(16), Kit.stroke(Color3.new(1, 1, 1), 2) })
+local raidBar = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12), Size = UDim2.fromOffset(280, 46), BackgroundColor3 = Color3.fromHex("#8B5CF6"), Visible = false, Parent = root }, { Kit.corner(16), Kit.stroke(C.line, 3) })
 local raidL = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 22, Size = UDim2.fromScale(1, 1), Parent = raidBar })
 task.spawn(function()
 	while true do
@@ -173,17 +182,17 @@ State.on("carry", function(c)
 end)
 
 -- плита сбора: сколько накопилось
-local pendingL = Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 22), Parent = root })
+local pendingL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 22), Parent = root }))
 State.on("pending", function(v)
 	pendingL.Text = if v > 0 then "На плите: " .. L.money(v) .. " — встань на неё" else ""
 end)
 
 -- ── Тосты ───────────────────────────────────────────────────
 local toastHolder = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 64), Size = UDim2.fromOffset(380, 160), Parent = root }, { Kit.list(nil, 6) })
-local TOAST = { good = C.ok, bad = C.alarm, gold = C.gold, info = C.chrono }
+local TOAST = { good = C.ok, bad = C.alarm, gold = C.gold, info = C.text }
 function M.toast(text: string, kind: string?)
 	local col = TOAST[kind or "info"] or C.chrono
-	local f = Kit.frame({ Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = Color3.fromRGB(15, 15, 30), BackgroundTransparency = 0.1, Parent = toastHolder }, { Kit.corner(14), Kit.stroke(col, 2) })
+	local f = Kit.frame({ Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = C.bg, Parent = toastHolder }, { Kit.corner(14), Kit.stroke(C.line, 3) })
 	Kit.label({ Text = text, TextSize = 18, TextColor3 = col, Size = UDim2.fromScale(1, 1), Parent = f })
 	Kit.pop(f)
 	task.delay(2.6, function()
@@ -199,10 +208,10 @@ Net.event("Notify").OnClientEvent:Connect(function(key, args, kind)
 end)
 
 -- ── Попапы ──────────────────────────────────────────────────
-local popupWin = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45), Size = UDim2.fromOffset(400, 340), Visible = false, ZIndex = 40, Parent = root }, { Kit.corner(24), Kit.stroke(Color3.new(1, 1, 1), 3) })
-local popTitle = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 30, Position = UDim2.fromOffset(10, 12), Size = UDim2.new(1, -20, 0, 40), ZIndex = 41, Parent = popupWin })
+local popupWin = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45), Size = UDim2.fromOffset(400, 340), Visible = false, ZIndex = 40, Parent = root }, { Kit.corner(24), Kit.stroke(C.line, 4) })
+local popTitle = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 30, Position = UDim2.fromOffset(10, 12), Size = UDim2.new(1, -20, 0, 40), ZIndex = 41, Parent = popupWin }))
 local popArt = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.new(0.5, -60, 0, 54), Size = UDim2.fromOffset(120, 110), ZIndex = 41, Parent = popupWin })
-local popText = Kit.label({ Text = "", TextSize = 22, Position = UDim2.fromOffset(16, 166), Size = UDim2.new(1, -32, 0, 86), ZIndex = 41, Parent = popupWin })
+local popText = cap(Kit.label({ Text = "", TextSize = 22, Position = UDim2.fromOffset(16, 166), Size = UDim2.new(1, -32, 0, 86), ZIndex = 41, Parent = popupWin }))
 local popButtons = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.new(1, -24, 0, 60), ZIndex = 41, Parent = popupWin }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
 local queue = {}
 local showing = false
@@ -254,7 +263,7 @@ M.onTradeInvite = nil :: ((any) -> ())?
 
 local POP: { [string]: (any) -> () } = {
 	robbed = function(d)
-		M.popup({ title = "Вас обокрали!", color = C.alarm, art = d.id, text = artName(d.id) .. (if d.thief ~= "" then "\nВор: " .. d.thief else ""), buttons = {
+		M.popup({ title = "Вас обокрали!", color = Color3.fromHex("#FF5C7A"), art = d.id, text = artName(d.id) .. (if d.thief ~= "" then "\nВор: " .. d.thief else ""), buttons = {
 			{ "Отомстить", "gold", function()
 				State.act("revenge", { thiefId = d.thiefId })
 			end },
@@ -262,7 +271,7 @@ local POP: { [string]: (any) -> () } = {
 		} })
 	end,
 	stealOk = function(d)
-		M.popup({ title = "Успешная кража!", color = Color3.fromHex("#C9A227"), art = d.id, text = artName(d.id) .. (if d.bonus and d.bonus > 0 then "\nКлановый бонус +" .. L.money(d.bonus) else ""), buttons = { { "Забрать", "buy" } } })
+		M.popup({ title = "Успешная кража!", color = Color3.fromHex("#FFB400"), art = d.id, text = artName(d.id) .. (if d.bonus and d.bonus > 0 then "\nКлановый бонус +" .. L.money(d.bonus) else ""), buttons = { { "Забрать", "buy" } } })
 	end,
 	achievement = function(d)
 		local name = d.id
@@ -271,12 +280,12 @@ local POP: { [string]: (any) -> () } = {
 				name = L.name(a.name)
 			end
 		end
-		M.popup({ title = "Достижение!", color = Color3.fromHex("#C9A227"), icon = "🏆", text = name .. "\n+" .. d.shards .. " 💎" })
+		M.popup({ title = "Достижение!", color = Color3.fromHex("#FFB400"), icon = "🏆", text = name .. "\n+" .. d.shards .. " 💎" })
 	end,
 	daily = function(d)
 		local r = Game.STREAK[d.day] or {}
 		local what = if r.art then "Редкий артефакт!" elseif r.shards then "+" .. r.shards .. " 💎" elseif r.tokens then "+" .. r.tokens .. " 🔨" else "Мешок денег 💰"
-		M.popup({ title = "День " .. d.day .. " из 7", color = C.chrono, icon = "🎁", text = what, buttons = { { "Открыть", "gold", function()
+		M.popup({ title = "День " .. d.day .. " из 7", color = Color3.fromHex("#3EC9F5"), icon = "🎁", text = what, buttons = { { "Открыть", "gold", function()
 			State.act("streakClaim")
 		end } } })
 	end,
@@ -288,23 +297,23 @@ local POP: { [string]: (any) -> () } = {
 		M.popup({ title = if d.robbed and #d.robbed > 0 then "Вас обокрали!" else "С возвращением!", color = if d.robbed and #d.robbed > 0 then C.alarm else Color3.fromHex("#C9A227"), art = d.robbed and d.robbed[1] and d.robbed[1].id, icon = "💰", text = text })
 	end,
 	defended = function(d)
-		M.popup({ title = "Защита!", color = C.chrono, icon = "🛡️", text = (if d.decoy then "Вор попался на приманку!" else "Вор пойман!") .. (if d.thief and d.thief ~= "" then "\n" .. d.thief else "") })
+		M.popup({ title = "Защита!", color = Color3.fromHex("#3EC9F5"), icon = "🛡️", text = (if d.decoy then "Вор попался на приманку!" else "Вор пойман!") .. (if d.thief and d.thief ~= "" then "\n" .. d.thief else "") })
 	end,
 	raidFail = function(d)
 		local why = ({ caught = "Тебя поймали!", trap = "Ловушка!", decoy = "Это была приманка!", timeout = "Время вышло", fell = "Ты упал" })[d.reason] or "Провал"
-		M.popup({ title = why, color = C.alarm, icon = "💫", text = "−1 ⚡, инструменты на 60 сек" })
+		M.popup({ title = why, color = Color3.fromHex("#FF5C7A"), icon = "💫", text = "−1 ⚡, инструменты на 60 сек" })
 	end,
 	stealCancelled = function(d)
-		M.popup({ title = "Кража отменена", color = C.grey, icon = "↩️", text = "Хозяин вернулся.\nКомпенсация: " .. L.money(d.cash or 0) })
+		M.popup({ title = "Кража отменена", color = Color3.fromHex("#9A93AD"), icon = "↩️", text = "Хозяин вернулся.\nКомпенсация: " .. L.money(d.cash or 0) })
 	end,
 	purchased = function(d)
-		M.popup({ title = "Спасибо!", color = C.ok, icon = "🎉", text = (if d.test then "[тест] " else "") .. "Покупка получена" })
+		M.popup({ title = "Спасибо!", color = Color3.fromHex("#4CD964"), icon = "🎉", text = (if d.test then "[тест] " else "") .. "Покупка получена" })
 	end,
 	alarm = function(d)
 		M.toast(if d.thief ~= "" then L.t(d.key) .. " (" .. d.thief .. ")" else L.t(d.key), "bad")
 	end,
 	tradeInvite = function(d)
-		M.popup({ title = "Обмен", color = C.thief, icon = "🤝", text = d.from .. " хочет обменяться", buttons = {
+		M.popup({ title = "Обмен", color = Color3.fromHex("#8B5CF6"), icon = "🤝", text = d.from .. " хочет обменяться", buttons = {
 			{ "Да", "buy", function()
 				State.act("tradeAccept")
 			end },
@@ -340,7 +349,7 @@ arrow.TextureSpeed = 2
 arrow.Texture = "rbxasset://textures/ui/ArrowRightThin.png"
 arrow.Enabled = false
 arrow.Parent = workspace.Terrain
-local hint = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 34, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 62), Size = UDim2.fromOffset(300, 44), Visible = false, Parent = root })
+local hint = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 34, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 62), Size = UDim2.fromOffset(300, 44), Visible = false, Parent = root }))
 
 M.onTutorial = function(d)
 	local step = d.step

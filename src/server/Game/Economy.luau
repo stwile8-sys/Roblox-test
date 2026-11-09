@@ -188,8 +188,12 @@ function M.randomOf(rarity: string): string
 	return list[math.random(1, #list)]
 end
 
+-- общий конвейер на хабе (как отдельная «база» без владельца)
+local HUB = { index = 0, ownerId = 0, belt = {}, model = nil :: any }
+M.HUB = HUB
+
 local function beltEnds(B: any, which: string): (Vector3?, Vector3?)
-	local belt = if which == "Belt2" then (B.model:FindFirstChild("Floor2") and B.model.Floor2:FindFirstChild("Belt2", true)) else B.model:FindFirstChild("Belt")
+	local belt = B.model and B.model:FindFirstChild(which)
 	if not belt then
 		return nil, nil
 	end
@@ -261,7 +265,7 @@ function M.clearBelt(B: any)
 end
 
 function M.buyFromBelt(S: any, B: any, item: any)
-	if S.B ~= B then
+	if B ~= HUB and S.B ~= B then
 		Ctx.notify(S, "msg.notYourBelt", nil, "bad")
 		return
 	end
@@ -695,28 +699,18 @@ function M.init()
 			end
 		end
 	end)
-	-- конвейеры
+	-- общий конвейер на хабе
+	HUB.model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Hub")
 	task.spawn(function()
 		local acc = 0
 		while true do
 			task.wait(0.25)
 			acc += 0.25
-			for _, B in Ctx.bases do
-				if B.kind == "online" or B.kind == "bot" then
-					moveBelt(B)
-				elseif #B.belt > 0 then
-					M.clearBelt(B)
-				end
-			end
+			moveBelt(HUB)
 			if acc >= Game.BELT_EVERY then
 				acc = 0
-				for _, B in Ctx.bases do
-					if B.kind == "online" then
-						spawnBelt(B, "Belt")
-						if B.floor2 then
-							spawnBelt(B, "Belt2")
-						end
-					end
+				if next(Ctx.sessions) then
+					spawnBelt(HUB, "Belt")
 				end
 			end
 		end

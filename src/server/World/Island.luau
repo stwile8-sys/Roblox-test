@@ -37,6 +37,47 @@ local function solid(parent: Instance, props: { [string]: any }): BasePart
 	return p
 end
 
+
+-- Милый парящий остров: травяной диск сверху и сужающийся вниз земляной конус из цилиндров
+local function floatingIsland(parent: Instance, center: Vector3, radius: number, seed: number)
+	local rng = Random.new(seed)
+	local grass = Instance.new("Part")
+	grass.Anchored = true
+	grass.CanCollide = false
+	grass.CanQuery = false
+	grass.CanTouch = false
+	grass.CastShadow = false
+	grass.Shape = Enum.PartType.Cylinder
+	grass.Size = Vector3.new(3, radius * 2, radius * 2)
+	grass.CFrame = CFrame.new(center + Vector3.new(0, -1.5, 0)) * CFrame.Angles(0, 0, math.pi / 2)
+	grass.Color = Color3.fromHex("#7DD87A")
+	grass.Material = Enum.Material.SmoothPlastic
+	grass.Parent = parent
+	local layers = { { "#E2B98A", 0.92, 6 }, { "#D4A574", 0.74, 8 }, { "#C29166", 0.52, 9 }, { "#AE7F5A", 0.3, 10 } }
+	local y = -3
+	for _, l in layers do
+		local h = l[3]
+		local p = grass:Clone()
+		p.Size = Vector3.new(h, radius * 2 * l[2], radius * 2 * l[2])
+		p.CFrame = CFrame.new(center + Vector3.new(0, y - h / 2, 0)) * CFrame.Angles(0, 0, math.pi / 2)
+		p.Color = Color3.fromHex(l[1])
+		p.Parent = parent
+		y -= h
+	end
+	-- пастельные кристаллы снизу
+	for i = 1, 5 do
+		local a = i / 5 * math.pi * 2 + rng:NextNumber(0, 1)
+		local r = radius * rng:NextNumber(0.2, 0.5)
+		local c = grass:Clone()
+		c.Shape = Enum.PartType.Block
+		c.Size = Vector3.new(3, rng:NextNumber(6, 12), 3)
+		c.CFrame = CFrame.new(center + Vector3.new(math.cos(a) * r, y + 4, math.sin(a) * r)) * CFrame.Angles(math.pi + rng:NextNumber(-0.3, 0.3), a, rng:NextNumber(-0.3, 0.3))
+		c.Color = if i % 2 == 0 then Color3.fromHex("#8FF0FF") else Color3.fromHex("#C9B3FF")
+		c.Material = Enum.Material.Neon
+		c.Parent = parent
+	end
+end
+
 local function dir(deg: number): Vector3
 	local a = math.rad(deg)
 	return Vector3.new(math.sin(a), 0, math.cos(a))
@@ -105,17 +146,17 @@ function M.build()
 	hub.Parent = map
 
 	-- диск хаба
-	solid(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 140, 140), CFrame = CFrame.new(0, -2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#4A4A68"), Material = Enum.Material.Slate })
-	mk(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.2, 60, 60), CFrame = CFrame.new(0, 0.05, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2C2C48"), Material = Enum.Material.Marble })
+	solid(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 140, 140), CFrame = CFrame.new(0, -2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#E9E1FF"), Material = Enum.Material.SmoothPlastic })
+	mk(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.2, 60, 60), CFrame = CFrame.new(0, 0.05, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#D3C6FF"), Material = Enum.Material.SmoothPlastic })
 	mk(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.25, 62, 62), CFrame = CFrame.new(0, 0.02, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.chrono, Material = Enum.Material.Neon })
-	for i = 1, 8 do
-		local a = i / 8 * math.pi * 2
-		mk(hub, { Size = Vector3.new(50, 40, 50), CFrame = CFrame.new(math.cos(a) * 35, -24, math.sin(a) * 35) * CFrame.Angles(0.4, a, 0.3), Color = Color3.fromHex("#3B3350"), Material = Enum.Material.Rock })
-	end
-	mk(hub, { Size = Vector3.new(60, 60, 60), CFrame = CFrame.new(0, -55, 0) * CFrame.Angles(0.5, 0.5, 0.3), Color = Color3.fromHex("#332B47"), Material = Enum.Material.Rock })
+	floatingIsland(hub, Vector3.new(0, -4, 0), 74, 3)
+
+	-- общий конвейер артефактов на центральном острове
+	local BB = require(script.Parent.BaseBuilder)
+	BB.belt(hub, "Belt", CFrame.new(6, 0, 0), -28, 0)
 
 	-- кристалл в центре
-	local base = solid(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(3, 16, 16), CFrame = CFrame.new(0, 1.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.steel, Material = Enum.Material.Metal })
+	local base = solid(hub, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(3, 16, 16), CFrame = CFrame.new(0, 1.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
 	base.Name = "CrystalBase"
 	local crystal = Instance.new("Model")
 	crystal.Name = "Crystal"
@@ -160,8 +201,16 @@ function M.build()
 		local stand = solid(pm, { Name = "Stand", Shape = Enum.PartType.Cylinder, Size = Vector3.new(3, 8, 8), CFrame = CFrame.new(pos + Vector3.new(0, 1.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.dark, Material = Enum.Material.Metal })
 		stand.Name = "Stand"
 		mk(pm, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.4, 8.4, 8.4), CFrame = CFrame.new(pos + Vector3.new(0, 3.1, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color = ({ Palette.chrono, Palette.thief, Palette.gold, Palette.alarm })[i], Material = Enum.Material.Neon })
+		local pc = ({ Palette.chrono, Palette.thief, Palette.gold, Palette.alarm })[i]
+		local desc = Instance.new("HumanoidDescription")
+		desc.HeadColor = Color3.fromHex("#FFE0BD")
+		desc.TorsoColor = pc
+		desc.LeftArmColor = pc
+		desc.RightArmColor = pc
+		desc.LeftLegColor = Color3.fromHex("#2A2140")
+		desc.RightLegColor = Color3.fromHex("#2A2140")
 		local ok, rig = pcall(function()
-			return Players:CreateHumanoidModelFromDescription(Instance.new("HumanoidDescription"), Enum.HumanoidRigType.R15)
+			return Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
 		end)
 		if ok and rig then
 			rig.Name = "Mannequin"
@@ -188,7 +237,7 @@ function M.build()
 	local apos = dir(247.5) * 44
 	for s = 1, 5 do
 		local w = 18 - s * 3
-		local p = solid(altar, { Size = Vector3.new(w, 1.2, w), CFrame = CFrame.new(apos + Vector3.new(0, (s - 0.5) * 1.2, 0)), Color = if s == 5 then Palette.chrono else Palette.stone, Material = if s == 5 then Enum.Material.Neon else Enum.Material.Marble })
+		local p = solid(altar, { Size = Vector3.new(w, 1.2, w), CFrame = CFrame.new(apos + Vector3.new(0, (s - 0.5) * 1.2, 0)), Color = if s == 5 then Palette.chrono else Palette.stone, Material = if s == 5 then Enum.Material.Neon else Enum.Material.SmoothPlastic })
 		if s == 5 then
 			p.Name = "Top"
 		end
@@ -204,7 +253,7 @@ function M.build()
 	for i, id in STATUES do
 		local deg = 22.5 + (i - 1) * 90 + 45 * 0 + 12
 		local pos = dir(deg + 22) * 64
-		solid(statues, { Size = Vector3.new(7, 4, 7), CFrame = CFrame.new(pos + Vector3.new(0, 2, 0)), Color = Palette.stone, Material = Enum.Material.Marble })
+		solid(statues, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 8, 8), CFrame = CFrame.new(pos + Vector3.new(0, 2, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
 		local a = mk(statues, { Name = "Statue" .. i, Size = Vector3.new(5, 5, 5), CFrame = CFrame.lookAt(pos + Vector3.new(0, 4 + 6.5, 0), Vector3.new(0, 10.5, 0)), Transparency = 1 })
 		a:SetAttribute("Kind", "statue")
 		a:SetAttribute("Id", id)
@@ -230,9 +279,9 @@ function M.build()
 	local season = Instance.new("Folder")
 	season.Name = "Season"
 	season.Parent = map
-	solid(season, { Name = "Ground", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 90, 90), CFrame = CFrame.new(0, 88, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#3B3350"), Material = Enum.Material.Slate })
-	mk(season, { Size = Vector3.new(40, 30, 40), CFrame = CFrame.new(0, 72, 0) * CFrame.Angles(0.4, 0.6, 0.2), Color = Color3.fromHex("#332B47"), Material = Enum.Material.Rock })
-	solid(season, { Size = Vector3.new(10, 2, 10), CFrame = CFrame.new(0, 91, 0), Color = Palette.gold, Material = Enum.Material.Marble })
+	solid(season, { Name = "Ground", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 90, 90), CFrame = CFrame.new(0, 88, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#E9E1FF"), Material = Enum.Material.SmoothPlastic })
+	floatingIsland(season, Vector3.new(0, 86, 0), 48, 9)
+	solid(season, { Size = Vector3.new(10, 2, 10), CFrame = CFrame.new(0, 91, 0), Color = Palette.gold, Material = Enum.Material.SmoothPlastic })
 	mk(season, { Name = "Vault", Size = Vector3.new(4, 0.4, 4), CFrame = CFrame.new(0, 92.2, 0), Color = Palette.chrono, Material = Enum.Material.Neon })
 	local cage = Instance.new("Model")
 	cage.Name = "Cage"

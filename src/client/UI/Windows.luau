@@ -23,13 +23,17 @@ local RCOL = {}
 for r, info in Defs.RARITY do
 	RCOL[r] = info.color
 end
+-- на светлом фоне светлые цвета редкостей плохо читаются — темнее для текста
+RCOL.common = Color3.fromHex("#6F7F99")
+RCOL.legendary = Color3.fromHex("#E08A00")
+RCOL.chrono = Color3.fromHex("#0FA3C4")
 
 local function txt(parent: Instance, text: string, size: number?, color: Color3?, h: number?, order: number?): TextLabel
 	return Kit.label({ Text = text, TextSize = size or 20, TextColor3 = color or C.text, Size = UDim2.new(1, 0, 0, h or 28), LayoutOrder = order or 0, ZIndex = 22, Parent = parent })
 end
 
 local function card(parent: Instance, h: number, order: number?, color: Color3?): Frame
-	return Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order or 0, ZIndex = 22, Parent = parent }, { Kit.corner(16), Kit.stroke(color or C.line, 2) })
+	return Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order or 0, ZIndex = 22, Parent = parent }, { Kit.corner(16), Kit.stroke(color or C.soft, 3) })
 end
 
 local function scrollBody(body: Frame): ScrollingFrame
@@ -205,7 +209,7 @@ function M.collection()
 		local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#inv / 4) * 108), LayoutOrder = 2, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(84, 100), 6) })
 		for i, a in inv do
 			local d = Defs.BY_ID[a.id]
-			local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(d and RCOL[d.rarity] or C.line, 2) })
+			local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(d and RCOL[d.rarity] or C.soft, 3) })
 			Kit.creature(a.id, { Size = UDim2.new(1, 0, 1, -22), ZIndex = 23, Parent = b })
 			Kit.label({ Text = "ур." .. a.lvl, TextSize = 14, Position = UDim2.new(0, 0, 1, -22), Size = UDim2.new(1, 0, 0, 20), ZIndex = 23, Parent = b })
 			b.Activated:Connect(function()
@@ -236,7 +240,7 @@ function M.collection()
 		local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#list / 4) * 118), LayoutOrder = order, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(84, 110), 6) })
 		for i, d in list do
 			local got = coll[d.id] == true
-			local f = Kit.frame({ BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(if got then RCOL[r] else C.line, 2) })
+			local f = Kit.frame({ BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(if got then RCOL[r] else C.soft, 3) })
 			Kit.creature(d.id, { Size = UDim2.new(1, 0, 1, -30), ZIndex = 23, Parent = f }, not got)
 			Kit.label({ Text = if got then L.name(d.name) else "?", TextSize = 13, Position = UDim2.new(0, 2, 1, -30), Size = UDim2.new(1, -4, 0, 28), ZIndex = 23, Parent = f })
 		end
@@ -460,7 +464,7 @@ local function drawTrade()
 	end
 	row("Ты отдаёшь" .. (if v.myReady then " ✅" else ""), v.mine, 1)
 	row(v.name .. " отдаёт" .. (if v.theirReady then " ✅" else ""), v.theirs, 3)
-	txt(s, "Твоё хранилище — нажми, чтобы добавить/убрать (до " .. Game.TRADE_MAX_ITEMS .. ")", 16, C.dim, 40, 5)
+	txt(s, "Хранилище — нажми, чтобы добавить или убрать (до " .. Game.TRADE_MAX_ITEMS .. ")", 16, C.dim, 40, 5)
 	local inv = State.s.inv or {}
 	local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.max(1, math.ceil(#inv / 4)) * 96), LayoutOrder = 6, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(80, 90), 6) })
 	for i, a in inv do
@@ -477,7 +481,32 @@ local function drawTrade()
 			State.act("tradeSet", { give = myGive })
 		end)
 	end
-	local btns = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 60), LayoutOrder = 7, ZIndex = 22, Parent = s }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+	local slots = (State.s.slots or { list = {} }).list
+	local keys = {}
+	for k in slots do
+		table.insert(keys, k)
+	end
+	if #keys > 0 then
+		txt(s, "На пьедесталах — нажми, чтобы добавить в обмен", 16, C.dim, 26, 8)
+		local g2 = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#keys / 5) * 96), LayoutOrder = 9, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(80, 90), 6) })
+		for _, k in keys do
+			local a = slots[k]
+			local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, ZIndex = 22, Parent = g2 }, { Kit.corner(12), Kit.stroke(C.soft, 3) })
+			Kit.creature(a.id, { Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = b })
+			b.Activated:Connect(function()
+				-- перенос в хранилище, затем выбрать его в обмен
+				if State.act("artToInv", { slot = tonumber(k) }) then
+					task.wait(0.35)
+					local inv = State.s.inv or {}
+					if #myGive < Game.TRADE_MAX_ITEMS then
+						table.insert(myGive, #inv)
+					end
+					State.act("tradeSet", { give = myGive })
+				end
+			end)
+		end
+	end
+	local btns = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 60), LayoutOrder = 10, ZIndex = 22, Parent = s }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
 	Kit.button("Подтвердить", "buy", { Size = UDim2.fromOffset(170, 56), ZIndex = 23, Parent = btns }, function()
 		State.act("tradeReady")
 	end)
@@ -633,7 +662,7 @@ function M.menu()
 		table.insert(items, { "🧪", "Тест", M.test })
 	end
 	for _, it in items do
-		local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, ZIndex = 22, Parent = g }, { Kit.corner(18), Kit.stroke(C.chrono, 2) })
+		local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, ZIndex = 22, Parent = g }, { Kit.corner(18), Kit.stroke(C.line, 3) })
 		Kit.label({ Text = it[1], TextScaled = true, Position = UDim2.fromOffset(28, 10), Size = UDim2.fromOffset(56, 56), ZIndex = 23, Parent = b })
 		Kit.label({ Text = it[2], TextSize = 18, Position = UDim2.new(0, 0, 1, -38), Size = UDim2.new(1, 0, 0, 30), ZIndex = 23, Parent = b })
 		b.Activated:Connect(function()
@@ -644,5 +673,12 @@ function M.menu()
 	end
 	Kit.open(menuWin)
 end
+
+-- хранилище поменялось — перерисовать открытый обмен
+State.on("inv", function()
+	if tradeView then
+		drawTrade()
+	end
+end)
 
 return M

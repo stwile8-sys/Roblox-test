@@ -92,7 +92,9 @@ local function promptAllowed(prompt: ProximityPrompt): boolean
 	end
 	local owner = anchor:GetAttribute("Owner")
 	local mine = owner == player.UserId
-	if role == "buy" or role == "manage" then
+	if role == "buy" then
+		return true
+	elseif role == "manage" then
 		return mine
 	elseif role == "steal" then
 		if anchor:GetAttribute("Kind") == "den" then
