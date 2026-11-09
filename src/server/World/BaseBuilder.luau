@@ -215,7 +215,7 @@ local function pedestal(parent: Instance, name: string, cf: CFrame, rich: boolea
 	m.Name = name
 	m.Parent = parent
 	solid(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, 7.5, 7.5), CFrame = cf * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
-	local col = solid(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 5, 5), CFrame = cf * CFrame.new(0, 2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = if rich then Palette.gold else Palette.wood, Material = if rich then Enum.Material.Metal else Enum.Material.Wood })
+	local col = solid(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 5, 5), CFrame = cf * CFrame.new(0, 2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = if rich then Color3.fromHex("#FFE9A8") else Color3.fromHex("#F4C27A"), Material = Enum.Material.SmoothPlastic })
 	col.Name = "Column"
 	local top = solid(m, { Name = "Top", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.6, 5.6, 5.6), CFrame = cf * CFrame.new(0, 3.3, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Palette.gold, Material = Enum.Material.Metal })
 	top.Name = "Top"
@@ -223,7 +223,9 @@ local function pedestal(parent: Instance, name: string, cf: CFrame, rich: boolea
 	top.Shape = Enum.PartType.Block
 	top.Size = Vector3.new(5.4, 0.6, 5.4)
 	top.CFrame = cf * CFrame.new(0, 3.3, 0)
-	mk(m, { Size = Vector3.new(5.6, 0.15, 5.6), CFrame = cf * CFrame.new(0, 3.62, 0), Color = Palette.orange, Material = Enum.Material.Neon, Transparency = 0.4 })
+	top.Transparency = 1
+	mk(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.8, 6, 6), CFrame = cf * CFrame.new(0, 3.3, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = if rich then Palette.gold else Color3.fromHex("#FFD36B"), Material = Enum.Material.SmoothPlastic })
+	mk(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, 6.6, 6.6), CFrame = cf * CFrame.new(0, 2.85, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
 	return m
 end
 
@@ -233,12 +235,12 @@ function M.belt(parent: Instance, name: string, cf: CFrame, z: number, y: number
 		Name = name,
 		Size = Vector3.new(92, 1.2, 6),
 		CFrame = cf * CFrame.new(0, y + 0.6, z),
-		Color = Color3.fromHex("#2B2B3A"),
-		Material = Enum.Material.DiamondPlate,
+		Color = Color3.fromHex("#F1E6FF"),
+		Material = Enum.Material.SmoothPlastic,
 	})
 	for s = -1, 1, 2 do
 		mk(b, { Size = Vector3.new(92, 1.6, 0.6), CFrame = cf * CFrame.new(0, y + 0.8, z + s * 3.2), Color = Palette.orange, Material = Enum.Material.Metal })
-		mk(b, { Size = Vector3.new(92, 0.2, 0.3), CFrame = cf * CFrame.new(0, y + 1.65, z + s * 3.2), Color = Palette.gold, Material = Enum.Material.Neon })
+		mk(b, { Size = Vector3.new(92, 0.3, 0.9), CFrame = cf * CFrame.new(0, y + 1.7, z + s * 3.2), Color = Color3.fromHex("#FFE3B0"), Material = Enum.Material.SmoothPlastic })
 	end
 	for _, info in { { "Start", -46 }, { "End", 46 } } do
 		mk(b, { Name = info[1], Size = Vector3.new(1, 1, 1), CFrame = cf * CFrame.new(info[2], y + 1.2, z), Transparency = 1 })
@@ -447,9 +449,9 @@ function M.setSecondFloor(base: any, on: boolean)
 	local cf = base:GetAttribute("Index") and M.baseCFrame(base:GetAttribute("Index") :: number) or base:GetPivot()
 	local y = 22
 	solid(f2, { Size = Vector3.new(112, 2, 50), CFrame = cf * CFrame.new(0, y - 1, 33), Color = Color3.fromHex("#7A5C3E"), Material = Enum.Material.WoodPlanks })
-	mk(f2, { Size = Vector3.new(112, 0.4, 1), CFrame = cf * CFrame.new(0, y + 0.2, 8.4), Color = Palette.gold, Material = Enum.Material.Neon })
+	mk(f2, { Size = Vector3.new(112, 0.4, 1), CFrame = cf * CFrame.new(0, y + 0.2, 8.4), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
 	-- перила
-	solid(f2, { Size = Vector3.new(112, 3, 0.6), CFrame = cf * CFrame.new(0, y + 1.5, 8.3), Color = Palette.gold, Material = Enum.Material.Metal, Transparency = 0.3 })
+	solid(f2, { Size = Vector3.new(112, 3, 0.6), CFrame = cf * CFrame.new(0, y + 1.5, 8.3), Color = Color3.fromHex("#FFE3B0"), Material = Enum.Material.SmoothPlastic })
 	-- колонны
 	for _, x in { -54, -18, 18, 54 } do
 		solid(f2, { Size = Vector3.new(2, y, 2), CFrame = cf * CFrame.new(x, y / 2, 9), Color = Palette.gold, Material = Enum.Material.Metal })
@@ -563,7 +565,7 @@ function M.setShield(base: any, on: boolean)
 		CFrame = cf * CFrame.new(0, 15, 0),
 		Color = Palette.chrono,
 		Material = Enum.Material.ForceField,
-		Transparency = 0,
+		Transparency = 0.7,
 	})
 end
 

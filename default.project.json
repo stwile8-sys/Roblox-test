@@ -14,22 +14,23 @@
       "$className": "Lighting",
       "$properties": {
         "Technology": "ShadowMap",
-        "ClockTime": 16.2,
-        "Brightness": 3,
+        "ClockTime": 14.5,
+        "Brightness": 2.2,
         "Ambient": [
-          0.45,
-          0.45,
-          0.55
+          0.36,
+          0.34,
+          0.44
         ],
         "OutdoorAmbient": [
-          0.55,
-          0.55,
-          0.68
+          0.48,
+          0.47,
+          0.58
         ],
         "GlobalShadows": true,
-        "EnvironmentDiffuseScale": 1,
-        "EnvironmentSpecularScale": 1,
-        "ExposureCompensation": 0.3
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.5,
+        "ExposureCompensation": 0,
+        "ShadowSoftness": 0.15
       }
     },
     "Players": {

@@ -359,6 +359,9 @@ local function drawBoard(part: Instance?, rows: { any }, fmt: (number) -> string
 			ch:Destroy()
 		end
 	end
+	if #rows == 0 then
+		rows = { { name = "Пока пусто — стань первым!", value = 0, empty = true } }
+	end
 	for i, r in rows do
 		local t = Instance.new("TextLabel")
 		t.BackgroundTransparency = if i == 1 then 0.6 else 1
@@ -367,8 +370,8 @@ local function drawBoard(part: Instance?, rows: { any }, fmt: (number) -> string
 		t.Font = Enum.Font.GothamBold
 		t.TextScaled = true
 		t.TextXAlignment = Enum.TextXAlignment.Left
-		t.TextColor3 = if i == 1 then Color3.fromHex("#FFE066") else Color3.new(1, 1, 1)
-		t.Text = string.format("%s%d. %s — %s", if i == 1 then "👑 " else "", i, r.name, fmt(r.value))
+		t.TextColor3 = Color3.fromHex("#2A2140")
+		t.Text = if r.empty then r.name else string.format("%s%d. %s — %s", if i == 1 then "👑 " else "", i, r.name, fmt(r.value))
 		t.LayoutOrder = i
 		t.Parent = list
 	end
