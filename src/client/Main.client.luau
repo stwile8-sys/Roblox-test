@@ -1,6 +1,7 @@
 --!nonstrict
 -- Клиент Chrono Heist Tycoon: запуск интерфейса, существ, эффектов; подсказки взаимодействия,
--- кнопка «Действие» (замок / взлом / удар), горячие клавиши ПК (E — украсть, F — замок, Q — сканер, V — действие),
+-- кнопка «Действие» (взлом стены / клетки), дубинка — предмет в рюкзаке, замок — кнопка на базе,
+-- горячие клавиши ПК (E — украсть, Q — сканер, V — взлом),
 -- атмосфера своей/чужой базы, музыка по зонам, вращение/парение декора.
 
 local CollectionService = game:GetService("CollectionService")
@@ -25,7 +26,7 @@ pcall(function()
 end)
 
 pcall(function()
-	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
 end)
 
 local State = require(script.Parent.State)
@@ -243,20 +244,10 @@ local function computeAction()
 			action.kind = "cage"
 		elseif bIdx then
 			action.kind, action.base, action.seg = "hack", bIdx, seg
-		elseif target then
-			action.kind, action.target = "bat", target
 		else
-			action.kind = "lock"
-			local lock = State.s.lock
-			if lock then
-				local now = workspace:GetServerTimeNow()
-				if lock.untilT > now then
-					cd = lock.untilT - now
-				elseif lock.cdUntil > now then
-					cd = lock.cdUntil - now
-				end
-			end
+			action.kind = "none"
 		end
+		local _ = target
 	end
 	local tcd = State.s.toolCd or 0
 	if action.kind == "hack" and tcd > 0 then
@@ -278,10 +269,6 @@ local function doAction()
 			lastHack = os.clock()
 			State.send("hackCage")
 		end
-	elseif action.kind == "bat" then
-		State.send("bat", { target = action.target })
-	elseif action.kind == "lock" then
-		State.act("lock")
 	end
 end
 Hud.onAction = doAction
@@ -312,9 +299,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		return
 	end
 	local k = input.KeyCode
-	if k == Enum.KeyCode.F then
-		State.act("lock")
-	elseif k == Enum.KeyCode.Q then
+	if k == Enum.KeyCode.Q then
 		Windows.scan()
 	elseif k == Enum.KeyCode.V then
 		holding = true
@@ -327,6 +312,29 @@ UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.V then
 		holding = false
 	end
+end)
+
+-- ── Пещера удачи: табличка с ценой ──────────────────────────
+task.spawn(function()
+	local map = workspace:WaitForChild("Map", 30)
+	local hub = map and map:WaitForChild("Hub", 30)
+	local cave = hub and hub:WaitForChild("Cave", 30)
+	local sparks = cave and cave:WaitForChild("Sparks", 30)
+	if not sparks then
+		return
+	end
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(260, 90)
+	bb.StudsOffset = Vector3.new(0, 7, 0)
+	bb.MaxDistance = 160
+	bb.AlwaysOnTop = false
+	bb.Parent = sparks
+	local frame = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.bg, Parent = bb }, { Kit.corner(18), Kit.stroke(Kit.C.line, 4) })
+	Kit.label({ Text = "✨ Пещера удачи", Font = Kit.BLACK, TextSize = 26, Size = UDim2.new(1, 0, 0.5, 0), Parent = frame })
+	local price = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 28, TextColor3 = Kit.C.ok, Position = UDim2.fromScale(0, 0.48), Size = UDim2.new(1, 0, 0.5, 0), Parent = frame })
+	State.on("caveCost", function(v)
+		price.Text = "Прыгни! " .. L.money(v)
+	end)
 end)
 
 -- ── Атмосфера, музыка, декор ────────────────────────────────

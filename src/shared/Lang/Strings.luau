@@ -69,5 +69,7 @@ local S: { [string]: { [string]: string } } = {
 	["msg.wallDone"] = { ru = "Стены: уровень {lvl}!", en = "Walls: level {lvl}!" },
 	["alarm.hack"] = { ru = "Твою стену ломают!", en = "Your wall is under attack!" },
 	["alarm.steal"] = { ru = "У тебя крадут!", en = "You're being robbed!" },
+	["msg.caveNoCash"] = { ru = "Прыжок в пещеру стоит ${cost}", en = "Cave jump costs ${cost}" },
+	["msg.lockCdS"] = { ru = "Замок перезарядится через {s} сек", en = "Lock recharges in {s}s" },
 }
 return S

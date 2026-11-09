@@ -209,6 +209,22 @@ function M.chase(role: string, seconds: number)
 	end)
 end
 
+-- вспышка/затемнение экрана
+M.flashFrame = nil :: Frame?
+function M.flash(color: Color3, seconds: number)
+	local f = M.flashFrame
+	if not f then
+		return
+	end
+	f.BackgroundColor3 = color
+	f.BackgroundTransparency = 0
+	f.Visible = true
+	TweenService:Create(f, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+	task.delay(seconds, function()
+		f.Visible = false
+	end)
+end
+
 -- ── События сервера ─────────────────────────────────────────
 local handlers: { [string]: (Vector3?, any) -> () } = {
 	collect = function(pos, d)
@@ -311,6 +327,21 @@ local handlers: { [string]: (Vector3?, any) -> () } = {
 			M.burst(pos, Palette.gold, 80, 25, 1, true, true)
 		end
 		M.sfx("pop")
+	end,
+	caveFall = function()
+		M.sfx("whoosh", nil, 1)
+		M.flash(Color3.fromHex("#14102A"), 0.6)
+	end,
+	caveWind = function(pos)
+		M.sfx("whoosh", pos, 1)
+		M.shake(0.5)
+	end,
+	caveLaunch = function(pos)
+		if pos then
+			M.burst(pos, Palette.chrono, 60, 30, 1, true, true)
+			M.burst(pos, Color3.new(1, 1, 1), 40, 40, 0.8, false, true)
+		end
+		M.sfx("rebirth", pos, 1)
 	end,
 	chase = function(_, d)
 		M.chase(d.role or "owner", 6)

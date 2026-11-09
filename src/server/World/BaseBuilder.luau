@@ -359,6 +359,35 @@ function M.build(index: number): Model
 	light.Brightness = 1.2
 	light.Parent = bp
 
+	-- кнопка замка у ворот (жмёт только хозяин, ногой)
+	local lock = Instance.new("Model")
+	lock.Name = "LockButton"
+	lock.Parent = base
+	local lcf = cf * CFrame.new(14, 0, -46)
+	solid(lock, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.6, 9, 9), CFrame = lcf * CFrame.new(0, 0.8, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
+	local btn = mk(lock, { Name = "Button", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.2, 6.5, 6.5), CFrame = lcf * CFrame.new(0, 1.9, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFC93C"), Material = Enum.Material.SmoothPlastic })
+	btn.CanCollide = true
+	btn.CanTouch = true
+	-- значок замка над кнопкой
+	local tag = Instance.new("BillboardGui")
+	tag.Name = "Tag"
+	tag.Size = UDim2.fromOffset(120, 60)
+	tag.StudsOffset = Vector3.new(0, 4, 0)
+	tag.MaxDistance = 80
+	tag.Parent = btn
+	local tl = Instance.new("TextLabel")
+	tl.Name = "Text"
+	tl.BackgroundTransparency = 1
+	tl.Size = UDim2.fromScale(1, 1)
+	tl.Font = Enum.Font.GothamBlack
+	tl.TextScaled = true
+	tl.TextColor3 = Color3.new(1, 1, 1)
+	tl.TextStrokeColor3 = Color3.fromHex("#2A2140")
+	tl.TextStrokeTransparency = 0
+	tl.Text = "🔒 ЗАМОК"
+	tl.Parent = tag
+	lock.PrimaryPart = btn
+
 	-- слоты ловушек
 	local traps = Instance.new("Folder")
 	traps.Name = "Traps"

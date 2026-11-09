@@ -34,6 +34,7 @@ local vignette = Kit.new("ImageLabel", {
 })
 Kit.new("UIStroke", { Thickness = 22, Color = C.alarm, Transparency = 0.4, Parent = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = vignette }) })
 Fx.vignette = vignette
+Fx.flashFrame = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 60, Parent = gui })
 
 -- ── Верх: валюты ────────────────────────────────────────────
 -- подпись поверх 3D-мира: белая с тёмным контуром
@@ -156,6 +157,7 @@ local ACTION = {
 	none = { "🏃", C.grey, "" },
 }
 function M.setAction(kind: string, cd: number?)
+	actionB.Visible = kind ~= "none"
 	local a = ACTION[kind] or ACTION.none
 	actionB.Text = if cd and cd > 0 then "" else a[1]
 	actionB.BackgroundColor3 = a[2]
@@ -320,6 +322,29 @@ local POP: { [string]: (any) -> () } = {
 			{ "Нет", "cancel" },
 		} })
 	end,
+	caveReveal = function(d)
+		local def = Defs.BY_ID[d.id]
+		if not def then
+			return
+		end
+		local r = Defs.RARITY[def.rarity]
+		local stars = string.rep("⭐", r.index)
+		M.popup({
+			title = "🎉 " .. string.upper(L.name(r.name)) .. "! 🎉",
+			color = r.color,
+			art = d.id,
+			text = L.name(def.name) .. "\n" .. stars .. "\n+" .. L.money(def.income) .. "/с — уже на твоей базе!",
+			buttons = { { "Ура!", "gold", function()
+				State.act("caveDone")
+			end } },
+		})
+		Fx.sfx("escape", nil, 1)
+		local char = player.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			Fx.burst(hrp.Position + Vector3.new(0, 3, 0), r.color, 80, 25, 1, true, true)
+		end
+	end,
 	tutorial = function(d)
 		if M.onTutorial then
 			M.onTutorial(d)
@@ -362,9 +387,10 @@ M.onTutorial = function(d)
 		hint.Text = if step == 2 then "Догони вора!" else "Неси домой!"
 		hint.Visible = true
 	elseif step == 4 then
-		hint.Text = "Жми «Замок»!"
+		hint.Text = "Беги к кнопке замка!"
 		hint.Visible = true
-		Kit.pulse(actionB, true)
+		tutTarget = d.target
+		arrow.Enabled = tutTarget ~= nil
 	end
 end
 task.spawn(function()

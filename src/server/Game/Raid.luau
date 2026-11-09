@@ -760,7 +760,8 @@ function M.bat(S: any, targetId: any)
 end
 
 -- ── Замок ───────────────────────────────────────────────────
-Ctx.actions.lock = function(S)
+-- замок включается только кнопкой на своей базе (касание ногой)
+function M.lock(S: any): (boolean, string?)
 	local B = S.B
 	if not B then
 		return false, "msg.bad"
@@ -771,12 +772,59 @@ Ctx.actions.lock = function(S)
 	local secs = Bases.lockSeconds(B)
 	Bases.setShield(B, secs)
 	S.lockCdUntil = Ctx.now() + secs + Game.LOCK_COOLDOWN
+	-- кнопка серая, пока замок на перезарядке
+	local lb = B.model:FindFirstChild("LockButton")
+	local btn = lb and lb:FindFirstChild("Button")
+	if btn then
+		btn.Color = Color3.fromHex("#9A93AD")
+		local stamp = S.lockCdUntil
+		task.spawn(function()
+			local label = btn:FindFirstChild("Tag") and btn.Tag:FindFirstChild("Text")
+			while S.lockCdUntil == stamp and Ctx.now() < stamp and btn.Parent do
+				if label then
+					local left = math.ceil(stamp - Ctx.now())
+					label.Text = if B.shieldUntil > Ctx.now() then "🛡️ " .. math.ceil(B.shieldUntil - Ctx.now()) else "⏳ " .. left
+				end
+				task.wait(1)
+			end
+			btn.Color = Color3.fromHex("#FFC93C")
+			if label then
+				label.Text = "🔒 ЗАМОК"
+			end
+		end)
+	end
 	Ctx.mark(S, "lock")
 	Ctx.fx("lock", B.cf.Position, { base = B.index })
 	if api.tutorialEvent then
 		api.tutorialEvent(S, "lock")
 	end
 	return true, nil
+end
+
+local function hookLockButtons()
+	for _, B in Ctx.bases do
+		local lb = B.model:FindFirstChild("LockButton")
+		local btn = lb and lb:FindFirstChild("Button")
+		if btn then
+			local last = {}
+			btn.Touched:Connect(function(hit)
+				local player = Players:GetPlayerFromCharacter(hit.Parent)
+				local S = player and Ctx.session(player)
+				if not S or not S.ready or S.B ~= B then
+					return
+				end
+				if last[player] and os.clock() - last[player] < 2 then
+					return
+				end
+				last[player] = os.clock()
+				local ok, msg = M.lock(S)
+				if not ok and msg == "msg.lockCd" then
+					local left = math.ceil((S.lockCdUntil or 0) - Ctx.now())
+					Ctx.notify(S, "msg.lockCdS", { s = left }, "bad")
+				end
+			end)
+		end
+	end
 end
 
 -- месть: бесплатный рейд на базу обидчика, если он на этом сервере
@@ -963,6 +1011,77 @@ function Bases.onAnchor(B: any, slot: number, anchor: BasePart)
 	-- открытие окна — на клиенте (сервер проверяет каждое действие отдельно)
 end
 
+-- ── Дубинка-предмет ─────────────────────────────────────────
+function M.makeBat(): Tool
+	local tool = Instance.new("Tool")
+	tool.Name = "Дубинка"
+	tool.ToolTip = "Ударь вора — артефакт вернётся"
+	tool.CanBeDropped = false
+	tool.RequiresHandle = true
+	tool.Grip = CFrame.new(0, -1.2, 0)
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Shape = Enum.PartType.Cylinder
+	handle.Size = Vector3.new(4, 0.6, 0.6)
+	handle.Color = Color3.fromHex("#C98B4F")
+	handle.Material = Enum.Material.Wood
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	-- цилиндр лежит по оси X: поворачиваем рукоять вдоль руки
+	tool.GripForward = Vector3.new(0, 0, -1)
+	tool.GripRight = Vector3.new(0, 1, 0)
+	tool.GripUp = Vector3.new(1, 0, 0)
+	tool.GripPos = Vector3.new(-1.2, 0, 0)
+	local head = Instance.new("Part")
+	head.Name = "Head"
+	head.Shape = Enum.PartType.Ball
+	head.Size = Vector3.new(1.3, 1.3, 1.3)
+	head.Color = Color3.fromHex("#FFC93C")
+	head.Material = Enum.Material.SmoothPlastic
+	head.CanCollide = false
+	head.Massless = true
+	head.CFrame = handle.CFrame * CFrame.new(2, 0, 0)
+	head.Parent = tool
+	local band = head:Clone()
+	band.Name = "Band"
+	band.Shape = Enum.PartType.Cylinder
+	band.Size = Vector3.new(0.35, 0.8, 0.8)
+	band.Color = Color3.fromHex("#2A2140")
+	band.CFrame = handle.CFrame * CFrame.new(-1.6, 0, 0)
+	band.Parent = tool
+	for _, p in { head, band } do
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = handle
+		w.Part1 = p
+		w.Parent = p
+	end
+	return tool
+end
+
+function M.giveBat(S: any)
+	local player = S.player
+	if not player then
+		return
+	end
+	local bp = player:FindFirstChildOfClass("Backpack")
+	if not bp or bp:FindFirstChild("Дубинка") then
+		return
+	end
+	local char = player.Character
+	if char and char:FindFirstChild("Дубинка") then
+		return
+	end
+	local tool = M.makeBat()
+	tool.Activated:Connect(function()
+		local s = Ctx.session(player)
+		if s and s.ready then
+			M.bat(s, nil)
+		end
+	end)
+	tool.Parent = bp
+end
+
 -- ── Главный цикл рейдов ─────────────────────────────────────
 local function carryLoop()
 	local now = os.clock()
@@ -990,6 +1109,7 @@ local function carryLoop()
 end
 
 function M.init()
+	hookLockButtons()
 	Ctx.doActions.hack = function(S, args)
 		if type(args) == "table" then
 			M.hack(S, args.base, args.seg)
@@ -1022,6 +1142,7 @@ api.addStealPrompt = M.addStealPrompt
 api.trySteal = M.trySteal
 api.hack = M.hack
 api.bat = M.bat
+api.giveBat = M.giveBat
 api.actors = actors
 
 return M

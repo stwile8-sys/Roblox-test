@@ -137,7 +137,8 @@ function M.raidStep(S: any)
 	if not B or not S.tut then
 		return
 	end
-	step(S, 4)
+	local lb = B.model:FindFirstChild("LockButton")
+	step(S, 4, { target = lb and lb:GetPivot().Position })
 	local raider = api.spawnNpc("Рейдер", Palette.alarm, B.cf * CFrame.new(0, 3, -100))
 	raider.data.tool = 1
 	S.tut.raider = raider

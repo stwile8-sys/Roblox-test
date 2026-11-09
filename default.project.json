@@ -6,7 +6,7 @@
       "$className": "Workspace",
       "$properties": {
         "StreamingEnabled": false,
-        "FallenPartsDestroyHeight": -120,
+        "FallenPartsDestroyHeight": -250,
         "Gravity": 196.2
       }
     },

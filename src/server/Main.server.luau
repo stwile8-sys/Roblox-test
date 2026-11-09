@@ -25,6 +25,7 @@ local Analytics = require(G.Analytics)
 local Bots = require(G.Bots)
 local Tutorial = require(G.Tutorial)
 local OfflineBases = require(G.OfflineBases)
+local Cave = require(G.Cave)
 
 local _ = Analytics
 local api = Ctx.api
@@ -44,6 +45,7 @@ Anticheat.init()
 Bots.init()
 Social.init()
 OfflineBases.init()
+Cave.init()
 Profiles.startAutosave()
 
 -- ── Виды состояния для клиента ──────────────────────────────
@@ -260,6 +262,9 @@ local function placeCharacter(S: any, char: Model)
 		end
 	end)
 	char:SetAttribute("Pose", "")
+	task.defer(function()
+		api.giveBat(S)
+	end)
 end
 
 local function onJoin(player: Player)
@@ -382,7 +387,7 @@ task.spawn(function()
 		task.wait(1)
 		for _, S in Ctx.sessions do
 			local r = Ctx.root(S)
-			if S.ready and r and r.Position.Y < -60 and S.B then
+			if S.ready and r and r.Position.Y < -60 and S.B and not S.inCave then
 				if S.carry then
 					api.failCarry(S, "fell", nil)
 				end

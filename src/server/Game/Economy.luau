@@ -709,7 +709,7 @@ function M.init()
 			moveBelt(HUB)
 			if acc >= Game.BELT_EVERY then
 				acc = 0
-				if next(Ctx.sessions) then
+				if next(Ctx.sessions) and HUB.model and HUB.model:FindFirstChild("Belt") then
 					spawnBelt(HUB, "Belt")
 				end
 			end
