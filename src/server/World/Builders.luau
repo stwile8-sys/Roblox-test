@@ -1,10 +1,11 @@
--- Простые «кирпичики» для построек из деталей.
+--!strict
+-- «Кирпичики» лоу-поли построек: блоки, клинья, пирамиды, деревья, камни, надписи.
 
 local CollectionService = game:GetService("CollectionService")
 
 local B = {}
 
-local function finish(p: BasePart, parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?, props: { [string]: any }?)
+local function finish<T>(p: T & BasePart, parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): T
 	p.Anchored = true
 	p.Size = size
 	p.CFrame = cf
@@ -12,168 +13,126 @@ local function finish(p: BasePart, parent: Instance, size: Vector3, cf: CFrame, 
 	p.Material = material or Enum.Material.SmoothPlastic
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
-	if props then
-		for k, v in props do
-			(p :: any)[k] = v
-		end
-	end
+	p.CastShadow = size.Magnitude > 6
 	p.Parent = parent
 	return p
 end
 
-function B.part(parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?, props: { [string]: any }?): Part
-	return finish(Instance.new("Part"), parent, size, cf, color, material, props) :: Part
+function B.part(parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): Part
+	return finish(Instance.new("Part"), parent, size, cf, color, material)
 end
 
--- Клин: вертикальная грань сзади (+Z), скат смотрит вперёд (−Z).
-function B.wedge(parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?, props: { [string]: any }?): WedgePart
-	return finish(Instance.new("WedgePart"), parent, size, cf, color, material, props) :: WedgePart
+-- Клин: вертикальная грань сзади (+Z), скат смотрит вперёд (−Z)
+function B.wedge(parent: Instance, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): WedgePart
+	return finish(Instance.new("WedgePart"), parent, size, cf, color, material)
 end
 
--- Цилиндр, ось вдоль X у cf.
-function B.cylinder(parent: Instance, length: number, diameter: number, cf: CFrame, color: Color3, material: Enum.Material?, props: { [string]: any }?): Part
+function B.cylinder(parent: Instance, length: number, diameter: number, cf: CFrame, color: Color3, material: Enum.Material?): Part
 	local p = Instance.new("Part")
 	p.Shape = Enum.PartType.Cylinder
-	return finish(p, parent, Vector3.new(length, diameter, diameter), cf, color, material, props) :: Part
+	return finish(p, parent, Vector3.new(length, diameter, diameter), cf, color, material)
 end
 
--- Вертикальный цилиндр, стоящий основанием на точке base.
-function B.post(parent: Instance, base: Vector3, height: number, diameter: number, color: Color3, material: Enum.Material?, props: { [string]: any }?): Part
+-- Вертикальный столб, стоящий основанием на точке
+function B.post(parent: Instance, base: Vector3, height: number, diameter: number, color: Color3, material: Enum.Material?): Part
 	local cf = CFrame.new(base + Vector3.new(0, height / 2, 0)) * CFrame.Angles(0, 0, math.pi / 2)
-	return B.cylinder(parent, height, diameter, cf, color, material, props)
+	return B.cylinder(parent, height, diameter, cf, color, material)
 end
 
--- Цилиндр между двумя точками (не строго вертикальный).
-function B.between(parent: Instance, a: Vector3, b: Vector3, diameter: number, color: Color3, material: Enum.Material?, props: { [string]: any }?): Part
-	local mid = (a + b) / 2
-	local cf = CFrame.lookAt(mid, b) * CFrame.Angles(0, math.pi / 2, 0)
-	return B.cylinder(parent, (b - a).Magnitude, diameter, cf, color, material, props)
-end
-
-function B.ball(parent: Instance, diameter: number, cf: CFrame, color: Color3, material: Enum.Material?, props: { [string]: any }?): Part
+function B.ball(parent: Instance, diameter: number, cf: CFrame, color: Color3, material: Enum.Material?): Part
 	local p = Instance.new("Part")
 	p.Shape = Enum.PartType.Ball
-	return finish(p, parent, Vector3.new(diameter, diameter, diameter), cf, color, material, props) :: Part
+	return finish(p, parent, Vector3.new(diameter, diameter, diameter), cf, color, material)
 end
 
-function B.light(parent: Instance, color: Color3, range: number, brightness: number, flicker: number?, shadows: boolean?): PointLight
-	local l = Instance.new("PointLight")
-	l.Color = color
-	l.Range = range
-	l.Brightness = brightness
-	l.Shadows = shadows or false
-	l:SetAttribute("BaseBrightness", brightness)
-	if flicker then
-		l:SetAttribute("Flicker", flicker)
-		CollectionService:AddTag(l, "Flicker")
+-- Хребет-«палатка» из двух клиньев спина к спине. base — центр основания.
+-- width — длина хребта (по X), depth — ширина основания (по Z).
+function B.ridge(parent: Instance, base: Vector3, width: number, depth: number, height: number, color: Color3, yaw: number?, material: Enum.Material?)
+	local rot = CFrame.new(base) * CFrame.Angles(0, yaw or 0, 0)
+	local size = Vector3.new(width, height, depth / 2)
+	-- скат клина смотрит в −Z, вертикальная грань в +Z: ставим вертикальными гранями друг к другу
+	B.wedge(parent, size, rot * CFrame.new(0, height / 2, -depth / 4), color, material)
+	B.wedge(parent, size, rot * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, height / 2, -depth / 4), color:Lerp(Color3.new(0, 0, 0), 0.12), material)
+end
+
+-- Ель: ствол + ярусы повёрнутых блоков, сужающихся кверху
+function B.pine(parent: Instance, base: Vector3, scale: number, rng: Random, tint: Color3?)
+	local trunk = Color3.fromRGB(105, 75, 50)
+	B.part(parent, Vector3.new(1.2, 4, 1.2) * scale, CFrame.new(base + Vector3.new(0, 2 * scale, 0)), trunk)
+	local green = tint or Color3.fromRGB(55 + rng:NextInteger(-8, 8), 120 + rng:NextInteger(-12, 12), 70)
+	local yaw = rng:NextNumber() * math.pi
+	local y = 3 * scale
+	for n = 0, 2 do
+		local w = (7 - n * 2) * scale
+		local h = 3.2 * scale
+		local cf = CFrame.new(base + Vector3.new(0, y + h / 2, 0)) * CFrame.Angles(0, yaw + n * 0.785, 0)
+		B.part(parent, Vector3.new(w, h, w), cf, green:Lerp(Color3.new(1, 1, 1), n * 0.05))
+		y += h * 0.85
 	end
-	l.Parent = parent
-	return l
 end
 
-function B.surfaceText(part: BasePart, face: Enum.NormalId, text: string, color: Color3, font: Enum.Font?)
-	local gui = Instance.new("SurfaceGui")
-	gui.Face = face
-	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	gui.PixelsPerStud = 50
-	gui.LightInfluence = 1
+-- Лиственное дерево: ствол + наклонённые кубы кроны
+function B.leafy(parent: Instance, base: Vector3, scale: number, rng: Random, tint: Color3?)
+	local h = 7 * scale
+	B.part(parent, Vector3.new(1.2 * scale, h, 1.2 * scale), CFrame.new(base + Vector3.new(0, h / 2, 0)), Color3.fromRGB(110, 80, 55))
+	local leaf = tint or Color3.fromRGB(80 + rng:NextInteger(-10, 10), 150 + rng:NextInteger(-15, 15), 70)
+	local top = base + Vector3.new(0, h + 1.5 * scale, 0)
+	local cf = CFrame.new(top) * CFrame.Angles(rng:NextNumber() * 0.6, rng:NextNumber() * 6, rng:NextNumber() * 0.6)
+	B.part(parent, Vector3.new(6, 5, 6) * scale, cf, leaf)
+	B.part(parent, Vector3.new(4, 4, 4) * scale, cf * CFrame.new(2 * scale, 1.5 * scale, -1 * scale) * CFrame.Angles(0.5, 0.3, 0.2), leaf:Lerp(Color3.new(1, 1, 0.6), 0.1))
+end
+
+function B.rock(parent: Instance, base: Vector3, size: number, rng: Random, color: Color3?)
+	local c = color or Color3.fromRGB(125, 125, 120)
+	local cf = CFrame.new(base + Vector3.new(0, size * 0.25, 0))
+		* CFrame.Angles(rng:NextNumber() * 0.8, rng:NextNumber() * 6, rng:NextNumber() * 0.8)
+	B.part(parent, Vector3.new(size, size * 0.7, size * 0.9), cf, c:Lerp(Color3.new(0, 0, 0), rng:NextNumber() * 0.15), Enum.Material.Slate)
+end
+
+-- Надпись над объектом (видна издалека, всегда лицом к камере)
+function B.label(adornee: BasePart, text: string, offset: number, color: Color3?, maxDistance: number?): BillboardGui
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(240, 40)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, offset, 0)
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = maxDistance or 150
+	gui.LightInfluence = 0
+	gui.AutoLocalize = false
 	local t = Instance.new("TextLabel")
-	t.Size = UDim2.fromScale(1, 1)
+	t.Name = "Text"
 	t.BackgroundTransparency = 1
-	t.Text = text
+	t.Size = UDim2.fromScale(1, 1)
+	t.Font = Enum.Font.GothamBold
 	t.TextScaled = true
-	t.Font = font or Enum.Font.BuilderSansBold
-	t.TextColor3 = color
+	t.Text = text
+	t.TextColor3 = color or Color3.new(1, 1, 1)
+	t.TextStrokeTransparency = 0.4
 	t.Parent = gui
-	gui.Parent = part
+	gui.Parent = adornee
+	return gui
 end
 
--- Камень из нескольких повёрнутых блоков.
-function B.rock(parent: Instance, base: Vector3, scale: number, rng: Random)
-	local grays = {
-		Color3.fromRGB(110, 108, 104),
-		Color3.fromRGB(94, 92, 90),
-		Color3.fromRGB(124, 118, 110),
-	}
-	for i = 1, 3 do
-		local s = scale * rng:NextNumber(0.6, 1)
-		local size = Vector3.new(s * rng:NextNumber(1, 1.6), s * rng:NextNumber(0.6, 1.1), s * rng:NextNumber(1, 1.5))
-		local offset = Vector3.new(rng:NextNumber(-0.5, 0.5), 0, rng:NextNumber(-0.5, 0.5)) * scale
-		local cf = CFrame.new(base + offset + Vector3.new(0, size.Y * 0.25, 0))
-			* CFrame.Angles(rng:NextNumber(-0.5, 0.5), rng:NextNumber(0, math.pi * 2), rng:NextNumber(-0.5, 0.5))
-		B.part(parent, size, cf, grays[i], i == 2 and Enum.Material.Slate or Enum.Material.Rock)
-	end
+-- Подсказка «нажми E». Действие и видимость определяются тегами и атрибутами.
+function B.prompt(parent: Instance, tag: string, actionKey: string, hold: number?, distance: number?): ProximityPrompt
+	local p = Instance.new("ProximityPrompt")
+	p.ActionText = actionKey -- клиент переводит по ключу
+	p.ObjectText = ""
+	p.HoldDuration = hold or 0
+	p.MaxActivationDistance = distance or 10
+	p.RequiresLineOfSight = false
+	p.KeyboardKeyCode = Enum.KeyCode.E
+	p.GamepadKeyCode = Enum.KeyCode.ButtonX
+	p.Style = Enum.ProximityPromptStyle.Default
+	p.AutoLocalize = false
+	p:SetAttribute("Key", actionKey)
+	p.Parent = parent
+	CollectionService:AddTag(p, tag)
+	return p
 end
 
--- Ель: ствол и ярусы из пар скрещённых «палаток».
-function B.pine(parent: Instance, base: Vector3, height: number, rng: Random, props: { [string]: any }?)
+function B.model(parent: Instance, name: string): Model
 	local m = Instance.new("Model")
-	m.Name = "Ель"
-	local trunkColor = Color3.fromRGB(92, 62, 40)
-	B.post(m, base - Vector3.new(0, 1, 0), height * 0.4, height * 0.07, trunkColor, Enum.Material.Wood, props)
-	local tiers = height > 26 and 3 or 2
-	local g = rng:NextNumber(0.85, 1.1)
-	local green = Color3.fromRGB(46 * g, 82 * g, 46 * g)
-	local width = height * 0.5
-	local yaw = rng:NextNumber(0, math.pi)
-	for i = 1, tiers do
-		local w = width * (1 - (i - 1) * 0.28)
-		local th = height * (tiers == 3 and 0.4 or 0.5)
-		local y = height * 0.16 + (i - 1) * height * (tiers == 3 and 0.24 or 0.3)
-		local shade = Color3.new(green.R * (1 + i * 0.06), green.G * (1 + i * 0.06), green.B * (1 + i * 0.05))
-		local center = CFrame.new(base + Vector3.new(0, y + th / 2, 0)) * CFrame.Angles(0, yaw + i * 0.7, 0)
-		for a = 0, 1 do
-			local rot = center * CFrame.Angles(0, a * math.pi / 2, 0)
-			local size = Vector3.new(w * 0.42, th, w / 2)
-			B.wedge(m, size, rot * CFrame.new(0, 0, -w / 4), shade, Enum.Material.LeafyGrass, props)
-			B.wedge(m, size, rot * CFrame.new(0, 0, w / 4) * CFrame.Angles(0, math.pi, 0), shade, Enum.Material.LeafyGrass, props)
-		end
-	end
-	m.Parent = parent
-	return m
-end
-
-local AUTUMN = {
-	Color3.fromRGB(214, 122, 46),
-	Color3.fromRGB(228, 178, 62),
-	Color3.fromRGB(176, 64, 42),
-	Color3.fromRGB(116, 142, 60),
-	Color3.fromRGB(196, 150, 56),
-}
-
--- Лиственное дерево (берёза или клён) с осенней кроной.
-function B.leafy(parent: Instance, base: Vector3, height: number, rng: Random, props: { [string]: any }?)
-	local m = Instance.new("Model")
-	m.Name = "Дерево"
-	local birch = rng:NextNumber() < 0.5
-	local trunkColor = birch and Color3.fromRGB(226, 222, 212) or Color3.fromRGB(96, 70, 50)
-	B.post(m, base - Vector3.new(0, 1, 0), height * 0.62, height * 0.06, trunkColor, Enum.Material.Wood, props)
-	local color = AUTUMN[rng:NextInteger(1, #AUTUMN)]
-	local crown = height * 0.42
-	local top = base + Vector3.new(0, height * 0.66, 0)
-	local count = rng:NextInteger(2, 3)
-	for i = 1, count do
-		local d = crown * rng:NextNumber(0.7, 1)
-		local off = Vector3.new(rng:NextNumber(-0.25, 0.25) * crown, (i - 1) * crown * 0.28, rng:NextNumber(-0.25, 0.25) * crown)
-		local c = color:Lerp(Color3.new(1, 0.9, 0.6), rng:NextNumber(0, 0.15))
-		B.ball(m, d, CFrame.new(top + off), c, Enum.Material.LeafyGrass, props)
-	end
-	m.Parent = parent
-	return m
-end
-
-function B.lantern(parent: Instance, base: Vector3)
-	local m = Instance.new("Model")
-	m.Name = "Фонарь"
-	local metal = Color3.fromRGB(36, 34, 32)
-	B.part(m, Vector3.new(1.2, 0.5, 1.2), CFrame.new(base + Vector3.new(0, 0.25, 0)), metal, Enum.Material.Metal)
-	B.post(m, base, 7, 0.32, metal, Enum.Material.Metal)
-	B.part(m, Vector3.new(1.3, 0.25, 1.3), CFrame.new(base + Vector3.new(0, 7.1, 0)), metal, Enum.Material.Metal)
-	B.part(m, Vector3.new(1.1, 1.3, 1.1), CFrame.new(base + Vector3.new(0, 7.9, 0)), Color3.fromRGB(255, 236, 200), Enum.Material.Glass, { Transparency = 0.5 })
-	local glow = B.ball(m, 0.7, CFrame.new(base + Vector3.new(0, 7.9, 0)), Color3.fromRGB(255, 196, 120), Enum.Material.Neon)
-	B.wedge(m, Vector3.new(1.5, 0.6, 0.75), CFrame.new(base + Vector3.new(0, 8.85, -0.375)), metal, Enum.Material.Metal)
-	B.wedge(m, Vector3.new(1.5, 0.6, 0.75), CFrame.new(base + Vector3.new(0, 8.85, 0.375)) * CFrame.Angles(0, math.pi, 0), metal, Enum.Material.Metal)
-	B.light(glow, Color3.fromRGB(255, 190, 120), 18, 1.3, 0.08)
+	m.Name = name
 	m.Parent = parent
 	return m
 end

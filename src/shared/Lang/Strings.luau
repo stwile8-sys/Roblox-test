@@ -1,0 +1,233 @@
+--!nocheck
+-- Переводы. Порядок языков в каждой строке:
+-- en, ru, es, pt, de, fr, tr, id, ja, ko, zh
+
+local LANGS = { "en", "ru", "es", "pt", "de", "fr", "tr", "id", "ja", "ko", "zh" }
+local S = {}
+
+local function add(key, t)
+	local row = {}
+	for i, code in LANGS do
+		row[code] = t[i]
+	end
+	S[key] = row
+end
+
+-- Подключение и загрузка
+add("route.search", { "Finding your world…", "Ищем ваш мир…", "Buscando tu mundo…", "Procurando seu mundo…", "Suche deine Welt…", "Recherche de ton monde…", "Dünyan aranıyor…", "Mencari duniamu…", "ワールドを探しています…", "월드를 찾는 중…", "正在寻找你的世界…" })
+add("route.teleport", { "Travelling to your world…", "Переносим в ваш мир…", "Viajando a tu mundo…", "Indo para o seu mundo…", "Reise in deine Welt…", "Voyage vers ton monde…", "Dünyana gidiliyor…", "Menuju duniamu…", "ワールドへ移動中…", "월드로 이동 중…", "正在前往你的世界…" })
+add("route.error", { "Could not connect. Try again.", "Не удалось подключиться. Попробуйте ещё раз.", "No se pudo conectar. Inténtalo de nuevo.", "Não foi possível conectar. Tente novamente.", "Verbindung fehlgeschlagen. Versuche es erneut.", "Connexion impossible. Réessaie.", "Bağlanılamadı. Tekrar dene.", "Gagal terhubung. Coba lagi.", "接続できませんでした。もう一度お試しください。", "연결할 수 없습니다. 다시 시도하세요.", "无法连接，请重试。" })
+add("route.retry", { "Retry", "Повторить", "Reintentar", "Tentar de novo", "Erneut", "Réessayer", "Tekrar dene", "Coba lagi", "再試行", "다시 시도", "重试" })
+add("load.world", { "Building the world…", "Строим мир…", "Construyendo el mundo…", "Construindo o mundo…", "Welt wird gebaut…", "Construction du monde…", "Dünya kuruluyor…", "Membangun dunia…", "ワールドを構築中…", "월드를 짓는 중…", "正在建造世界…" })
+add("load.profile", { "Loading your progress…", "Загружаем прогресс…", "Cargando tu progreso…", "Carregando seu progresso…", "Lade Fortschritt…", "Chargement de ta progression…", "İlerlemen yükleniyor…", "Memuat progresmu…", "進行状況を読み込み中…", "진행 상황을 불러오는 중…", "正在加载进度…" })
+
+-- Ошибки
+add("err.bad", { "Can't do that.", "Так нельзя.", "No se puede.", "Não é possível.", "Das geht nicht.", "Impossible.", "Bu yapılamaz.", "Tidak bisa.", "できません。", "할 수 없습니다.", "无法执行。" })
+add("err.loading", { "Still loading…", "Ещё загружается…", "Aún cargando…", "Ainda carregando…", "Lädt noch…", "Chargement…", "Hâlâ yükleniyor…", "Masih memuat…", "読み込み中…", "아직 불러오는 중…", "仍在加载…" })
+add("err.money", { "Not enough coins.", "Не хватает монет.", "No tienes suficientes monedas.", "Moedas insuficientes.", "Nicht genug Münzen.", "Pas assez de pièces.", "Yeterli para yok.", "Koin tidak cukup.", "コインが足りません。", "코인이 부족합니다.", "金币不足。" })
+add("err.net", { "Connection problem.", "Проблема со связью.", "Problema de conexión.", "Problema de conexão.", "Verbindungsproblem.", "Problème de connexion.", "Bağlantı sorunu.", "Masalah koneksi.", "通信エラー。", "연결 문제.", "网络问题。" })
+add("err.slow", { "Too fast — slow down a little.", "Слишком часто — чуть помедленнее.", "Demasiado rápido.", "Rápido demais.", "Zu schnell.", "Trop rapide.", "Çok hızlı.", "Terlalu cepat.", "操作が速すぎます。", "너무 빠릅니다.", "操作太快。" })
+
+-- Интерфейс
+add("hud.build", { "Build", "Стройка", "Construir", "Construir", "Bauen", "Bâtir", "İnşa", "Bangun", "建設", "건설", "建造" })
+add("hud.storage", { "Storage", "Склад", "Almacén", "Armazém", "Lager", "Stock", "Depo", "Gudang", "倉庫", "창고", "仓库" })
+add("hud.market", { "Market", "Рынок", "Mercado", "Mercado", "Markt", "Marché", "Pazar", "Pasar", "市場", "시장", "市场" })
+add("hud.plots", { "Plots", "Участки", "Parcelas", "Terrenos", "Grundstücke", "Terrains", "Arsalar", "Lahan", "土地", "부지", "地块" })
+add("hud.my_plot", { "Travel", "Переход", "Viajar", "Viajar", "Reisen", "Voyager", "Git", "Pergi", "移動", "이동", "传送" })
+add("hud.settings", { "Settings", "Настройки", "Ajustes", "Ajustes", "Optionen", "Options", "Ayarlar", "Setelan", "設定", "설정", "设置" })
+
+-- Подсказки «E»
+add("act.jobs", { "Jobs board", "Доска заданий", "Tablón de trabajos", "Quadro de trabalhos", "Jobbrett", "Tableau des tâches", "İş panosu", "Papan pekerjaan", "仕事掲示板", "일감 게시판", "任务板" })
+add("act.market", { "Market", "Рынок", "Mercado", "Mercado", "Markt", "Marché", "Pazar", "Pasar", "市場", "시장", "市场" })
+add("act.plots", { "Land office", "Земельная контора", "Oficina de tierras", "Cartório de terras", "Grundbuchamt", "Bureau foncier", "Tapu ofisi", "Kantor tanah", "土地事務所", "토지 사무소", "土地办公室" })
+add("act.pickup", { "Pick up", "Взять", "Recoger", "Pegar", "Aufheben", "Prendre", "Al", "Ambil", "持つ", "들기", "拿起" })
+add("act.drop", { "Put down", "Положить", "Dejar", "Deixar", "Ablegen", "Poser", "Bırak", "Taruh", "置く", "내려놓기", "放下" })
+add("act.load", { "Load", "Погрузить", "Cargar", "Carregar", "Aufladen", "Charger", "Yükle", "Muat", "積む", "싣기", "装车" })
+add("act.repair", { "Repair", "Починить", "Reparar", "Consertar", "Reparieren", "Réparer", "Onar", "Perbaiki", "修理", "수리", "修理" })
+add("act.harvest", { "Harvest", "Собрать", "Cosechar", "Colher", "Ernten", "Récolter", "Hasat et", "Panen", "収穫", "수확", "收获" })
+
+-- Работы
+add("jobs.title", { "Jobs", "Задания", "Trabajos", "Trabalhos", "Jobs", "Tâches", "İşler", "Pekerjaan", "仕事", "일감", "任务" })
+add("jobs.take", { "Take", "Взять", "Aceptar", "Aceitar", "Annehmen", "Prendre", "Al", "Ambil", "受ける", "수락", "接受" })
+add("jobs.busy", { "Busy", "Занят", "Ocupado", "Ocupado", "Beschäftigt", "Occupé", "Meşgul", "Sibuk", "作業中", "진행 중", "进行中" })
+add("job.cart", { "Load a crate onto the cart", "Погрузить ящик на телегу", "Cargar una caja en el carro", "Carregar caixa na carroça", "Kiste auf den Karren laden", "Charger une caisse sur la charrette", "Arabaya sandık yükle", "Muat peti ke gerobak", "荷車に箱を積む", "수레에 상자 싣기", "把箱子装上推车" })
+add("job.sweep", { "Sweep the square", "Подмести площадь", "Barrer la plaza", "Varrer a praça", "Den Platz fegen", "Balayer la place", "Meydanı süpür", "Sapu alun-alun", "広場を掃除", "광장 청소", "打扫广场" })
+add("job.truck", { "Unload the truck", "Разгрузить грузовик", "Descargar el camión", "Descarregar o caminhão", "LKW entladen", "Décharger le camion", "Kamyonu boşalt", "Bongkar truk", "トラックの荷下ろし", "트럭 하역", "卸货车" })
+add("job.fence", { "Fix the fence", "Починить забор", "Arreglar la valla", "Consertar a cerca", "Zaun reparieren", "Réparer la clôture", "Çiti onar", "Perbaiki pagar", "柵を直す", "울타리 수리", "修理围栏" })
+add("job.harvest", { "Harvest the farm", "Собрать урожай на ферме", "Cosechar la granja", "Colher na fazenda", "Feld ernten", "Récolter la ferme", "Çiftliği hasat et", "Panen di ladang", "農場の収穫", "농장 수확", "收割农场" })
+add("job.parcel", { "Deliver parcels", "Доставить посылки", "Entregar paquetes", "Entregar pacotes", "Pakete ausliefern", "Livrer des colis", "Paket teslim et", "Antar paket", "小包の配達", "소포 배달", "派送包裹" })
+add("job.ship", { "Unload the ship", "Разгрузить корабль", "Descargar el barco", "Descarregar o navio", "Schiff entladen", "Décharger le navire", "Gemiyi boşalt", "Bongkar kapal", "船の荷下ろし", "배 하역", "卸船" })
+add("jobhint.cart.pickup", { "Take a crate from the pile by the warehouse.", "Возьмите ящик из кучи у склада.", "Coge una caja del montón junto al almacén.", "Pegue uma caixa da pilha perto do armazém.", "Nimm eine Kiste vom Stapel am Lager.", "Prends une caisse du tas près de l'entrepôt.", "Depo yanındaki yığından sandık al.", "Ambil peti dari tumpukan dekat gudang.", "倉庫の横の山から箱を取ろう。", "창고 옆 더미에서 상자를 집으세요.", "从仓库旁的箱堆拿一个箱子。" })
+add("jobhint.cart.drop", { "Carry it to the cart and load it.", "Отнесите его к телеге и погрузите.", "Llévala al carro y cárgala.", "Leve até a carroça e carregue.", "Bring sie zum Karren und lade sie auf.", "Porte-la à la charrette et charge-la.", "Arabaya götür ve yükle.", "Bawa ke gerobak dan muat.", "荷車まで運んで積もう。", "수레로 가져가 실으세요.", "搬到推车上装好。" })
+add("jobhint.truck.pickup", { "Take a crate from the back of the truck.", "Возьмите ящик из кузова грузовика.", "Coge una caja de la parte trasera del camión.", "Pegue uma caixa na traseira do caminhão.", "Nimm eine Kiste hinten vom LKW.", "Prends une caisse à l'arrière du camion.", "Kamyonun arkasından sandık al.", "Ambil peti dari bak truk.", "トラックの荷台から箱を取ろう。", "트럭 뒤에서 상자를 집으세요.", "从货车后部拿箱子。" })
+add("jobhint.truck.drop", { "Bring it to the warehouse door.", "Отнесите к двери склада.", "Llévala a la puerta del almacén.", "Leve até a porta do armazém.", "Bring sie zur Lagertür.", "Apporte-la à la porte de l'entrepôt.", "Depo kapısına götür.", "Bawa ke pintu gudang.", "倉庫の扉まで運ぼう。", "창고 문으로 가져가세요.", "送到仓库门口。" })
+add("jobhint.ship.pickup", { "Take a crate from the ship at the pier.", "Возьмите ящик с корабля у причала.", "Coge una caja del barco en el muelle.", "Pegue uma caixa do navio no cais.", "Nimm eine Kiste vom Schiff am Steg.", "Prends une caisse du navire au quai.", "İskeledeki gemiden sandık al.", "Ambil peti dari kapal di dermaga.", "桟橋の船から箱を取ろう。", "부두의 배에서 상자를 집으세요.", "从码头的船上拿箱子。" })
+add("jobhint.ship.drop", { "Carry it to the port storehouse.", "Отнесите на портовый склад.", "Llévala al almacén del puerto.", "Leve ao depósito do porto.", "Bring sie ins Hafenlager.", "Porte-la à l'entrepôt du port.", "Liman deposuna götür.", "Bawa ke gudang pelabuhan.", "港の倉庫へ運ぼう。", "항구 창고로 옮기세요.", "搬到港口仓库。" })
+add("jobhint.sweep", { "Walk with the broom through the glowing points around the fountain.", "Пройдите с метлой по светящимся точкам вокруг фонтана.", "Pasa con la escoba por los puntos brillantes alrededor de la fuente.", "Passe com a vassoura pelos pontos brilhantes ao redor da fonte.", "Geh mit dem Besen zu den leuchtenden Punkten um den Brunnen.", "Passe le balai sur les points lumineux autour de la fontaine.", "Süpürgeyle çeşmenin etrafındaki parlayan noktalardan geç.", "Sapu melewati titik bercahaya di sekitar air mancur.", "ほうきで噴水の周りの光る点を回ろう。", "빗자루를 들고 분수 주변의 빛나는 지점을 지나가세요.", "拿着扫帚走过喷泉周围的光点。" })
+add("jobhint.fence", { "Repair the 5 holes in the fence (hold E).", "Почините 5 дыр в заборе (удерживайте E).", "Repara los 5 huecos de la valla (mantén E).", "Conserte os 5 buracos da cerca (segure E).", "Repariere die 5 Löcher im Zaun (E halten).", "Répare les 5 trous de la clôture (maintiens E).", "Çitteki 5 deliği onar (E'ye basılı tut).", "Perbaiki 5 lubang pagar (tahan E).", "柵の5つの穴を直そう（Eを長押し）。", "울타리 구멍 5개를 수리하세요(E 길게).", "修好围栏上的5个洞（按住E）。" })
+add("jobhint.harvest", { "Pick all 10 plants on the farm.", "Соберите все 10 растений на ферме.", "Recoge las 10 plantas de la granja.", "Colha as 10 plantas da fazenda.", "Ernte alle 10 Pflanzen.", "Récolte les 10 plantes de la ferme.", "Çiftlikteki 10 bitkiyi topla.", "Petik semua 10 tanaman.", "農場の10本を全部収穫しよう。", "농장의 식물 10개를 모두 수확하세요.", "收割农场全部10株作物。" })
+add("jobhint.parcel", { "Pick up at the mailbox, then deliver to the north-east and north-west markets.", "Заберите у почтового ящика, затем отнесите на северо-восточный и северо-западный рынки.", "Recoge en el buzón y entrega en los mercados del noreste y noroeste.", "Pegue na caixa de correio e entregue nos mercados nordeste e noroeste.", "Hol es am Briefkasten ab und bring es zu den Märkten im Nordosten und Nordwesten.", "Récupère à la boîte aux lettres, puis livre aux marchés nord-est et nord-ouest.", "Posta kutusundan al, kuzeydoğu ve kuzeybatı pazarlarına götür.", "Ambil di kotak surat, lalu antar ke pasar timur laut dan barat laut.", "郵便箱で受け取り、北東と北西の市場へ届けよう。", "우체통에서 받아 북동쪽과 북서쪽 시장으로 배달하세요.", "在邮箱取件，送到东北和西北市场。" })
+add("job.cancel", { "Cancel", "Отменить", "Cancelar", "Cancelar", "Abbrechen", "Annuler", "İptal", "Batal", "やめる", "취소", "取消" })
+add("job.done", { "Job done! +{pay} c", "Работа выполнена! +{pay} c", "¡Trabajo hecho! +{pay} c", "Trabalho feito! +{pay} c", "Job erledigt! +{pay} c", "Tâche terminée ! +{pay} c", "İş tamam! +{pay} c", "Selesai! +{pay} c", "完了！ +{pay} c", "완료! +{pay} c", "完成！+{pay} c" })
+add("job.busy", { "Finish your current job first.", "Сначала закончите текущую работу.", "Termina primero tu trabajo actual.", "Termine o trabalho atual primeiro.", "Beende zuerst deinen aktuellen Job.", "Termine d'abord ta tâche.", "Önce mevcut işini bitir.", "Selesaikan pekerjaanmu dulu.", "先に今の仕事を終えよう。", "먼저 현재 일을 끝내세요.", "请先完成当前任务。" })
+add("job.cooldown", { "Take a short break first.", "Сначала короткий перерыв.", "Primero un breve descanso.", "Faça uma pausa curta primeiro.", "Erst eine kurze Pause.", "Petite pause d'abord.", "Önce kısa bir mola.", "Istirahat sebentar dulu.", "少し休憩しよう。", "잠깐 쉬세요.", "先休息一下。" })
+add("job.cooldown_left", { "Next job in {s} s", "Следующая работа через {s} с", "Siguiente trabajo en {s} s", "Próximo trabalho em {s} s", "Nächster Job in {s} s", "Prochaine tâche dans {s} s", "Sonraki iş {s} sn", "Pekerjaan berikutnya {s} dtk", "次の仕事まで{s}秒", "다음 일까지 {s}초", "{s} 秒后可接下一个" })
+add("job.too_fast", { "That was impossibly fast — no pay.", "Слишком быстро для честной работы — без оплаты.", "Demasiado rápido — sin pago.", "Rápido demais — sem pagamento.", "Unmöglich schnell — keine Bezahlung.", "Trop rapide — pas de paie.", "İmkansız derecede hızlı — ödeme yok.", "Terlalu cepat — tanpa bayaran.", "速すぎます — 報酬なし。", "너무 빠릅니다 — 보상 없음.", "速度异常 — 无报酬。" })
+
+-- Туториал
+add("tut.title", { "Tutorial · step {n}/5", "Обучение · шаг {n}/5", "Tutorial · paso {n}/5", "Tutorial · passo {n}/5", "Tutorial · Schritt {n}/5", "Tutoriel · étape {n}/5", "Eğitim · adım {n}/5", "Tutorial · langkah {n}/5", "チュートリアル {n}/5", "튜토리얼 {n}/5", "教程 · 第{n}/5步" })
+add("tut.1", { "Go to the jobs board in the hub (follow the arrow) and take your first job.", "Подойдите к доске заданий в хабе (по стрелке) и возьмите первое задание.", "Ve al tablón de trabajos (sigue la flecha) y acepta tu primer trabajo.", "Vá ao quadro de trabalhos (siga a seta) e aceite o primeiro trabalho.", "Geh zum Jobbrett (folge dem Pfeil) und nimm deinen ersten Job.", "Va au tableau des tâches (suis la flèche) et prends ta première tâche.", "İş panosuna git (oku takip et) ve ilk işini al.", "Pergi ke papan pekerjaan (ikuti panah) dan ambil pekerjaan pertama.", "矢印に従って仕事掲示板へ行き、最初の仕事を受けよう。", "화살표를 따라 일감 게시판으로 가서 첫 일을 받으세요.", "跟着箭头去任务板，接下第一个任务。" })
+add("tut.2", { "Do the job — the arrow shows where to go.", "Выполните задание — стрелка покажет, куда идти.", "Haz el trabajo: la flecha te guía.", "Faça o trabalho — a seta mostra o caminho.", "Erledige den Job — der Pfeil zeigt den Weg.", "Fais la tâche — la flèche te guide.", "İşi yap — ok yolu gösterir.", "Kerjakan — panah menunjukkan arah.", "仕事をしよう。矢印が行き先を示します。", "일을 하세요 — 화살표가 길을 알려줍니다.", "完成任务——箭头会指路。" })
+add("tut.3", { "Take 2–3 more jobs and save up {goal} c (plot + first building).", "Возьмите ещё 2–3 задания и накопите {goal} c (участок + первая постройка).", "Haz 2–3 trabajos más y ahorra {goal} c (parcela + primer edificio).", "Faça mais 2–3 trabalhos e junte {goal} c (terreno + primeira construção).", "Mach 2–3 weitere Jobs und spare {goal} c (Grundstück + erstes Gebäude).", "Fais 2–3 tâches de plus et économise {goal} c (terrain + premier bâtiment).", "2–3 iş daha yap ve {goal} c biriktir (arsa + ilk bina).", "Ambil 2–3 pekerjaan lagi, kumpulkan {goal} c (lahan + bangunan pertama).", "あと2〜3件こなして {goal} c 貯めよう（土地＋最初の建物）。", "2~3개 더 해서 {goal} c를 모으세요(부지 + 첫 건물).", "再做2–3个任务，攒够 {goal} c（地块+第一座建筑）。" })
+add("tut.4", { "Buy a plot: Land office (arrow) or the 🗺️ Plots button. Forest, field, meadow, river and lake are good for a start.", "Купите участок: земельная контора (стрелка) или кнопка 🗺️ «Участки». Для старта лучше лес, поле, луг, река или озеро.", "Compra una parcela: oficina de tierras (flecha) o el botón 🗺️. Bosque, campo, prado, río y lago son buenos para empezar.", "Compre um terreno: cartório (seta) ou botão 🗺️. Floresta, campo, prado, rio e lago são bons para começar.", "Kauf ein Grundstück: Grundbuchamt (Pfeil) oder 🗺️. Wald, Feld, Wiese, Fluss und See sind gut für den Start.", "Achète un terrain : bureau foncier (flèche) ou bouton 🗺️. Forêt, champ, prairie, rivière et lac sont idéaux pour débuter.", "Arsa satın al: tapu ofisi (ok) veya 🗺️ düğmesi. Başlangıç için orman, tarla, çayır, nehir ve göl iyidir.", "Beli lahan: kantor tanah (panah) atau tombol 🗺️. Hutan, ladang, padang, sungai, danau cocok untuk awal.", "土地を買おう：土地事務所（矢印）か🗺️ボタン。最初は森・畑・草原・川・湖がおすすめ。", "부지를 사세요: 토지 사무소(화살표) 또는 🗺️ 버튼. 처음엔 숲, 들판, 초원, 강, 호수가 좋아요.", "购买地块：土地办公室（箭头）或 🗺️ 按钮。开局推荐森林、田野、草地、河流、湖泊。" })
+add("tut.5", { "Press 🏗️ Build, pick ⭐ and place your first building next to the road.", "Нажмите 🏗️ «Стройка», выберите ⭐ и поставьте первое здание у дороги.", "Pulsa 🏗️ Construir, elige ⭐ y coloca tu primer edificio junto a la carretera.", "Toque 🏗️ Construir, escolha ⭐ e coloque o primeiro prédio ao lado da estrada.", "Drück 🏗️ Bauen, wähle ⭐ und setz dein erstes Gebäude an die Straße.", "Appuie sur 🏗️ Bâtir, choisis ⭐ et place ton premier bâtiment près de la route.", "🏗️ İnşa'ya bas, ⭐ seç ve ilk binanı yolun yanına koy.", "Tekan 🏗️ Bangun, pilih ⭐ dan taruh bangunan pertama di samping jalan.", "🏗️建設を押して⭐を選び、道路の横に最初の建物を置こう。", "🏗️ 건설을 누르고 ⭐을 골라 도로 옆에 첫 건물을 놓으세요.", "点击 🏗️ 建造，选择 ⭐，在道路旁放下第一座建筑。" })
+add("badge.founder", { "🏅 Badge earned: Founder! Your village is born.", "🏅 Бейдж «Основатель»! Ваша деревня основана.", "🏅 ¡Insignia: Fundador! Tu aldea ha nacido.", "🏅 Emblema: Fundador! Sua vila nasceu.", "🏅 Abzeichen: Gründer! Dein Dorf ist geboren.", "🏅 Badge : Fondateur ! Ton village est né.", "🏅 Rozet: Kurucu! Köyün doğdu.", "🏅 Lencana: Pendiri! Desamu lahir.", "🏅 バッジ獲得：創設者！村が誕生しました。", "🏅 배지 획득: 설립자! 마을이 탄생했습니다.", "🏅 获得徽章：创始人！你的村庄诞生了。" })
+
+-- Предметы
+add("item.wood", { "Wood", "Дерево", "Madera", "Madeira", "Holz", "Bois", "Odun", "Kayu", "木材", "목재", "木材" })
+add("item.stone", { "Stone", "Камень", "Piedra", "Pedra", "Stein", "Pierre", "Taş", "Batu", "石", "돌", "石头" })
+add("item.grain", { "Grain", "Зерно", "Grano", "Grãos", "Getreide", "Céréales", "Tahıl", "Gandum", "穀物", "곡물", "谷物" })
+add("item.bread", { "Bread", "Хлеб", "Pan", "Pão", "Brot", "Pain", "Ekmek", "Roti", "パン", "빵", "面包" })
+add("item.goods", { "Goods", "Товары", "Bienes", "Mercadorias", "Waren", "Marchandises", "Mallar", "Barang", "商品", "상품", "商品" })
+add("vehicle.cart", { "Hand cart", "Ручная тележка", "Carretilla", "Carrinho de mão", "Handkarren", "Charrette à bras", "El arabası", "Gerobak dorong", "手押し車", "손수레", "手推车" })
+
+-- Склад
+add("storage.title", { "Storage", "Склад", "Almacén", "Armazém", "Lager", "Stock", "Depo", "Gudang", "倉庫", "창고", "仓库" })
+add("storage.no_plot", { "You need a plot to store goods.", "Чтобы хранить товары, нужен участок.", "Necesitas una parcela para almacenar.", "Você precisa de um terreno para armazenar.", "Du brauchst ein Grundstück zum Lagern.", "Il te faut un terrain pour stocker.", "Depolamak için arsa gerekli.", "Perlu lahan untuk menyimpan.", "保管には土地が必要です。", "보관하려면 부지가 필요합니다.", "需要地块才能存放物品。" })
+add("storage.arriving", { "arriving", "прибывает", "llegando", "chegando", "kommt an", "en arrivée", "geliyor", "tiba", "到着中", "도착 중", "即将到达" })
+
+-- Рынок
+add("market.title", { "Market", "Рынок", "Mercado", "Mercado", "Markt", "Marché", "Pazar", "Pasar", "市場", "시장", "市场" })
+add("market.row", { "have {have} · from {price} c", "есть {have} · от {price} c", "tienes {have} · desde {price} c", "tem {have} · a partir de {price} c", "hast {have} · ab {price} c", "tu as {have} · dès {price} c", "var {have} · {price} c'den", "punya {have} · mulai {price} c", "所持 {have} · {price} c〜", "보유 {have} · {price} c부터", "持有 {have} · {price} c 起" })
+add("market.best_player", { "Players sell from {price} c ({qty} pcs)", "Игроки продают от {price} c ({qty} шт.)", "Jugadores venden desde {price} c ({qty} uds.)", "Jogadores vendem a partir de {price} c ({qty} un.)", "Spieler verkaufen ab {price} c ({qty} Stk.)", "Les joueurs vendent dès {price} c ({qty} u.)", "Oyuncular {price} c'den satıyor ({qty} adet)", "Pemain jual mulai {price} c ({qty} pcs)", "プレイヤー出品 {price} c〜（{qty}個）", "플레이어 판매 {price} c부터 ({qty}개)", "玩家出售 {price} c 起（{qty} 件）" })
+add("market.no_offers", { "No player offers yet", "Предложений игроков пока нет", "Aún no hay ofertas de jugadores", "Ainda sem ofertas de jogadores", "Noch keine Spielerangebote", "Pas encore d'offres de joueurs", "Henüz oyuncu teklifi yok", "Belum ada penawaran pemain", "プレイヤーの出品はまだありません", "아직 플레이어 판매가 없습니다", "暂无玩家出售" })
+add("market.npc", { "Trader: sells {sell} c · buys {buy} c", "Торговец: продаёт {sell} c · покупает {buy} c", "Comerciante: vende {sell} c · compra {buy} c", "Comerciante: vende {sell} c · compra {buy} c", "Händler: verkauft {sell} c · kauft {buy} c", "Marchand : vend {sell} c · achète {buy} c", "Tüccar: satar {sell} c · alır {buy} c", "Pedagang: jual {sell} c · beli {buy} c", "商人：売値 {sell} c · 買値 {buy} c", "상인: 판매 {sell} c · 구매 {buy} c", "商人：卖 {sell} c · 收 {buy} c" })
+add("market.qty", { "Amount", "Кол-во", "Cantidad", "Qtd.", "Menge", "Quantité", "Miktar", "Jumlah", "数量", "수량", "数量" })
+add("market.price", { "Price", "Цена", "Precio", "Preço", "Preis", "Prix", "Fiyat", "Harga", "価格", "가격", "价格" })
+add("market.buy", { "Buy (5 min)", "Купить (5 мин)", "Comprar (5 min)", "Comprar (5 min)", "Kaufen (5 Min)", "Acheter (5 min)", "Al (5 dk)", "Beli (5 mnt)", "購入（5分）", "구매 (5분)", "购买（5分钟）" })
+add("market.buy_now", { "Buy now +15%", "Сразу +15%", "Ya +15%", "Já +15%", "Sofort +15%", "Immédiat +15%", "Hemen +%15", "Langsung +15%", "即時 +15%", "즉시 +15%", "立即 +15%" })
+add("market.sell_npc", { "Sell to trader: +{money} c", "Продать торговцу: +{money} c", "Vender al comerciante: +{money} c", "Vender ao comerciante: +{money} c", "An Händler: +{money} c", "Vendre au marchand : +{money} c", "Tüccara sat: +{money} c", "Jual ke pedagang: +{money} c", "商人に売る：+{money} c", "상인에게 판매: +{money} c", "卖给商人：+{money} c" })
+add("market.place", { "Sell to players: {qty} × {price} c", "Выставить игрокам: {qty} × {price} c", "Vender a jugadores: {qty} × {price} c", "Vender a jogadores: {qty} × {price} c", "An Spieler: {qty} × {price} c", "Vendre aux joueurs : {qty} × {price} c", "Oyunculara sat: {qty} × {price} c", "Jual ke pemain: {qty} × {price} c", "プレイヤーに出品：{qty} × {price} c", "플레이어에게 판매: {qty} × {price} c", "挂单给玩家：{qty} × {price} c" })
+add("market.fees", { "Player sales: 10% fee + 5% tax. Goods wait in the order until sold.", "Продажа игрокам: комиссия 10% + налог 5%. Товар лежит в заявке до продажи.", "Ventas a jugadores: 10% comisión + 5% impuesto.", "Vendas a jogadores: 10% de taxa + 5% de imposto.", "Spielerverkäufe: 10% Gebühr + 5% Steuer.", "Ventes aux joueurs : 10 % de commission + 5 % de taxe.", "Oyuncu satışı: %10 komisyon + %5 vergi.", "Jual ke pemain: biaya 10% + pajak 5%.", "プレイヤー売買：手数料10%＋税5%。", "플레이어 판매: 수수료 10% + 세금 5%.", "玩家交易：手续费10%+税5%。" })
+add("market.cancel", { "Cancel", "Снять", "Retirar", "Retirar", "Zurückziehen", "Retirer", "Kaldır", "Tarik", "取消", "취소", "撤单" })
+add("market.need_plot", { "Buy a plot first — purchases go to its storage.", "Сначала купите участок — покупки идут на его склад.", "Compra una parcela primero.", "Compre um terreno primeiro.", "Kauf zuerst ein Grundstück.", "Achète d'abord un terrain.", "Önce arsa al.", "Beli lahan dulu.", "先に土地を買おう。", "먼저 부지를 사세요.", "请先购买地块。" })
+add("market.no_space", { "Not enough storage space.", "Не хватает места на складе.", "No hay espacio en el almacén.", "Sem espaço no armazém.", "Nicht genug Lagerplatz.", "Pas assez de place.", "Depoda yer yok.", "Gudang penuh.", "倉庫の空きが足りません。", "창고 공간이 부족합니다.", "仓库空间不足。" })
+add("market.not_enough", { "You don't have that many.", "Столько нет.", "No tienes tantos.", "Você não tem tantos.", "So viele hast du nicht.", "Tu n'en as pas autant.", "O kadar yok.", "Tidak cukup.", "そんなに持っていません。", "그만큼 없습니다.", "数量不足。" })
+add("market.bad_price", { "Price is outside the allowed range.", "Цена вне допустимого диапазона.", "Precio fuera de rango.", "Preço fora do limite.", "Preis außerhalb des Bereichs.", "Prix hors limites.", "Fiyat aralık dışında.", "Harga di luar batas.", "価格が範囲外です。", "가격이 범위를 벗어났습니다.", "价格超出范围。" })
+add("market.too_many", { "Too many orders (max 10).", "Слишком много заявок (максимум 10).", "Demasiadas órdenes (máx. 10).", "Ordens demais (máx. 10).", "Zu viele Angebote (max. 10).", "Trop d'ordres (max 10).", "Çok fazla ilan (en çok 10).", "Terlalu banyak (maks 10).", "出品が多すぎます（最大10）。", "판매가 너무 많습니다(최대 10).", "挂单过多（最多10）。" })
+add("market.bought", { "Bought! It's in your storage.", "Куплено! Уже на складе.", "¡Comprado! Ya está en el almacén.", "Comprado! Já está no armazém.", "Gekauft! Liegt im Lager.", "Acheté ! C'est dans ton stock.", "Alındı! Depoda.", "Dibeli! Sudah di gudang.", "購入！倉庫に入りました。", "구매 완료! 창고에 있습니다.", "已购买！已入库。" })
+add("market.on_way", { "Bought! Delivery in 5 minutes.", "Куплено! Доставка через 5 минут.", "¡Comprado! Entrega en 5 minutos.", "Comprado! Entrega em 5 minutos.", "Gekauft! Lieferung in 5 Minuten.", "Acheté ! Livraison dans 5 minutes.", "Alındı! 5 dakikada teslim.", "Dibeli! Dikirim dalam 5 menit.", "購入！5分後に配達。", "구매 완료! 5분 후 배송.", "已购买！5分钟后送达。" })
+add("market.delivered", { "📦 Your market delivery arrived.", "📦 Доставка с рынка прибыла.", "📦 Llegó tu entrega.", "📦 Sua entrega chegou.", "📦 Deine Lieferung ist da.", "📦 Ta livraison est arrivée.", "📦 Teslimatın geldi.", "📦 Kirimanmu tiba.", "📦 市場の配達が届きました。", "📦 시장 배송이 도착했습니다.", "📦 市场货物已送达。" })
+add("market.placed", { "Order placed.", "Заявка выставлена.", "Orden publicada.", "Ordem publicada.", "Angebot erstellt.", "Ordre placé.", "İlan verildi.", "Pesanan dipasang.", "出品しました。", "판매 등록됨.", "已挂单。" })
+add("market.sold", { "Sold {item}: +{money} c", "Продано: {item}, +{money} c", "Vendido {item}: +{money} c", "Vendido {item}: +{money} c", "Verkauft {item}: +{money} c", "Vendu {item} : +{money} c", "Satıldı {item}: +{money} c", "Terjual {item}: +{money} c", "{item}が売れました：+{money} c", "{item} 판매: +{money} c", "售出 {item}：+{money} c" })
+add("market.sold_npc", { "Sold to the trader.", "Продано торговцу.", "Vendido al comerciante.", "Vendido ao comerciante.", "An Händler verkauft.", "Vendu au marchand.", "Tüccara satıldı.", "Dijual ke pedagang.", "商人に売りました。", "상인에게 팔았습니다.", "已卖给商人。" })
+
+-- Участки
+add("plots.title", { "Plots", "Участки", "Parcelas", "Terrenos", "Grundstücke", "Terrains", "Arsalar", "Lahan", "土地", "부지", "地块" })
+add("plots.pick", { "Tap a plot on the map. Each biome has different resources.", "Выберите участок на карте. У каждого биома свои ресурсы.", "Toca una parcela. Cada bioma tiene recursos distintos.", "Toque em um terreno. Cada bioma tem recursos diferentes.", "Tippe auf ein Grundstück. Jedes Biom hat andere Rohstoffe.", "Touche un terrain. Chaque biome a ses ressources.", "Haritada bir arsa seç. Her biyomun kaynakları farklı.", "Pilih lahan di peta. Tiap bioma punya sumber daya berbeda.", "地図の土地をタップ。バイオームごとに資源が違います。", "지도의 부지를 누르세요. 생물군마다 자원이 다릅니다.", "点击地图上的地块。每个生物群系资源不同。" })
+add("plots.name", { "Plot {n}", "Участок {n}", "Parcela {n}", "Terreno {n}", "Grundstück {n}", "Terrain {n}", "Arsa {n}", "Lahan {n}", "土地 {n}", "부지 {n}", "地块 {n}" })
+add("plots.resources", { "Resources", "Ресурсы", "Recursos", "Recursos", "Rohstoffe", "Ressources", "Kaynaklar", "Sumber daya", "資源", "자원", "资源" })
+add("plots.extra", { "Bonus", "Дополнительно", "Extra", "Extra", "Bonus", "Bonus", "Ek", "Tambahan", "追加", "추가", "额外" })
+add("plots.hard", { "No food here — for experienced players (you'll need to trade).", "Здесь нет еды — для опытных (придётся торговать).", "Sin comida — para expertos (tendrás que comerciar).", "Sem comida — para experientes (precisa negociar).", "Keine Nahrung — für Erfahrene (Handel nötig).", "Pas de nourriture — pour joueurs expérimentés.", "Burada yiyecek yok — deneyimliler için.", "Tidak ada makanan — untuk pemain berpengalaman.", "食料なし — 上級者向け（交易が必要）。", "식량 없음 — 숙련자용(거래 필요).", "这里没有食物——适合老手（需要交易）。" })
+add("plots.yours", { "This is your plot.", "Это ваш участок.", "Esta es tu parcela.", "Este é o seu terreno.", "Das ist dein Grundstück.", "C'est ton terrain.", "Bu senin arsan.", "Ini lahanmu.", "あなたの土地です。", "당신의 부지입니다.", "这是你的地块。" })
+add("plots.owner", { "Owner: {name}", "Владелец: {name}", "Dueño: {name}", "Dono: {name}", "Besitzer: {name}", "Propriétaire : {name}", "Sahibi: {name}", "Pemilik: {name}", "所有者：{name}", "소유자: {name}", "所有者：{name}" })
+add("plots.have_one", { "You already own a plot in this world.", "У вас уже есть участок в этом мире.", "Ya tienes una parcela en este mundo.", "Você já tem um terreno neste mundo.", "Du hast schon ein Grundstück in dieser Welt.", "Tu as déjà un terrain dans ce monde.", "Bu dünyada zaten arsan var.", "Kamu sudah punya lahan di dunia ini.", "この世界ですでに土地を持っています。", "이미 이 월드에 부지가 있습니다.", "你在这个世界已有地块。" })
+add("plots.buy", { "Buy for {price} c", "Купить за {price} c", "Comprar por {price} c", "Comprar por {price} c", "Kaufen für {price} c", "Acheter {price} c", "{price} c'ye al", "Beli {price} c", "{price} c で購入", "{price} c에 구매", "以 {price} c 购买" })
+add("plots.starter", { "Comes with a hand cart, 20 wood, 10 bread and a road.", "В подарок: ручная тележка, 20 дерева, 10 хлеба и дорога.", "Incluye carretilla, 20 madera, 10 pan y una carretera.", "Vem com carrinho, 20 madeira, 10 pães e uma estrada.", "Mit Handkarren, 20 Holz, 10 Brot und einer Straße.", "Avec charrette, 20 bois, 10 pains et une route.", "El arabası, 20 odun, 10 ekmek ve yol hediye.", "Bonus: gerobak, 20 kayu, 10 roti, dan jalan.", "手押し車・木材20・パン10・道路付き。", "손수레, 목재 20, 빵 10, 도로 포함.", "赠送：手推车、20木材、10面包和一条路。" })
+add("plots.for_sale", { "For sale · {price} c", "Продаётся · {price} c", "En venta · {price} c", "À venda · {price} c", "Zu verkaufen · {price} c", "À vendre · {price} c", "Satılık · {price} c", "Dijual · {price} c", "販売中 · {price} c", "판매 중 · {price} c", "出售 · {price} c" })
+add("plot.bought", { "🎉 Plot {n} is yours! Open 🏗️ Build.", "🎉 Участок {n} ваш! Откройте 🏗️ «Стройку».", "🎉 ¡La parcela {n} es tuya! Abre 🏗️.", "🎉 O terreno {n} é seu! Abra 🏗️.", "🎉 Grundstück {n} gehört dir! Öffne 🏗️.", "🎉 Le terrain {n} est à toi ! Ouvre 🏗️.", "🎉 Arsa {n} senin! 🏗️'ı aç.", "🎉 Lahan {n} milikmu! Buka 🏗️.", "🎉 土地{n}を手に入れた！🏗️を開こう。", "🎉 부지 {n} 획득! 🏗️를 여세요.", "🎉 地块 {n} 归你了！打开 🏗️。" })
+add("plot.have", { "You already have a plot.", "У вас уже есть участок.", "Ya tienes una parcela.", "Você já tem um terreno.", "Du hast schon ein Grundstück.", "Tu as déjà un terrain.", "Zaten arsan var.", "Kamu sudah punya lahan.", "すでに土地があります。", "이미 부지가 있습니다.", "你已有地块。" })
+add("plot.taken", { "This plot is taken.", "Участок уже занят.", "Esta parcela está ocupada.", "Este terreno já tem dono.", "Dieses Grundstück ist vergeben.", "Ce terrain est pris.", "Bu arsa alınmış.", "Lahan ini sudah dimiliki.", "この土地は売約済みです。", "이미 주인이 있습니다.", "该地块已被占用。" })
+
+-- Биомы
+add("biome.forest", { "Forest", "Лес", "Bosque", "Floresta", "Wald", "Forêt", "Orman", "Hutan", "森", "숲", "森林" })
+add("biome.field", { "Field", "Поле", "Campo", "Campo", "Feld", "Champ", "Tarla", "Ladang", "畑", "들판", "田野" })
+add("biome.meadow", { "Meadow", "Луг", "Prado", "Prado", "Wiese", "Prairie", "Çayır", "Padang", "草原", "초원", "草地" })
+add("biome.desert", { "Desert", "Пустыня", "Desierto", "Deserto", "Wüste", "Désert", "Çöl", "Gurun", "砂漠", "사막", "沙漠" })
+add("biome.river", { "River", "Река", "Río", "Rio", "Fluss", "Rivière", "Nehir", "Sungai", "川", "강", "河流" })
+add("biome.lake", { "Lake", "Озеро", "Lago", "Lago", "See", "Lac", "Göl", "Danau", "湖", "호수", "湖泊" })
+add("biome.swamp", { "Swamp", "Болото", "Pantano", "Pântano", "Sumpf", "Marais", "Bataklık", "Rawa", "沼地", "늪", "沼泽" })
+add("biome.mountains", { "Mountains", "Горы", "Montañas", "Montanhas", "Berge", "Montagnes", "Dağlar", "Pegunungan", "山岳", "산악", "山地" })
+add("biome.coast", { "Coast", "Побережье", "Costa", "Litoral", "Küste", "Côte", "Kıyı", "Pesisir", "海岸", "해안", "海岸" })
+
+-- Ресурсы биомов
+add("res.wood", { "wood", "дерево", "madera", "madeira", "Holz", "bois", "odun", "kayu", "木材", "목재", "木材" })
+add("res.game", { "game", "дичь", "caza", "caça", "Wild", "gibier", "av hayvanı", "hewan buruan", "狩猟肉", "사냥감", "野味" })
+add("res.honey", { "honey", "мёд", "miel", "mel", "Honig", "miel", "bal", "madu", "はちみつ", "꿀", "蜂蜜" })
+add("res.mushrooms", { "mushrooms", "грибы", "setas", "cogumelos", "Pilze", "champignons", "mantar", "jamur", "きのこ", "버섯", "蘑菇" })
+add("res.resin", { "resin", "смола", "resina", "resina", "Harz", "résine", "reçine", "getah", "樹脂", "수지", "树脂" })
+add("res.grain", { "grain", "зерно", "grano", "grãos", "Getreide", "céréales", "tahıl", "gandum", "穀物", "곡물", "谷物" })
+add("res.livestock", { "livestock", "скот", "ganado", "gado", "Vieh", "bétail", "hayvancılık", "ternak", "家畜", "가축", "牲畜" })
+add("res.flax", { "flax", "лён", "lino", "linho", "Flachs", "lin", "keten", "rami", "亜麻", "아마", "亚麻" })
+add("res.sunflower", { "sunflower", "подсолнечник", "girasol", "girassol", "Sonnenblume", "tournesol", "ayçiçeği", "bunga matahari", "ひまわり", "해바라기", "向日葵" })
+add("res.herbs", { "medicinal herbs", "лекарственные травы", "hierbas medicinales", "ervas medicinais", "Heilkräuter", "herbes médicinales", "şifalı otlar", "tanaman obat", "薬草", "약초", "药草" })
+add("res.stone", { "stone", "камень", "piedra", "pedra", "Stein", "pierre", "taş", "batu", "石", "돌", "石头" })
+add("res.iron_ore", { "iron ore", "железная руда", "mineral de hierro", "minério de ferro", "Eisenerz", "minerai de fer", "demir cevheri", "bijih besi", "鉄鉱石", "철광석", "铁矿石" })
+add("res.copper_ore", { "copper ore", "медная руда", "mineral de cobre", "minério de cobre", "Kupfererz", "minerai de cuivre", "bakır cevheri", "bijih tembaga", "銅鉱石", "구리광석", "铜矿石" })
+add("res.oil", { "oil", "нефть", "petróleo", "petróleo", "Erdöl", "pétrole", "petrol", "minyak", "石油", "석유", "石油" })
+add("res.sand", { "sand", "песок", "arena", "areia", "Sand", "sable", "kum", "pasir", "砂", "모래", "沙子" })
+add("res.salt", { "salt", "соль", "sal", "sal", "Salz", "sel", "tuz", "garam", "塩", "소금", "盐" })
+add("res.sulfur", { "sulfur", "сера", "azufre", "enxofre", "Schwefel", "soufre", "kükürt", "belerang", "硫黄", "유황", "硫磺" })
+add("res.bauxite", { "bauxite", "бокситы", "bauxita", "bauxita", "Bauxit", "bauxite", "boksit", "bauksit", "ボーキサイト", "보크사이트", "铝土矿" })
+add("res.fish", { "fish", "рыба", "pescado", "peixe", "Fisch", "poisson", "balık", "ikan", "魚", "물고기", "鱼" })
+add("res.clay", { "clay", "глина", "arcilla", "argila", "Ton", "argile", "kil", "tanah liat", "粘土", "점토", "黏土" })
+add("res.water", { "water", "вода", "agua", "água", "Wasser", "eau", "su", "air", "水", "물", "水" })
+add("res.reed", { "reed", "тростник", "junco", "junco", "Schilf", "roseau", "kamış", "alang-alang", "葦", "갈대", "芦苇" })
+add("res.silt", { "silt", "ил", "limo", "lodo", "Schlick", "limon", "balçık", "lumpur", "泥", "실트", "淤泥" })
+add("res.algae", { "algae", "водоросли", "algas", "algas", "Algen", "algues", "yosun", "alga", "海藻", "해조류", "藻类" })
+add("res.peat", { "peat", "торф", "turba", "turfa", "Torf", "tourbe", "turba", "gambut", "泥炭", "토탄", "泥炭" })
+add("res.cranberry", { "cranberry", "клюква", "arándano rojo", "oxicoco", "Moosbeere", "canneberge", "kızılcık", "cranberry", "クランベリー", "크랜베리", "蔓越莓" })
+add("res.coal", { "coal", "уголь", "carbón", "carvão", "Kohle", "charbon", "kömür", "batu bara", "石炭", "석탄", "煤" })
+add("res.gold", { "gold", "золото", "oro", "ouro", "Gold", "or", "altın", "emas", "金", "금", "黄金" })
+add("res.silver", { "silver", "серебро", "plata", "prata", "Silber", "argent", "gümüş", "perak", "銀", "은", "白银" })
+add("res.gems", { "gems", "драгоценные камни", "gemas", "gemas", "Edelsteine", "gemmes", "değerli taşlar", "permata", "宝石", "보석", "宝石" })
+add("res.uranium", { "uranium", "уран", "uranio", "urânio", "Uran", "uranium", "uranyum", "uranium", "ウラン", "우라늄", "铀" })
+add("res.limestone", { "limestone", "известняк", "caliza", "calcário", "Kalkstein", "calcaire", "kireçtaşı", "batu kapur", "石灰岩", "석회암", "石灰岩" })
+add("res.gas", { "natural gas", "природный газ", "gas natural", "gás natural", "Erdgas", "gaz naturel", "doğalgaz", "gas alam", "天然ガス", "천연가스", "天然气" })
+
+-- Стройка
+add("tool.pan", { "Move", "Обзор", "Mover", "Mover", "Bewegen", "Vue", "Gezin", "Geser", "移動", "이동", "移动" })
+add("tool.road", { "Road", "Дорога", "Carretera", "Estrada", "Straße", "Route", "Yol", "Jalan", "道路", "도로", "道路" })
+add("tool.R", { "Homes", "Жильё", "Viviendas", "Casas", "Wohnen", "Logements", "Konut", "Rumah", "住宅", "주거", "住宅" })
+add("tool.C", { "Shops", "Магазины", "Tiendas", "Lojas", "Läden", "Commerces", "Dükkan", "Toko", "商業", "상업", "商业" })
+add("tool.I", { "Industry", "Пром", "Industria", "Indústria", "Industrie", "Industrie", "Sanayi", "Industri", "工業", "공업", "工业" })
+add("tool.special", { "Objects", "Объекты", "Objetos", "Objetos", "Objekte", "Objets", "Yapılar", "Objek", "施設", "시설", "设施" })
+add("tool.bulldoze", { "Demolish", "Снос", "Demoler", "Demolir", "Abriss", "Démolir", "Yık", "Bongkar", "撤去", "철거", "拆除" })
+add("tool.exit", { "Done", "Готово", "Listo", "Pronto", "Fertig", "Fini", "Bitti", "Selesai", "完了", "완료", "完成" })
+add("special.farm", { "Farm", "Ферма", "Granja", "Fazenda", "Bauernhof", "Ferme", "Çiftlik", "Ladang", "農場", "농장", "农场" })
+add("special.lumber", { "Logging camp", "Лесозаготовка", "Aserradero", "Madeireira", "Holzfäller", "Camp de bûcherons", "Kereste kampı", "Penebangan", "伐採場", "벌목장", "伐木场" })
+add("special.quarry", { "Quarry", "Каменоломня", "Cantera", "Pedreira", "Steinbruch", "Carrière", "Taş ocağı", "Tambang batu", "採石場", "채석장", "采石场" })
+add("special.out", { "makes {item}", "даёт: {item}", "produce {item}", "produz {item}", "liefert {item}", "produit {item}", "üretir: {item}", "hasil: {item}", "{item}を生産", "{item} 생산", "产出{item}" })
+add("build.cost", { "{n} cells · {money} c", "{n} клеток · {money} c", "{n} celdas · {money} c", "{n} células · {money} c", "{n} Felder · {money} c", "{n} cases · {money} c", "{n} hücre · {money} c", "{n} petak · {money} c", "{n}マス · {money} c", "{n}칸 · {money} c", "{n} 格 · {money} c" })
+add("build.cells", { "{n} cells", "{n} клеток", "{n} celdas", "{n} células", "{n} Felder", "{n} cases", "{n} hücre", "{n} petak", "{n}マス", "{n}칸", "{n} 格" })
+add("build.stats", { "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/h", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/ч", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/h", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/h", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/Std", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/h", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/sa", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/jam", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/時", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/시간", "👥 {pop}/{cap}  💼 {jobs} ({work}%)\n💰 {income} c/小时" })
+add("build.no_food", { "⚠ Residents are hungry — farm grain or buy bread!", "⚠ Жители голодают — нужна ферма или хлеб!", "⚠ ¡Los vecinos tienen hambre!", "⚠ Os moradores estão com fome!", "⚠ Die Bewohner hungern!", "⚠ Les habitants ont faim !", "⚠ Sakinler aç!", "⚠ Warga kelaparan!", "⚠ 住民が空腹です！", "⚠ 주민이 굶주립니다!", "⚠ 居民在挨饿！" })
+add("build.place", { "Place", "Поставить", "Colocar", "Colocar", "Setzen", "Placer", "Yerleştir", "Taruh", "設置", "배치", "放置" })
+add("build.tap_place", { "Tap a spot next to a road, then confirm.", "Нажмите на место у дороги и подтвердите.", "Toca un sitio junto a una carretera y confirma.", "Toque um lugar ao lado da estrada e confirme.", "Tippe neben eine Straße und bestätige.", "Touche un endroit près d'une route puis confirme.", "Yol kenarında bir yere dokun ve onayla.", "Ketuk tempat di samping jalan lalu konfirmasi.", "道路の横をタップして確定。", "도로 옆을 누르고 확인하세요.", "点击道路旁的位置并确认。" })
+add("build.cant", { "Can't build there.", "Здесь нельзя строить.", "No se puede construir ahí.", "Não dá para construir aí.", "Hier kann man nicht bauen.", "Impossible de bâtir ici.", "Buraya inşa edilemez.", "Tidak bisa dibangun di sana.", "ここには建てられません。", "여기에는 지을 수 없습니다.", "这里不能建造。" })
+add("build.occupied", { "That space is taken.", "Место занято.", "Ese espacio está ocupado.", "Esse espaço está ocupado.", "Der Platz ist belegt.", "L'espace est occupé.", "Orası dolu.", "Tempat itu terisi.", "その場所は埋まっています。", "그 자리는 사용 중입니다.", "该位置已被占用。" })
+add("build.out", { "It doesn't fit on your plot.", "Не помещается на участке.", "No cabe en tu parcela.", "Não cabe no terreno.", "Passt nicht aufs Grundstück.", "Ça ne rentre pas.", "Arsaya sığmıyor.", "Tidak muat di lahan.", "土地に収まりません。", "부지에 맞지 않습니다.", "放不下。" })
+add("build.need_road", { "Must touch a road.", "Нужно примыкание к дороге.", "Debe tocar una carretera.", "Precisa encostar numa estrada.", "Muss an eine Straße grenzen.", "Doit toucher une route.", "Yola bitişik olmalı.", "Harus menempel jalan.", "道路に接している必要があります。", "도로에 붙어 있어야 합니다.", "必须靠近道路。" })
+add("build.zone_far", { "Zones only near roads (up to 3 cells).", "Зоны — только рядом с дорогой (до 3 клеток).", "Zonas solo cerca de carreteras (hasta 3 celdas).", "Zonas só perto de estradas (até 3 células).", "Zonen nur nahe Straßen (bis 3 Felder).", "Zones seulement près des routes (3 cases).", "Bölgeler sadece yol yakınında (3 hücre).", "Zona hanya dekat jalan (maks 3 petak).", "区画は道路の近く（3マス以内）のみ。", "구역은 도로 근처(3칸 이내)만.", "区划只能在道路附近（3格内）。" })
+add("build.no_resource", { "Your plot lacks this resource.", "На участке нет этого ресурса.", "Tu parcela no tiene este recurso.", "Seu terreno não tem esse recurso.", "Dein Grundstück hat diesen Rohstoff nicht.", "Ton terrain n'a pas cette ressource.", "Arsanda bu kaynak yok.", "Lahanmu tidak punya sumber ini.", "この土地にはその資源がありません。", "부지에 이 자원이 없습니다.", "你的地块没有这种资源。" })
+add("build.limit", { "Building limit reached for a village.", "Лимит зданий для деревни.", "Límite de edificios de aldea.", "Limite de prédios da vila.", "Gebäudelimit fürs Dorf erreicht.", "Limite de bâtiments du village.", "Köy bina sınırı doldu.", "Batas bangunan desa tercapai.", "村の建物上限です。", "마을 건물 한도에 도달.", "已达村庄建筑上限。" })
+
+-- Настройки
+add("settings.title", { "Settings", "Настройки", "Ajustes", "Ajustes", "Einstellungen", "Paramètres", "Ayarlar", "Setelan", "設定", "설정", "设置" })
+add("settings.lang", { "Language", "Язык", "Idioma", "Idioma", "Sprache", "Langue", "Dil", "Bahasa", "言語", "언어", "语言" })
+add("settings.gfx", { "Graphics", "Графика", "Gráficos", "Gráficos", "Grafik", "Graphismes", "Grafik", "Grafis", "グラフィック", "그래픽", "画质" })
+add("settings.gfx_hint", { "Phone: no shadows and effects, smoother on weak devices. PC: shadows, glow and sun rays.", "Телефон: без теней и эффектов, плавнее на слабых устройствах. ПК: тени, свечение и лучи.", "Teléfono: sin sombras ni efectos. PC: sombras, brillo y rayos.", "Celular: sem sombras e efeitos. PC: sombras, brilho e raios.", "Handy: ohne Schatten und Effekte. PC: Schatten, Glühen, Sonnenstrahlen.", "Téléphone : sans ombres ni effets. PC : ombres, lueur, rayons.", "Telefon: gölge ve efekt yok. PC: gölge, parıltı, güneş ışınları.", "HP: tanpa bayangan & efek. PC: bayangan, cahaya, sinar.", "スマホ：影と効果なし。PC：影・発光・光線あり。", "폰: 그림자·효과 없음. PC: 그림자·발광·광선.", "手机：无阴影和特效。电脑：阴影、泛光、光束。" })
+add("gfx.auto", { "Auto", "Авто", "Auto", "Auto", "Auto", "Auto", "Otomatik", "Otomatis", "自動", "자동", "自动" })
+add("gfx.low", { "Phone", "Телефон", "Teléfono", "Celular", "Handy", "Téléphone", "Telefon", "HP", "スマホ", "폰", "手机" })
+add("gfx.high", { "PC", "ПК", "PC", "PC", "PC", "PC", "PC", "PC", "PC", "PC", "电脑" })
+
+-- Сводка «пока вас не было»
+add("sum.title", { "While you were away", "Пока вас не было", "Mientras no estabas", "Enquanto você esteve fora", "Während du weg warst", "Pendant ton absence", "Sen yokken", "Selama kamu pergi", "留守中の出来事", "자리를 비운 동안", "你离开期间" })
+add("sum.away", { "Away for {t}", "Отсутствовали {t}", "Ausente {t}", "Ausente por {t}", "Weg für {t}", "Absent pendant {t}", "{t} yoktun", "Pergi selama {t}", "{t} 不在", "{t} 동안 자리 비움", "离开了 {t}" })
+add("sum.income", { "income (20% offline)", "доход (20% в оффлайне)", "ingresos (20% sin conexión)", "renda (20% offline)", "Einnahmen (20% offline)", "revenus (20 % hors ligne)", "gelir (çevrimdışı %20)", "pendapatan (20% offline)", "収入（オフライン20%）", "수입 (오프라인 20%)", "收入（离线20%）" })
+add("sum.costs", { "upkeep and land tax", "содержание и налог на землю", "mantenimiento e impuesto", "manutenção e imposto", "Unterhalt und Grundsteuer", "entretien et taxe foncière", "bakım ve arazi vergisi", "perawatan dan pajak tanah", "維持費と土地税", "유지비와 토지세", "维护费和土地税" })
+add("sum.payout", { "market sales", "продажи на рынке", "ventas en el mercado", "vendas no mercado", "Marktverkäufe", "ventes au marché", "pazar satışları", "penjualan pasar", "市場での売上", "시장 판매", "市场销售" })
+add("time.hm", { "{h} h {m} min", "{h} ч {m} мин", "{h} h {m} min", "{h} h {m} min", "{h} Std {m} Min", "{h} h {m} min", "{h} sa {m} dk", "{h} jam {m} mnt", "{h}時間{m}分", "{h}시간 {m}분", "{h}小时{m}分钟" })
+add("time.m", { "{m} min", "{m} мин", "{m} min", "{m} min", "{m} Min", "{m} min", "{m} dk", "{m} mnt", "{m}分", "{m}분", "{m}分钟" })
+
+return S

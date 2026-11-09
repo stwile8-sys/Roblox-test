@@ -1,0 +1,40 @@
+name: Проверка кода
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установить Rojo и luau-lsp
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo rojo-rbx/rojo --pattern '*linux-x86_64.zip' -O rojo.zip
+          unzip -o -q rojo.zip -d tools
+          gh release download --repo JohnnyMorganz/luau-lsp --pattern 'luau-lsp-linux-x86_64.zip' -O lsp.zip
+          unzip -o -q lsp.zip -d tools
+          chmod +x tools/*
+          curl -sSfL https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.None.d.luau -o globalTypes.d.luau
+          echo "$PWD/tools" >> "$GITHUB_PATH"
+
+      - name: Собрать
+        run: |
+          rojo build default.project.json -o game.rbxl
+          rojo sourcemap default.project.json -o sourcemap.json
+
+      - name: Анализ кода
+        timeout-minutes: 4
+        run: |
+          luau-lsp analyze \
+            --platform=roblox \
+            --sourcemap=sourcemap.json \
+            --definitions=@roblox=globalTypes.d.luau \
+            --no-strict-dm-types \
+            src

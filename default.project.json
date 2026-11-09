@@ -1,17 +1,17 @@
 {
-  "name": "Vershina",
+  "name": "FrontierEmpires",
   "tree": {
     "$className": "DataModel",
     "Workspace": {
       "$className": "Workspace",
       "$properties": {
-        "StreamingEnabled": false
+        "StreamingEnabled": true
       }
     },
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
-        "ClockTime": 17.4
+        "ClockTime": 14.5
       }
     },
     "ServerScriptService": {
@@ -31,8 +31,8 @@
     },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "Rally": {
-        "$path": "src/shared/Rally"
+      "Shared": {
+        "$path": "src/shared"
       }
     }
   }
