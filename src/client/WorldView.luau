@@ -17,12 +17,6 @@ local M = {}
 
 local PROMPT_TAGS = {
 	"UiPrompt",
-	"JobCratePile",
-	"JobCart",
-	"JobTruck",
-	"JobWarehouse",
-	"JobShip",
-	"JobDockStore",
 	"JobFenceGap",
 	"JobPlant",
 }
@@ -52,9 +46,8 @@ local function promptVisible(prompt: ProximityPrompt, tag: string): boolean
 	if not job then
 		return false
 	end
-	if job.kind == "carry" then
-		return (tag == job.pickup and not carry) or (tag == job.drop and carry)
-	elseif job.kind == "prompts" then
+	local _ = carry
+	if job.kind == "prompts" then
 		local n = prompt:GetAttribute("N")
 		return tag == job.target and type(n) == "number" and not done[n]
 	end
@@ -86,7 +79,7 @@ end
 local function refreshSign(model: Instance)
 	local sign = model:FindFirstChild("Sign")
 	local gui = sign and sign:FindFirstChild("SignGui")
-	local text = gui and gui:FindFirstChild("Text")
+	local text = gui and gui:FindFirstChild("Text", true)
 	if not text or not text:IsA("TextLabel") then
 		return
 	end
@@ -153,12 +146,23 @@ local function firstTagged(tag: string, filter: ((Instance) -> boolean)?): BaseP
 	return best
 end
 
+local myVehicle: () -> Model?
+
 local function target(): Vector3?
 	local s = Store.state
 	local id, progress, carry, done = jobState()
 	local job = JobsCfg.byId[id]
 	if job then
-		if job.kind == "carry" then
+		-- служебная машина брошена — ведём к ней
+		if job.vehicle then
+			local mine = myVehicle()
+			local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+			local seatPart = hum and hum.SeatPart
+			if mine and mine.PrimaryPart and not (seatPart and seatPart:IsDescendantOf(mine)) then
+				return mine.PrimaryPart.Position
+			end
+		end
+		if job.kind == "haul" then
 			local p = firstTagged(if carry then job.drop :: string else job.pickup :: string)
 			return p and p.Position
 		elseif job.kind == "prompts" then
@@ -174,12 +178,12 @@ local function target(): Vector3?
 			if p then
 				return p.Position
 			end
-			-- точка ещё не подгрузилась (далеко): берём известные координаты рынков
+			-- точка ещё не подгрузилась (далеко): берём известные координаты рынков (+40 к югу)
 			if id == "parcel" then
 				if progress + 1 == 2 then
-					return Map.tileCenter(4, 0)
+					return Map.tileCenter(4, 0) + Vector3.new(0, 0, 40)
 				elseif progress + 1 == 3 then
-					return Map.tileCenter(0, 0)
+					return Map.tileCenter(0, 0) + Vector3.new(0, 0, 40)
 				end
 			end
 			return nil
@@ -196,10 +200,82 @@ local function target(): Vector3?
 		local p = firstTagged("TutorialOffice")
 		return p and p.Position
 	elseif step == 5 and s.plot then
-		local pl = Map.plots[s.plot]
-		return Map.tileCenter(pl.c, pl.r)
+		local ei, ej = Map.entrance(s.plot)
+		local x, z = Map.cellXZ(s.plot, ei, ej)
+		return Vector3.new(x, Map.BASE, z)
 	end
 	return nil
+end
+
+-- Своя машина (служебная или тележка) в мире
+myVehicle = function(): Model?
+	local folder = workspace:FindFirstChild("Vehicles")
+	if not folder then
+		return nil
+	end
+	for _, car in folder:GetChildren() do
+		if car:IsA("Model") and car:GetAttribute("Owner") == player.UserId and car.Name ~= "cart_" .. player.UserId then
+			return car
+		end
+	end
+	return nil
+end
+
+-- Подсказка «Сесть за руль» видна только хозяину машины
+local function watchVehicles()
+	local folder = workspace:WaitForChild("Vehicles", 60)
+	if not folder then
+		return
+	end
+	local function hook(inst: Instance)
+		if inst:IsA("ProximityPrompt") and inst.Name == "DrivePrompt" then
+			local car = inst:FindFirstAncestorOfClass("Model")
+			inst.ActionText = L.t("act.drive")
+			inst.Enabled = car ~= nil and car:GetAttribute("Owner") == player.UserId
+		end
+	end
+	for _, d in folder:GetDescendants() do
+		hook(d)
+	end
+	folder.DescendantAdded:Connect(hook)
+end
+
+-- Дальность прорисовки: дальние участки (дома и украшения) скрываются у этого игрока
+local drawDistance = 2000
+local hiddenPlots: { [Instance]: boolean } = {}
+local function setHidden(model: Instance, hidden: boolean)
+	if (hiddenPlots[model] == true) == hidden then
+		return
+	end
+	hiddenPlots[model] = hidden
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.LocalTransparencyModifier = if hidden then 1 else 0
+		end
+	end
+end
+
+function M.setDrawDistance(d: number)
+	drawDistance = d
+end
+
+local function updateDrawDistance()
+	local world = workspace:FindFirstChild("World")
+	local plots = world and world:FindFirstChild("Plots")
+	if not plots then
+		return
+	end
+	local cam = workspace.CurrentCamera.CFrame.Position
+	for _, model in plots:GetChildren() do
+		local index = model:GetAttribute("Index")
+		if type(index) == "number" and Map.plots[index] then
+			local p = Map.plots[index]
+			local c = Map.tileCenter(p.c, p.r)
+			local dx = math.max(0, math.abs(cam.X - c.X) - Map.PLOT / 2)
+			local dz = math.max(0, math.abs(cam.Z - c.Z) - Map.PLOT / 2)
+			setHidden(model, math.sqrt(dx * dx + dz * dz) > drawDistance)
+		end
+	end
 end
 
 local function makeBeacon()
@@ -269,6 +345,13 @@ function M.start()
 	end
 	L.onChange(refreshAllPrompts)
 	task.spawn(watchPlots)
+	task.spawn(watchVehicles)
+	task.spawn(function()
+		while true do
+			task.wait(1.5)
+			updateDrawDistance()
+		end
+	end)
 
 	makeBeacon()
 	if player.Character then

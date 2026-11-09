@@ -98,7 +98,7 @@ local function jobView(s: { [string]: any })
 	jobPanel.Visible = true
 	jobTitle.Text = L.t("job." .. id) .. "  ·  " .. tostring(progress) .. "/" .. tostring(job.count)
 	local hintKey = "jobhint." .. id
-	if job.kind == "carry" then
+	if job.kind == "haul" then
 		hintKey ..= if carry then ".drop" else ".pickup"
 	end
 	jobHint.Text = L.t(hintKey)
@@ -303,6 +303,14 @@ end
 
 function M.hideFor(build: boolean)
 	gui.Enabled = not build
+end
+
+-- За рулём прячем боковые кнопки (их место занимают педали)
+function M.setDriving(on: boolean)
+	for _, b in buttons do
+		b.Parent.Visible = not on
+		break
+	end
 end
 
 return M

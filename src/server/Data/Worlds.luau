@@ -19,8 +19,8 @@ local M = {}
 local store: DataStore? = nil
 local payouts: DataStore? = nil
 pcall(function()
-	store = DataStoreService:GetDataStore("FE_Worlds_v1")
-	payouts = DataStoreService:GetDataStore("FE_Payouts_v1")
+	store = DataStoreService:GetDataStore("FE_Worlds_v2")
+	payouts = DataStoreService:GetDataStore("FE_Payouts_v2")
 end)
 
 export type World = {

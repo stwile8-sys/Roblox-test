@@ -19,6 +19,7 @@ local toast: (string, string?) -> ()
 local windows: { [string]: Frame } = {}
 local refreshers: { [string]: () -> () } = {}
 local onGraphics: (string) -> () = function() end
+local onDraw: (number) -> () = function() end
 
 local function result(ok: boolean, msg: any)
 	if type(msg) == "string" then
@@ -158,7 +159,19 @@ local function buildStorage()
 			})
 		end
 		if s.vehicles and (s.vehicles.cart or 0) > 0 then
-			Kit.label({ Text = "🛒 " .. L.t("vehicle.cart") .. " × " .. s.vehicles.cart, TextColor3 = C.dim, TextSize = 14, LayoutOrder = 200, Parent = scroll })
+			local row = Kit.frame({ BackgroundColor3 = C.panel, Size = UDim2.new(1, -8, 0, 44), LayoutOrder = 200, Parent = scroll }, { Kit.corner(8) })
+			Kit.label({ Text = "🛒 " .. L.t("vehicle.cart"), Position = UDim2.new(0, 10, 0, 0), Size = UDim2.new(0.5, 0, 1, 0), Parent = row })
+			Kit.button(L.t("vehicle.take"), "main", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -100, 0.5, 0), Size = UDim2.new(0, 100, 0, 32), TextSize = 13, Parent = row }, function()
+				local ok, msg = Store.act("spawnCart")
+				if ok then
+					win.Visible = false
+				else
+					result(false, msg)
+				end
+			end)
+			Kit.button(L.t("vehicle.dismiss"), "plain", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -6, 0.5, 0), Size = UDim2.new(0, 88, 0, 32), TextSize = 13, Parent = row }, function()
+				Store.act("dismissCart")
+			end)
 		end
 	end
 end
@@ -469,14 +482,30 @@ local function buildSettings()
 			end)
 		end
 		Kit.label({ Text = L.t("settings.gfx_hint"), TextColor3 = C.dim, TextSize = 12, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 5, Parent = scroll })
+		Kit.label({ Text = L.t("settings.draw"), Font = Kit.BOLD, LayoutOrder = 6, Parent = scroll })
+		local dr = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -8, 0, 40), LayoutOrder = 7, Parent = scroll })
+		Kit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), Parent = dr })
+		local curDraw = tonumber(s.prefs and s.prefs.draw) or 0
+		for _, d in { 500, 1000, 2000, 4000 } do
+			Kit.button(if d == 4000 then L.t("settings.draw_max") else L.num(d), if curDraw == d then "main" else "plain", { Size = UDim2.new(0, 96, 1, 0), TextSize = 14, Parent = dr }, function()
+				if s.prefs then
+					s.prefs.draw = tostring(d)
+				end
+				Store.act("setPref", "draw", tostring(d))
+				onDraw(d)
+				draw()
+			end)
+		end
+		Kit.label({ Text = L.t("settings.draw_hint"), TextColor3 = C.dim, TextSize = 12, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 8, Parent = scroll })
 	end
 	refreshers.settings = draw
 end
 
-function M.start(screen: ScreenGui, toastFn: (string, string?) -> (), graphicsFn: (string) -> ())
+function M.start(screen: ScreenGui, toastFn: (string, string?) -> (), graphicsFn: (string) -> (), drawFn: (number) -> ())
 	gui = screen
 	toast = toastFn
 	onGraphics = graphicsFn
+	onDraw = drawFn
 	buildJobs()
 	buildStorage()
 	buildMarket()

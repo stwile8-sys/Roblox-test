@@ -1,16 +1,19 @@
 --!strict
--- Геометрия карты. Сетка 5×5 плиток: в центре хаб, по углам рынки, остальные 20 — участки.
--- Север — это −Z. Горы на севере, река на западе, озеро на востоке, море на юге.
+-- Геометрия мира. Сетка 5×5 плиток по 1120: в центре хаб, по углам рынки, остальные 20 — участки
+-- по 1000×1000 (125×125 клеток по 8). Между плитками — общие дороги на ровной земле.
+-- Север — это −Z. Горы на севере, река течёт через западные участки, на юге море.
 
 local M = {}
 
-M.TILE = 200 -- шаг плиток (участок + дорога вокруг)
 M.CELL = 8 -- клетка застройки
-M.CELLS = 20 -- клеток на сторону участка
-M.PLOT = M.CELL * M.CELLS -- 160
-M.GROUND_Y = 0.2 -- верх земли участков
-M.ROAD_Y = 0.3 -- верх общих дорог
-M.EDGE = 500 -- край сетки плиток
+M.CELLS = 125 -- клеток на сторону участка
+M.PLOT = M.CELL * M.CELLS -- 1000
+M.TILE = 1120 -- шаг плиток (участок + коридор с дорогой)
+M.ROAD_W = 48 -- ширина общей дороги
+M.BASE = 20 -- уровень ровной земли (коридоры, хаб, края участков)
+M.WATER = 14 -- уровень воды (река, озёра, море)
+M.GRID_HALF = M.TILE * 2.5 -- 2800: край сетки плиток
+M.WORLD = { x0 = -3800, x1 = 3800, z0 = -4400, z1 = 4600 } -- границы ландшафта
 
 M.PLOT_PRICE = 800
 
@@ -47,25 +50,36 @@ local defs: { { any } } = {
 }
 
 M.plots = {} :: { PlotDef }
+M.byTile = {} :: { [string]: PlotDef }
 for i, d in defs do
-	M.plots[i] = { index = i, c = d[1], r = d[2], biome = d[3], extra = d[4] }
+	local p = { index = i, c = d[1], r = d[2], biome = d[3], extra = d[4] }
+	M.plots[i] = p
+	M.byTile[d[1] .. "," .. d[2]] = p
 end
 
 M.hub = { c = 2, r = 2 }
 M.markets = { { c = 0, r = 0 }, { c = 4, r = 0 }, { c = 0, r = 4 }, { c = 4, r = 4 } }
 
 function M.tileCenter(c: number, r: number): Vector3
-	return Vector3.new((c - 2) * M.TILE, 0, (r - 2) * M.TILE)
+	return Vector3.new((c - 2) * M.TILE, M.BASE, (r - 2) * M.TILE)
 end
 
--- Угол участка с минимальными X и Z
+-- Угол участка с минимальными X и Z (на уровне BASE)
 function M.plotOrigin(index: number): Vector3
 	local p = M.plots[index]
 	return M.tileCenter(p.c, p.r) - Vector3.new(M.PLOT / 2, 0, M.PLOT / 2)
 end
 
+-- Плитка под точкой (c, r) и смещение от её центра
+function M.tileAt(x: number, z: number): (number, number, number, number)
+	local c = math.floor(x / M.TILE + 2.5)
+	local r = math.floor(z / M.TILE + 2.5)
+	local cx, cz = (c - 2) * M.TILE, (r - 2) * M.TILE
+	return c, r, x - cx, z - cz
+end
+
 function M.key(i: number, j: number): number
-	return i + j * M.CELLS + 1 -- 1..400
+	return i + j * M.CELLS + 1
 end
 
 function M.unkey(k: number): (number, number)
@@ -77,9 +91,10 @@ function M.inside(i: number, j: number): boolean
 	return i >= 0 and j >= 0 and i < M.CELLS and j < M.CELLS
 end
 
--- Центр клетки в мире (на уровне земли)
-function M.cellCenter(index: number, i: number, j: number): Vector3
-	return M.plotOrigin(index) + Vector3.new((i + 0.5) * M.CELL, M.GROUND_Y, (j + 0.5) * M.CELL)
+-- Центр клетки в мире (X, Z; высоту даёт модуль Relief)
+function M.cellXZ(index: number, i: number, j: number): (number, number)
+	local o = M.plotOrigin(index)
+	return o.X + (i + 0.5) * M.CELL, o.Z + (j + 0.5) * M.CELL
 end
 
 -- Мировая точка → клетка участка (или nil)
@@ -95,11 +110,10 @@ end
 
 -- Какой участок под точкой
 function M.plotAt(pos: Vector3): number?
-	for _, p in M.plots do
-		local o = M.plotOrigin(p.index)
-		if pos.X >= o.X and pos.X < o.X + M.PLOT and pos.Z >= o.Z and pos.Z < o.Z + M.PLOT then
-			return p.index
-		end
+	local c, r, dx, dz = M.tileAt(pos.X, pos.Z)
+	local p = M.byTile[c .. "," .. r]
+	if p and math.abs(dx) < M.PLOT / 2 and math.abs(dz) < M.PLOT / 2 then
+		return p.index
 	end
 	return nil
 end
@@ -114,23 +128,38 @@ function M.hubSide(index: number): string
 	return if dz > 0 then "N" else "S"
 end
 
--- Готовая стартовая дорога: от края, обращённого к хабу, до середины участка
+-- Клетка въезда (на краю, обращённом к хабу, по середине стороны)
+function M.entrance(index: number): (number, number)
+	local side = M.hubSide(index)
+	local mid = M.CELLS // 2
+	if side == "W" then
+		return 0, mid
+	elseif side == "E" then
+		return M.CELLS - 1, mid
+	elseif side == "N" then
+		return mid, 0
+	end
+	return mid, M.CELLS - 1
+end
+
+-- Готовая стартовая дорога: от въезда на 16 клеток внутрь участка
+M.STARTER_LEN = 16
 function M.starterRoad(index: number): { number }
 	local side = M.hubSide(index)
+	local ei, ej = M.entrance(index)
+	local di, dj = 0, 0
+	if side == "W" then
+		di = 1
+	elseif side == "E" then
+		di = -1
+	elseif side == "N" then
+		dj = 1
+	else
+		dj = -1
+	end
 	local cells = {}
-	local mid = M.CELLS // 2
-	for n = 0, mid do
-		local i, j
-		if side == "W" then
-			i, j = n, mid
-		elseif side == "E" then
-			i, j = M.CELLS - 1 - n, mid
-		elseif side == "N" then
-			i, j = mid, n
-		else
-			i, j = mid, M.CELLS - 1 - n
-		end
-		table.insert(cells, M.key(i, j))
+	for n = 0, M.STARTER_LEN - 1 do
+		table.insert(cells, M.key(ei + di * n, ej + dj * n))
 	end
 	return cells
 end

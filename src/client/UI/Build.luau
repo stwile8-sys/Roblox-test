@@ -14,6 +14,7 @@ local Map = require(Shared.Config.Map)
 local CityCfg = require(Shared.Config.City)
 local Biomes = require(Shared.Config.Biomes)
 local Rules = require(Shared.CityRules)
+local Relief = require(Shared.Relief)
 local Kit = require(script.Parent.Kit)
 local Store = require(script.Parent.Parent.Store)
 
@@ -58,12 +59,10 @@ local function clampFocus()
 		return
 	end
 	local o = Map.plotOrigin(plot)
-	focus = Vector3.new(
-		math.clamp(focus.X, o.X - 20, o.X + Map.PLOT + 20),
-		Map.GROUND_Y,
-		math.clamp(focus.Z, o.Z - 20, o.Z + Map.PLOT + 20)
-	)
-	dist = math.clamp(dist, 50, 260)
+	local x = math.clamp(focus.X, o.X - 40, o.X + Map.PLOT + 40)
+	local z = math.clamp(focus.Z, o.Z - 40, o.Z + Map.PLOT + 40)
+	focus = Vector3.new(x, focus.Y + (math.max(Relief.height(x, z), Map.WATER) - focus.Y) * 0.15, z)
+	dist = math.clamp(dist, 50, 420)
 end
 
 local function updateCamera()
@@ -80,19 +79,36 @@ end
 
 -- Клетки ------------------------------------------------------------------
 
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Include
+
 local function cellAt(screen: Vector2): number?
 	if not plot then
 		return nil
 	end
 	local ray = camera:ScreenPointToRay(screen.X, screen.Y)
-	if math.abs(ray.Direction.Y) < 1e-4 then
-		return nil
+	local list: { Instance } = { workspace.Terrain }
+	local world = workspace:FindFirstChild("World")
+	local plots = world and world:FindFirstChild("Plots")
+	local model = plots and plots:FindFirstChild("Plot_" .. plot)
+	if model then
+		table.insert(list, model)
 	end
-	local t = (Map.GROUND_Y - ray.Origin.Y) / ray.Direction.Y
-	if t < 0 then
-		return nil
+	rayParams.FilterDescendantsInstances = list
+	local hit = workspace:Raycast(ray.Origin, ray.Direction * 3000, rayParams)
+	local pos: Vector3
+	if hit then
+		pos = hit.Position
+	else
+		if math.abs(ray.Direction.Y) < 1e-4 then
+			return nil
+		end
+		local t = (Map.BASE - ray.Origin.Y) / ray.Direction.Y
+		if t < 0 then
+			return nil
+		end
+		pos = ray.Origin + ray.Direction * t
 	end
-	local pos = ray.Origin + ray.Direction * t
 	local i, j = Map.worldToCell(plot, pos)
 	if not i or not j then
 		return nil
@@ -100,62 +116,36 @@ local function cellAt(screen: Vector2): number?
 	return Map.key(i, j)
 end
 
-local function lineCells(a: number, b: number): { number }
-	local ai, aj = Map.unkey(a)
-	local bi, bj = Map.unkey(b)
-	local out = {}
-	local horizontalFirst = math.abs(bi - ai) >= math.abs(bj - aj)
-	local function push(i: number, j: number)
-		table.insert(out, Map.key(i, j))
-	end
-	if horizontalFirst then
-		local step = if bi >= ai then 1 else -1
-		for i = ai, bi, step do
-			push(i, aj)
-		end
-		local stepJ = if bj >= aj then 1 else -1
-		for j = aj + stepJ, bj, stepJ do
-			if j ~= aj then
-				push(bi, j)
-			end
-		end
-	else
-		local stepJ = if bj >= aj then 1 else -1
-		for j = aj, bj, stepJ do
-			push(ai, j)
-		end
-		local step = if bi >= ai then 1 else -1
-		for i = ai + step, bi, step do
-			if i ~= ai then
-				push(i, bj)
-			end
-		end
-	end
-	return out
-end
+local lineCells = Rules.lineCells
+local rectCells = Rules.rectCells
 
-local function rectCells(a: number, b: number): { number }
-	local ai, aj = Map.unkey(a)
-	local bi, bj = Map.unkey(b)
-	local out = {}
-	for i = math.min(ai, bi), math.max(ai, bi) do
-		for j = math.min(aj, bj), math.max(aj, bj) do
-			table.insert(out, Map.key(i, j))
-		end
-	end
-	return out
-end
-
-local function cityData(): Rules.CityData?
+local function cityData(): { [string]: any }?
 	local s = Store.state
-	return if s and s.city then s.city :: any else nil
+	return if s and s.city and s.city.grid then s.city else nil
+end
+
+-- расшифрованная сетка (кэш по строке)
+local decodedFor = ""
+local dGrid: { string } = {}
+local dOcc: { [number]: string } = {}
+local dBlocked: { [number]: boolean } = {}
+local function decoded(): ({ string }, { [number]: string }, { [number]: boolean })
+	local city = cityData()
+	if city and city.grid ~= decodedFor then
+		decodedFor = city.grid
+		dGrid, dOcc, dBlocked = Rules.decode(city.grid)
+	end
+	return dGrid, dOcc, dBlocked
+end
+local function canBuild(k: number): boolean
+	return not dBlocked[k]
 end
 
 -- Отрисовка ---------------------------------------------------------------
 
-local function tile(parent: Instance, k: number, color: Color3, transparency: number, h: number?): Part
-	local i, j = Map.unkey(k)
-	local center = Map.cellCenter(plot :: number, i, j)
+-- Полоса клеток (ряд j, от i0 длиной n) одного цвета на уровне level
+local function strip(parent: Instance, i0: number, j: number, n: number, level: number, color: Color3, transparency: number, lift: number)
+	local o = Map.plotOrigin(plot :: number)
 	local p = Instance.new("Part")
 	p.Anchored = true
 	p.CanCollide = false
@@ -163,41 +153,89 @@ local function tile(parent: Instance, k: number, color: Color3, transparency: nu
 	p.CanTouch = false
 	p.CastShadow = false
 	p.Material = Enum.Material.SmoothPlastic
-	p.Size = Vector3.new(Map.CELL - 0.6, 0.12, Map.CELL - 0.6)
-	p.CFrame = CFrame.new(center + Vector3.new(0, h or 0.3, 0))
+	p.Size = Vector3.new(n * Map.CELL - 0.6, 0.15, Map.CELL - 0.6)
+	p.CFrame = CFrame.new(o.X + (i0 + n / 2) * Map.CELL, level + lift, o.Z + (j + 0.5) * Map.CELL)
 	p.Color = color
 	p.Transparency = transparency
 	p.Parent = parent
-	return p
 end
 
+-- Нарисовать набор клеток полосами: соседние в ряду с тем же цветом и уровнем — одна деталь
+local function drawCells(parent: Instance, cells: { [number]: { any } }, lift: number)
+	local rows: { [number]: { number } } = {}
+	for k in cells do
+		local i, j = Map.unkey(k)
+		rows[j] = rows[j] or {}
+		table.insert(rows[j], i)
+	end
+	for j, list in rows do
+		table.sort(list)
+		local n = 1
+		while n <= #list do
+			local i0 = list[n]
+			local info = cells[Map.key(i0, j)]
+			local level = Relief.cellLevel(plot :: number, i0, j)
+			local len = 1
+			while n + len <= #list do
+				local i = list[n + len]
+				local other = cells[Map.key(i, j)]
+				if i ~= i0 + len or other[1] ~= info[1] or other[2] ~= info[2] or Relief.cellLevel(plot :: number, i, j) ~= level then
+					break
+				end
+				len += 1
+			end
+			strip(parent, i0, j, len, level, info[1], info[2], lift)
+			n += len
+		end
+	end
+end
+
+-- Зоны рисуем только вокруг камеры (участок большой), перерисовка при сдвиге или изменениях
+local overlayCenter: number? = nil
+local OVERLAY_R = 34
 local function drawOverlay(force: boolean?)
 	local city = cityData()
 	if not city or not plot then
 		return
 	end
-	if not force and city.grid == lastGrid then
-		return
-	end
-	lastGrid = city.grid
-	overlay:ClearAllChildren()
-	local grid = Rules.toArray(city.grid)
-	for k, ch in grid do
-		local col = ZONE_COLOR[ch]
-		if col then
-			tile(overlay, k, col, 0.55, 0.25)
+	local fi, fj = Map.worldToCell(plot, focus)
+	fi = fi or Map.CELLS // 2
+	fj = fj or Map.CELLS // 2
+	local centerKey = Map.key(fi, fj)
+	if not force and city.grid == lastGrid and overlayCenter then
+		local oi, oj = Map.unkey(overlayCenter)
+		if math.abs(oi - fi) < 10 and math.abs(oj - fj) < 10 then
+			return
 		end
 	end
+	lastGrid = city.grid
+	overlayCenter = centerKey
+	overlay:ClearAllChildren()
+	local grid, occ, blocked = decoded()
+	local cells: { [number]: { any } } = {}
+	local r = math.clamp(math.floor(dist / 7), 18, OVERLAY_R)
+	for j = math.max(0, fj - r), math.min(Map.CELLS - 1, fj + r) do
+		for i = math.max(0, fi - r), math.min(Map.CELLS - 1, fi + r) do
+			local k = Map.key(i, j)
+			local col = ZONE_COLOR[grid[k]]
+			if col and not occ[k] then
+				cells[k] = { col, 0.5 }
+			elseif blocked[k] then
+				cells[k] = { Color3.fromRGB(120, 50, 50), 0.75 }
+			end
+		end
+	end
+	drawCells(overlay, cells, 0.35)
 	-- границы участка
 	local o = Map.plotOrigin(plot)
 	for side = 0, 3 do
-		local center = o + Vector3.new(Map.PLOT / 2, Map.GROUND_Y + 0.4, Map.PLOT / 2)
+		local center = o + Vector3.new(Map.PLOT / 2, 0.6, Map.PLOT / 2)
 		local cf = CFrame.new(center) * CFrame.Angles(0, side * math.pi / 2, 0) * CFrame.new(0, 0, Map.PLOT / 2)
 		local p = Instance.new("Part")
 		p.Anchored = true
 		p.CanCollide = false
 		p.CanQuery = false
-		p.Size = Vector3.new(Map.PLOT, 0.3, 0.6)
+		p.Size = Vector3.new(Map.PLOT, 0.4, 1)
 		p.CFrame = cf
 		p.Color = C.accent
 		p.Material = Enum.Material.Neon
@@ -212,8 +250,7 @@ local function drawPreview()
 	if not city or not plot then
 		return
 	end
-	local grid = Rules.toArray(city.grid)
-	local occ = Rules.occupancy(city)
+	local grid, occ = decoded()
 	if string.sub(tool, 1, 8) == "special:" then
 		local id = string.sub(tool, 9)
 		local anchorKey = pendingSpecial or dragCur
@@ -222,36 +259,53 @@ local function drawPreview()
 		end
 		local def = CityCfg.SPECIAL[id]
 		local i, j = Map.unkey(anchorKey)
-		local ok = Rules.canPlaceSpecial(grid, occ, Rules.allRoads(grid), id, i, j)
+		local ok = Rules.canPlaceSpecial(grid, occ, Rules.allRoads(grid), id, i, j, canBuild)
+		local cells = {}
 		for di = 0, def.w - 1 do
 			for dj = 0, def.h - 1 do
 				if Map.inside(i + di, j + dj) then
-					tile(preview, Map.key(i + di, j + dj), if ok then C.good else C.bad, 0.35, 0.5)
+					cells[Map.key(i + di, j + dj)] = { if ok then C.good else C.bad, 0.3 }
 				end
 			end
 		end
+		drawCells(preview, cells, 0.6)
 		return
 	end
 	if not dragStart or not dragCur then
 		return
 	end
-	local cells = if tool == "road" then lineCells(dragStart, dragCur) else rectCells(dragStart, dragCur)
+	local list = if tool == "road" then lineCells(dragStart, dragCur) else rectCells(dragStart, dragCur)
+	local tooBig = false
+	if tool == "road" then
+		tooBig = #list > Rules.MAX_LINE
+	else
+		local w, h = Rules.rectSize(dragStart, dragCur)
+		tooBig = w > Rules.MAX_RECT or h > Rules.MAX_RECT
+	end
 	local near = Rules.distance(Rules.allRoads(grid), CityCfg.ZONE_REACH)
 	local valid = 0
-	for _, k in cells do
+	local cells = {}
+	for _, k in list do
 		local ok
-		if tool == "road" then
-			ok = Rules.canRoad(grid, occ, k)
+		if tooBig then
+			ok = false
+		elseif tool == "road" then
+			ok = Rules.canRoad(grid, occ, k, canBuild)
 		elseif tool == "bulldoze" then
 			ok = grid[k] ~= "." or occ[k] ~= nil
 		else
-			ok = grid[k] ~= tool and Rules.canZone(grid, occ, near, k)
+			ok = grid[k] ~= tool and Rules.canZone(grid, occ, near, k, canBuild)
 		end
 		if ok then
 			valid += 1
 		end
-		local color = if tool == "bulldoze" then C.bad elseif ok then (ZONE_COLOR[tool] or C.good) else Color3.fromRGB(120, 40, 40)
-		tile(preview, k, color, if ok then 0.25 else 0.6, 0.5)
+		local color = if tool == "bulldoze" and ok then C.bad elseif ok then (ZONE_COLOR[tool] or C.good) else Color3.fromRGB(120, 40, 40)
+		cells[k] = { color, if ok then 0.25 else 0.6 }
+	end
+	drawCells(preview, cells, 0.6)
+	if tooBig then
+		costLabel.Text = L.t("build.too_big")
+		return
 	end
 	local unit = if tool == "road" then CityCfg.ROAD_COST elseif tool == "bulldoze" then 0 else CityCfg.ZONE_COST[tool] or 0
 	if unit > 0 then
@@ -299,18 +353,11 @@ local function commitDrag()
 		return
 	end
 	if tool == "road" then
-		local cells = lineCells(dragStart, dragCur)
-		while #cells > 0 do
-			local chunk = {}
-			for _ = 1, math.min(80, #cells) do
-				table.insert(chunk, table.remove(cells, 1))
-			end
-			send("road", chunk)
-		end
+		send("road", dragStart, dragCur)
 	elseif tool == "bulldoze" then
-		send("bulldoze", rectCells(dragStart, dragCur))
+		send("bulldoze", dragStart, dragCur)
 	elseif tool == "R" or tool == "C" or tool == "I" then
-		send("zone", tool, rectCells(dragStart, dragCur))
+		send("zone", tool, dragStart, dragCur)
 	end
 	dragStart, dragCur = nil, nil
 	drawPreview()
@@ -635,9 +682,14 @@ function M.enter()
 	end
 	plot = s.plot
 	active = true
+	local ei, ej = Map.entrance(s.plot)
+	local ex, ez = Map.cellXZ(s.plot, ei, ej)
 	local p = Map.plots[s.plot]
-	focus = Map.tileCenter(p.c, p.r)
-	dist = 170
+	local center = Map.tileCenter(p.c, p.r)
+	local x, z = ex + (center.X - ex) * 0.12, ez + (center.Z - ez) * 0.12
+	focus = Vector3.new(x, Relief.height(x, z), z)
+	dist = 160
+	overlayCenter = nil
 	camera.CameraType = Enum.CameraType.Scriptable
 	freeze(true)
 	gui.Enabled = true
@@ -812,6 +864,7 @@ function M.start(toastFn: (string, string?) -> (), exitFn: () -> ())
 			focus += move * dist * 0.9 * dt
 		end
 		updateCamera()
+		drawOverlay()
 		-- геймпад: клетка под прицелом
 		if usingGamepad then
 			local center = camera.ViewportSize / 2

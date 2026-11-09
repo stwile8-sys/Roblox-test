@@ -1,7 +1,9 @@
 --!strict
 -- Чистые правила застройки (без Roblox-объектов): общие для сервера (решает) и клиента
--- (подсвечивает, что можно построить). Сетка — массив из 400 символов:
+-- (подсвечивает, что можно построить). Сетка — массив из 125×125 символов:
 --   "." пусто · "#" дорога · "R" жилая · "C" торговая · "I" промышленная зона
+-- Клиенту сервер присылает «расширенную» сетку: "r" "c" "i" — в зоне уже стоит дом,
+-- "S" — особое здание, "x" — строить нельзя (вода или круто).
 
 local Map = require(script.Parent.Config.Map)
 local CityCfg = require(script.Parent.Config.City)
@@ -170,8 +172,64 @@ function M.facing(roads: { [number]: boolean }, i: number, j: number, w: number,
 	return bestYaw
 end
 
+-- Дорога «буквой Г» от клетки a до клетки b (сначала по длинной стороне)
+function M.lineCells(a: number, b: number): { number }
+	local ai, aj = Map.unkey(a)
+	local bi, bj = Map.unkey(b)
+	local out = {}
+	local function push(i: number, j: number)
+		table.insert(out, Map.key(i, j))
+	end
+	if math.abs(bi - ai) >= math.abs(bj - aj) then
+		local step = if bi >= ai then 1 else -1
+		for i = ai, bi, step do
+			push(i, aj)
+		end
+		local stepJ = if bj >= aj then 1 else -1
+		if bj ~= aj then
+			for j = aj + stepJ, bj, stepJ do
+				push(bi, j)
+			end
+		end
+	else
+		local stepJ = if bj >= aj then 1 else -1
+		for j = aj, bj, stepJ do
+			push(ai, j)
+		end
+		local step = if bi >= ai then 1 else -1
+		if bi ~= ai then
+			for i = ai + step, bi, step do
+				push(i, bj)
+			end
+		end
+	end
+	return out
+end
+
+-- Прямоугольник клеток между a и b
+function M.rectCells(a: number, b: number): { number }
+	local ai, aj = Map.unkey(a)
+	local bi, bj = Map.unkey(b)
+	local out = {}
+	for i = math.min(ai, bi), math.max(ai, bi) do
+		for j = math.min(aj, bj), math.max(aj, bj) do
+			table.insert(out, Map.key(i, j))
+		end
+	end
+	return out
+end
+
+M.MAX_RECT = 60 -- сторона прямоугольника зоны/сноса за одно действие
+M.MAX_LINE = 160 -- длина дороги за одно действие
+
+function M.rectSize(a: number, b: number): (number, number)
+	local ai, aj = Map.unkey(a)
+	local bi, bj = Map.unkey(b)
+	return math.abs(bi - ai) + 1, math.abs(bj - aj) + 1
+end
+
 -- Можно ли поставить особое здание с левым верхним углом (i, j)
-function M.canPlaceSpecial(grid: { string }, occ: { [number]: string }, roads: { [number]: boolean }, id: string, i: number, j: number): (boolean, string?)
+function M.canPlaceSpecial(grid: { string }, occ: { [number]: string }, roads: { [number]: boolean }, id: string, i: number, j: number, buildable: ((number) -> boolean)?): (boolean, string?)
 	local def = CityCfg.SPECIAL[id]
 	if not def then
 		return false, "err.bad"
@@ -186,6 +244,9 @@ function M.canPlaceSpecial(grid: { string }, occ: { [number]: string }, roads: {
 			if grid[k] == "#" or occ[k] then
 				return false, "build.occupied"
 			end
+			if buildable and not buildable(k) then
+				return false, "build.steep"
+			end
 		end
 	end
 	if not M.touchesRoad(roads, i, j, def.w, def.h) then
@@ -195,17 +256,41 @@ function M.canPlaceSpecial(grid: { string }, occ: { [number]: string }, roads: {
 end
 
 -- Можно ли размечать зону в клетке
-function M.canZone(grid: { string }, occ: { [number]: string }, nearRoad: { [number]: number }, k: number): boolean
+function M.canZone(grid: { string }, occ: { [number]: string }, nearRoad: { [number]: number }, k: number, buildable: ((number) -> boolean)?): boolean
 	local c = grid[k]
 	if c == "#" or occ[k] then
+		return false
+	end
+	if buildable and not buildable(k) then
 		return false
 	end
 	local d = nearRoad[k]
 	return d ~= nil and d <= CityCfg.ZONE_REACH
 end
 
-function M.canRoad(grid: { string }, occ: { [number]: string }, k: number): boolean
-	return grid[k] ~= "#" and occ[k] == nil
+function M.canRoad(grid: { string }, occ: { [number]: string }, k: number, buildable: ((number) -> boolean)?): boolean
+	return grid[k] ~= "#" and occ[k] == nil and (buildable == nil or buildable(k))
+end
+
+-- Клиентская (расширенная) сетка → обычная сетка + занятость + «нельзя строить»
+function M.decode(ext: string): ({ string }, { [number]: string }, { [number]: boolean })
+	local grid = table.create(N * N, ".")
+	local occ: { [number]: string } = {}
+	local blocked: { [number]: boolean } = {}
+	for k = 1, math.min(#ext, N * N) do
+		local ch = string.sub(ext, k, k)
+		if ch == "r" or ch == "c" or ch == "i" then
+			grid[k] = string.upper(ch)
+			occ[k] = "G"
+		elseif ch == "S" then
+			occ[k] = "S"
+		elseif ch == "x" then
+			blocked[k] = true
+		else
+			grid[k] = ch
+		end
+	end
+	return grid, occ, blocked
 end
 
 return M

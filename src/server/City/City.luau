@@ -11,6 +11,7 @@ local Biomes = require(Shared.Config.Biomes)
 local CityCfg = require(Shared.Config.City)
 local Items = require(Shared.Config.Items)
 local Rules = require(Shared.CityRules)
+local Relief = require(Shared.Relief)
 local Profiles = require(script.Parent.Parent.Data.Profiles)
 local PlayerState = require(script.Parent.Parent.PlayerState)
 local Tutorial = require(script.Parent.Parent.Tutorial)
@@ -38,12 +39,34 @@ type CityState = {
 	player: Player?,
 	stats: Stats,
 	rates: { [string]: number },
+	version: number,
 }
 
 local M = {}
 
 local cities: { [number]: CityState } = {}
 local byPlayer: { [Player]: CityState } = {}
+local sentVersion: { [Player]: number } = {}
+
+-- Где на участке строить нельзя (вода, круто) — считается один раз на участок
+local buildableCache: { [number]: { [number]: boolean } } = {}
+local function buildableOf(index: number): (number) -> boolean
+	local cache = buildableCache[index]
+	if not cache then
+		local fresh: { [number]: boolean } = {}
+		for j = 0, Map.CELLS - 1 do
+			for i = 0, Map.CELLS - 1 do
+				fresh[Map.key(i, j)] = Relief.buildable(index, i, j)
+			end
+		end
+		buildableCache[index] = fresh
+		cache = fresh
+	end
+	local c = cache :: { [number]: boolean }
+	return function(k: number): boolean
+		return c[k] == true
+	end
+end
 
 local function emptyStats(): Stats
 	return {
@@ -85,6 +108,7 @@ local function register(index: number, owner: number, name: string, data: Profil
 		player = player,
 		stats = emptyStats(),
 		rates = {},
+		version = 1,
 	}
 	cities[index] = c
 	if player then
@@ -143,33 +167,19 @@ function M.onLeave(player: Player)
 		c.player = nil
 		byPlayer[player] = nil
 	end
+	sentVersion[player] = nil
 end
 
 function M.cityOf(player: Player): CityState?
 	return byPlayer[player]
 end
 
--- Проверка списка клеток от клиента: целые 1..400, без повторов, не больше max
-local function keys(list: any, max: number): { number }?
-	if type(list) ~= "table" then
+-- Номер клетки от клиента: целое 1..N²
+local function cellKey(k: any): number?
+	if type(k) ~= "number" or k ~= k or k % 1 ~= 0 or k < 1 or k > Map.CELLS * Map.CELLS then
 		return nil
 	end
-	local out, seen = {}, {}
-	local count = 0
-	for _, k in list do
-		count += 1
-		if count > max then
-			return nil
-		end
-		if type(k) ~= "number" or k ~= k or k % 1 ~= 0 or k < 1 or k > Map.CELLS * Map.CELLS then
-			return nil
-		end
-		if not seen[k] then
-			seen[k] = true
-			table.insert(out, k)
-		end
-	end
-	return out
+	return k
 end
 
 local function owned(player: Player): (CityState?, Profiles.Data?)
@@ -183,6 +193,7 @@ end
 
 local function commit(c: CityState, grid: { string })
 	c.data.grid = Rules.toString(grid)
+	c.version += 1
 	Render.sync(c.index, c.data)
 	if c.player then
 		PlayerState.markDirty(c.player)
@@ -242,18 +253,25 @@ function M.buyPlot(player: Player, index: any): (boolean, string?)
 	return true, nil
 end
 
-function M.road(player: Player, list: any): (boolean, string?)
+function M.road(player: Player, fromKey: any, toKey: any): (boolean, string?)
 	local c, d = owned(player)
-	local ks = keys(list, 80)
-	if not c or not d or not ks then
+	local a, b = cellKey(fromKey), cellKey(toKey)
+	if not c or not d or not a or not b then
 		return false, "err.bad"
+	end
+	local cells = Rules.lineCells(a, b)
+	if #cells > Rules.MAX_LINE then
+		return false, "build.too_big"
 	end
 	local grid = Rules.toArray(c.data.grid)
 	local occ = Rules.occupancy(c.data)
+	local can = buildableOf(c.index)
 	local placed = 0
-	for _, k in ks do
-		if Rules.canRoad(grid, occ, k) then
+	local blocked = false
+	for _, k in cells do
+		if Rules.canRoad(grid, occ, k, can) then
 			if not PlayerState.spend(player, CityCfg.ROAD_COST) then
+				blocked = true
 				break
 			end
 			grid[k] = "#"
@@ -261,27 +279,32 @@ function M.road(player: Player, list: any): (boolean, string?)
 		end
 	end
 	if placed == 0 then
-		return false, if d.money < CityCfg.ROAD_COST then "err.money" else "build.cant"
+		return false, if blocked then "err.money" else "build.cant"
 	end
 	dropInvalidGrown(c, grid)
 	commit(c, grid)
 	return true, nil
 end
 
-function M.zone(player: Player, zone: any, list: any): (boolean, string?)
+function M.zone(player: Player, zone: any, fromKey: any, toKey: any): (boolean, string?)
 	local c, d = owned(player)
-	local ks = keys(list, 400)
-	if not c or not d or not ks or (zone ~= "R" and zone ~= "C" and zone ~= "I") then
+	local a, b = cellKey(fromKey), cellKey(toKey)
+	if not c or not d or not a or not b or (zone ~= "R" and zone ~= "C" and zone ~= "I") then
 		return false, "err.bad"
+	end
+	local w, h = Rules.rectSize(a, b)
+	if w > Rules.MAX_RECT or h > Rules.MAX_RECT then
+		return false, "build.too_big"
 	end
 	local grid = Rules.toArray(c.data.grid)
 	local occ = Rules.occupancy(c.data)
 	local near = Rules.distance(Rules.allRoads(grid), CityCfg.ZONE_REACH)
+	local can = buildableOf(c.index)
 	local cost = CityCfg.ZONE_COST[zone]
 	local placed = 0
 	local blocked = false
-	for _, k in ks do
-		if grid[k] ~= zone and Rules.canZone(grid, occ, near, k) then
+	for _, k in Rules.rectCells(a, b) do
+		if grid[k] ~= zone and Rules.canZone(grid, occ, near, k, can) then
 			if not PlayerState.spend(player, cost) then
 				blocked = true
 				break
@@ -293,15 +316,20 @@ function M.zone(player: Player, zone: any, list: any): (boolean, string?)
 	if placed == 0 then
 		return false, if blocked then "err.money" else "build.zone_far"
 	end
+	dropInvalidGrown(c, grid)
 	commit(c, grid)
 	return true, nil
 end
 
-function M.bulldoze(player: Player, list: any): (boolean, string?)
+function M.bulldoze(player: Player, fromKey: any, toKey: any): (boolean, string?)
 	local c, d = owned(player)
-	local ks = keys(list, 400)
-	if not c or not d or not ks then
+	local a, b = cellKey(fromKey), cellKey(toKey)
+	if not c or not d or not a or not b then
 		return false, "err.bad"
+	end
+	local w, h = Rules.rectSize(a, b)
+	if w > Rules.MAX_RECT or h > Rules.MAX_RECT then
+		return false, "build.too_big"
 	end
 	local grid = Rules.toArray(c.data.grid)
 	local occ = Rules.occupancy(c.data)
@@ -311,7 +339,7 @@ function M.bulldoze(player: Player, list: any): (boolean, string?)
 	for _, k in Map.starterRoad(c.index) do
 		starter[k] = true
 	end
-	for _, k in ks do
+	for _, k in Rules.rectCells(a, b) do
 		local o = occ[k]
 		if o then
 			local n = tonumber(string.sub(o, 2)) :: number
@@ -338,9 +366,9 @@ function M.bulldoze(player: Player, list: any): (boolean, string?)
 	end
 	c.data.grown = grown
 	local special = {}
-	for n, s in c.data.special do
+	for n, sp in c.data.special do
 		if not removeS[n] then
-			table.insert(special, s)
+			table.insert(special, sp)
 		end
 	end
 	c.data.special = special
@@ -378,7 +406,7 @@ function M.special(player: Player, id: any, key: any): (boolean, string?)
 	local grid = Rules.toArray(c.data.grid)
 	local occ = Rules.occupancy(c.data)
 	local i, j = Map.unkey(key)
-	local ok, why = Rules.canPlaceSpecial(grid, occ, Rules.allRoads(grid), id, i, j)
+	local ok, why = Rules.canPlaceSpecial(grid, occ, Rules.allRoads(grid), id, i, j, buildableOf(c.index))
 	if not ok then
 		return false, why
 	end
@@ -392,6 +420,7 @@ function M.special(player: Player, id: any, key: any): (boolean, string?)
 	end
 	table.insert(c.data.special, { id, key } :: { any })
 	c.data.spent += cost
+	c.version += 1
 	dropInvalidGrown(c, grid)
 	commit(c, grid)
 	Tutorial.check(player)
@@ -648,9 +677,34 @@ local function tick(c: CityState, d: Profiles.Data, dt: number)
 		roads = roads,
 	}
 	if changed then
+		c.version += 1
 		Render.sync(c.index, data)
 	end
 	PlayerState.markDirty(c.player :: Player)
+end
+
+-- Сетка для клиента: дома и особые здания отмечены, «нельзя строить» — "x"
+function M.encode(c: CityState): string
+	local grid = Rules.toArray(c.data.grid)
+	local occ = Rules.occupancy(c.data)
+	local can = buildableOf(c.index)
+	for k, ch in grid do
+		local o = occ[k]
+		if o then
+			if string.sub(o, 1, 1) == "S" then
+				grid[k] = "S"
+			else
+				grid[k] = string.lower(ch)
+			end
+		elseif ch == "." and not can(k) then
+			grid[k] = "x"
+		end
+	end
+	return table.concat(grid)
+end
+
+function M.forgetPlayer(player: Player)
+	sentVersion[player] = nil
 end
 
 function M.start()
@@ -674,12 +728,16 @@ function M.start()
 	PlayerState.addExtra(function(player, s)
 		local c = byPlayer[player]
 		if c then
-			s.city = {
-				grid = c.data.grid,
-				grown = c.data.grown,
+			local city: { [string]: any } = {
 				special = c.data.special,
 				stats = c.stats,
+				v = c.version,
 			}
+			if sentVersion[player] ~= c.version then
+				sentVersion[player] = c.version
+				city.grid = M.encode(c)
+			end
+			s.city = city
 		end
 		local owners = {}
 		for index, other in cities do

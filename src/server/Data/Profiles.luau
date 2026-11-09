@@ -11,7 +11,7 @@ local Players = game:GetService("Players")
 
 local Map = require(game.ReplicatedStorage.Shared.Config.Map)
 
-local STORE_NAME = "FE_Profiles_v1"
+local STORE_NAME = "FE_Profiles_v2"
 local LOCK_STALE = 300
 local AUTOSAVE = 60
 local LOAD_TRIES = 6

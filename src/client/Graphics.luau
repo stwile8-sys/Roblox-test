@@ -32,7 +32,6 @@ function M.apply(mode: string)
 	end
 	local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
 	if atmo then
-		atmo.Density = if high then 0.28 else 0.22
 		atmo.Haze = if high then 1 else 0.5
 	end
 	local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds")
@@ -41,6 +40,18 @@ function M.apply(mode: string)
 	end
 	workspace.Terrain.WaterWaveSize = if high then 0.15 else 0
 	workspace.Terrain.WaterReflectance = if high then 0.6 else 0.2
+end
+
+-- Дальность прорисовки: туман плотнее, когда дальность меньше
+function M.setDraw(d: number)
+	local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+	if atmo then
+		atmo.Density = if d <= 500 then 0.45 elseif d <= 1000 then 0.36 elseif d <= 2000 then 0.3 else 0.24
+	end
+end
+
+function M.defaultDraw(): number
+	return if isPhone() then 1000 else 2000
 end
 
 return M

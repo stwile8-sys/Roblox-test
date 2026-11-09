@@ -98,9 +98,14 @@ local Hud = require(script.Parent.UI:WaitForChild("Hud"))
 local Windows = require(script.Parent.UI:WaitForChild("Windows"))
 local Build = require(script.Parent.UI:WaitForChild("Build"))
 local WorldView = require(script.Parent:WaitForChild("WorldView"))
+local Driving = require(script.Parent:WaitForChild("Driving"))
 local Map = require(Shared:WaitForChild("Config"):WaitForChild("Map"))
 
 while ReplicatedStorage:GetAttribute("WorldReady") ~= true do
+	local p = ReplicatedStorage:GetAttribute("WorldProgress")
+	if type(p) == "number" then
+		loadingStatus.Text = L.t("load.world") .. "  " .. math.floor(p * 100) .. "%"
+	end
 	task.wait(0.25)
 end
 loadingStatus.Text = L.t("load.profile")
@@ -112,13 +117,24 @@ end
 local function setGraphics(m: string)
 	Graphics.apply(m)
 end
-Windows.start(Hud.gui(), toast, setGraphics)
+local function setDraw(d: number)
+	WorldView.setDrawDistance(d)
+	Graphics.setDraw(d)
+end
+Windows.start(Hud.gui(), toast, setGraphics, setDraw)
 Build.start(toast, function()
 	Hud.hideFor(false)
 	WorldView.hideGuide(false)
 end)
 WorldView.start()
 Graphics.apply("auto")
+setDraw(Graphics.defaultDraw())
+Driving.start(function(on)
+	Hud.setDriving(on)
+	if on then
+		Windows.closeAll()
+	end
+end, toast)
 
 Net.event("Notify").OnClientEvent:Connect(function(key: string, args: { [string]: any }, kind: string)
 	local a = table.clone(args or {})
@@ -129,6 +145,10 @@ Net.event("Notify").OnClientEvent:Connect(function(key: string, args: { [string]
 end)
 
 Hud.onButton("build", function()
+	if Driving.active() then
+		toast(L.t("drive.exit_first"), "error")
+		return
+	end
 	Windows.closeAll()
 	Hud.hideFor(true)
 	WorldView.hideGuide(true)
@@ -188,6 +208,10 @@ Store.on(function(s)
 		L.set(s.prefs.lang)
 	end
 	Graphics.apply(s.prefs.gfx or "auto")
+	local d = tonumber(s.prefs.draw)
+	if d then
+		setDraw(d)
+	end
 end)
 
 -- рукопожатие: сервер готов отдать профиль и сводку

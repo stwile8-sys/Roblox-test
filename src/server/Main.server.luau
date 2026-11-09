@@ -27,12 +27,15 @@ local Tutorial = require(script.Parent.Tutorial)
 local MapBuilder = require(script.Parent.World.MapBuilder)
 local HubBuilder = require(script.Parent.World.HubBuilder)
 local Jobs = require(script.Parent.Hub.Jobs)
+local Vehicles = require(script.Parent.Vehicles.Vehicles)
 local City = require(script.Parent.City.City)
 local Market = require(script.Parent.Economy.Market)
 local Offline = require(script.Parent.Economy.Offline)
 
 ReplicatedStorage:SetAttribute("ServerMode", "world")
 ReplicatedStorage:SetAttribute("WorldReady", false)
+-- персонажи появляются только когда мир построен (иначе падают в пустоту)
+Players.CharacterAutoLoads = false
 
 -- 1. Какой это мир
 local worldId: string
@@ -54,12 +57,20 @@ end
 ReplicatedStorage:SetAttribute("WorldId", worldId)
 print("Мир", worldId)
 
--- 2. Карта и хаб
+-- 2. Карта и хаб (ландшафт генерируется ~полминуты, клиент показывает прогресс)
+workspace.StreamingTargetRadius = 2048
+workspace.StreamingMinRadius = 256
+ReplicatedStorage:SetAttribute("WorldProgress", 0)
+local started = os.clock()
 local rng = Random.new(20261109)
-local world = MapBuilder.build(rng)
+local world = MapBuilder.build(rng, function(p)
+	ReplicatedStorage:SetAttribute("WorldProgress", p)
+end)
 HubBuilder.build(world)
+print(string.format("Мир построен за %.1f с", os.clock() - started))
 
 -- 3. Системы
+Vehicles.start()
 PlayerState.start()
 Jobs.start()
 City.start()
@@ -68,6 +79,14 @@ City.loadMembers(members)
 Profiles.startAutosave()
 
 ReplicatedStorage:SetAttribute("WorldReady", true)
+Players.CharacterAutoLoads = true
+for _, p in Players:GetPlayers() do
+	if not p.Character then
+		task.spawn(function()
+			pcall(p.LoadCharacter, p)
+		end)
+	end
+end
 
 -- 4. Игроки
 local summaries: { [Player]: { [string]: any } } = {}
@@ -109,6 +128,7 @@ end
 local function leave(player: Player)
 	summaries[player] = nil
 	City.onLeave(player)
+	City.forgetPlayer(player)
 	Jobs.cancel(player)
 	if Profiles.get(player) then
 		Profiles.release(player)
@@ -153,15 +173,21 @@ Players.PlayerRemoving:Connect(function(p)
 	buckets[p] = nil
 end)
 
+-- Перенос к въезду на свой участок (на ровную землю у общей дороги)
 local function plotSpawn(player: Player): (boolean, string?)
 	local d = PlayerState.data(player)
 	local ch = player.Character
 	if not d or not d.plot or not ch then
 		return false, "err.bad"
 	end
-	local p = Map.plots[d.plot]
-	local center = Map.tileCenter(p.c, p.r)
-	ch:PivotTo(CFrame.new(center + Vector3.new(0, 5, 0)))
+	if Vehicles.driving(player) then
+		return false, "drive.exit_first"
+	end
+	local ei, ej = Map.entrance(d.plot)
+	local x, z = Map.cellXZ(d.plot, ei, ej)
+	local inward = Vector3.new(Map.tileCenter(Map.plots[d.plot].c, Map.plots[d.plot].r).X - x, 0, Map.tileCenter(Map.plots[d.plot].c, Map.plots[d.plot].r).Z - z).Unit
+	local pos = Vector3.new(x, Map.BASE + 4, z) - inward * 30
+	ch:PivotTo(CFrame.lookAt(pos, pos + inward))
 	return true, nil
 end
 
@@ -170,7 +196,30 @@ local function hubSpawn(player: Player): (boolean, string?)
 	if not ch then
 		return false, "err.bad"
 	end
-	ch:PivotTo(CFrame.new(0, 5, 30))
+	if Vehicles.driving(player) then
+		return false, "drive.exit_first"
+	end
+	ch:PivotTo(CFrame.new(0, Map.BASE + 4, 40))
+	return true, nil
+end
+
+-- Своя ручная тележка (из стартового набора): появляется рядом с игроком
+local function spawnCart(player: Player): (boolean, string?)
+	local d = PlayerState.data(player)
+	local ch = player.Character
+	local root = ch and ch:FindFirstChild("HumanoidRootPart")
+	if not d or (d.vehicles.cart or 0) < 1 or not root or not root:IsA("BasePart") then
+		return false, "drive.no_cart"
+	end
+	if Vehicles.driving(player) then
+		return false, "drive.exit_first"
+	end
+	Vehicles.removeKind(player, "cart")
+	local look = root.CFrame.LookVector
+	local pos = root.Position + Vector3.new(look.X, 0, look.Z).Unit * 6
+	local ray = workspace:Raycast(pos + Vector3.new(0, 20, 0), Vector3.new(0, -60, 0))
+	local ground = if ray then ray.Position else pos - Vector3.new(0, 3, 0)
+	Vehicles.spawn(player, "cart", CFrame.lookAt(ground, ground + Vector3.new(look.X, 0, look.Z)), true)
 	return true, nil
 end
 
@@ -203,7 +252,9 @@ local handlers: { [string]: (Player, ...any) -> (boolean, any) } = {
 		if not d or type(key) ~= "string" or type(value) ~= "string" then
 			return false, "err.bad"
 		end
-		local okValue = (key == "lang" and L.isLang(value)) or (key == "gfx" and (value == "auto" or value == "low" or value == "high"))
+		local okValue = (key == "lang" and L.isLang(value))
+			or (key == "gfx" and (value == "auto" or value == "low" or value == "high"))
+			or (key == "draw" and (value == "500" or value == "1000" or value == "2000" or value == "4000"))
 		if not okValue then
 			return false, "err.bad"
 		end
@@ -212,6 +263,12 @@ local handlers: { [string]: (Player, ...any) -> (boolean, any) } = {
 	end,
 	goPlot = plotSpawn,
 	goHub = hubSpawn,
+	flip = Vehicles.flip,
+	spawnCart = spawnCart,
+	dismissCart = function(player)
+		Vehicles.removeKind(player, "cart")
+		return true, nil
+	end,
 }
 
 Net.fn("Act").OnServerInvoke = function(player: Player, action: any, ...: any)

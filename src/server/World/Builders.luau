@@ -89,25 +89,34 @@ function B.rock(parent: Instance, base: Vector3, size: number, rng: Random, colo
 	B.part(parent, Vector3.new(size, size * 0.7, size * 0.9), cf, c:Lerp(Color3.new(0, 0, 0), rng:NextNumber() * 0.15), Enum.Material.Slate)
 end
 
--- Надпись над объектом (видна издалека, всегда лицом к камере)
+-- Небольшая табличка над объектом: тёмная плашка, видна только вблизи и не сквозь стены
 function B.label(adornee: BasePart, text: string, offset: number, color: Color3?, maxDistance: number?): BillboardGui
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(240, 40)
+	gui.Size = UDim2.fromOffset(150, 34)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, offset, 0)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = maxDistance or 150
+	gui.AlwaysOnTop = false
+	gui.MaxDistance = maxDistance or 60
 	gui.LightInfluence = 0
 	gui.AutoLocalize = false
+	local plate = Instance.new("Frame")
+	plate.Name = "Plate"
+	plate.Size = UDim2.fromScale(1, 1)
+	plate.BackgroundColor3 = Color3.fromRGB(28, 32, 40)
+	plate.BackgroundTransparency = 0.2
+	plate.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = plate
 	local t = Instance.new("TextLabel")
 	t.Name = "Text"
 	t.BackgroundTransparency = 1
-	t.Size = UDim2.fromScale(1, 1)
+	t.Position = UDim2.fromOffset(6, 3)
+	t.Size = UDim2.new(1, -12, 1, -6)
 	t.Font = Enum.Font.GothamBold
 	t.TextScaled = true
 	t.Text = text
-	t.TextColor3 = color or Color3.new(1, 1, 1)
-	t.TextStrokeTransparency = 0.4
-	t.Parent = gui
+	t.TextColor3 = color or Color3.fromRGB(255, 205, 90)
+	t.Parent = plate
 	gui.Parent = adornee
 	return gui
 end

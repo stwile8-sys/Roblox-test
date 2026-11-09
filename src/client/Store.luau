@@ -18,6 +18,11 @@ function M.on(fn: (s: { [string]: any }) -> ())
 end
 
 Net.event("State").OnClientEvent:Connect(function(s)
+	-- сетка города приходит только когда изменилась — остальное время берём прошлую
+	local prev = M.state
+	if s.city and s.city.grid == nil and prev and prev.city and prev.city.grid then
+		s.city.grid = prev.city.grid
+	end
 	M.state = s
 	for _, fn in listeners do
 		task.spawn(fn, s)
