@@ -191,7 +191,7 @@ function M.scroll(props: { [string]: any }, children: { Instance }?): ScrollingF
 	return M.new("ScrollingFrame", base, children)
 end
 
--- Корневой ScreenGui. Масштаб: макет 400 px по ширине в портрете
+-- Корневой ScreenGui. Масштаб: макет 860×420 логических px (горизонтальный экран)
 M.scales = {}
 function M.screen(name: string, order: number?): (ScreenGui, Frame)
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -211,7 +211,7 @@ function M.screen(name: string, order: number?): (ScreenGui, Frame)
 	local function fit()
 		local cam = workspace.CurrentCamera
 		local v = if cam then cam.ViewportSize else Vector2.new(400, 800)
-		local s = math.clamp(math.min(v.X / 400, v.Y / 720), 0.6, 2)
+		local s = math.clamp(math.min(v.X / 860, v.Y / 420), 0.55, 2)
 		scale.Scale = s
 		root.Size = UDim2.fromOffset(v.X / s, v.Y / s)
 	end
@@ -224,19 +224,19 @@ end
 M.openWindow = nil :: Frame?
 function M.window(parent: Instance, titleText: string, heightScale: number?): (Frame, Frame, TextLabel)
 	local win = M.frame({
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -6),
-		Size = UDim2.new(1, -12, heightScale or 0.78, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.53),
+		Size = UDim2.new(0, 520, 0.86, 0),
 		BackgroundColor3 = M.C.bg,
 		Visible = false,
 		ZIndex = 20,
 		Parent = parent,
 	}, { M.corner(22), M.stroke(M.C.chrono, 2) })
 	local title = M.label({ Text = titleText, Font = M.BLACK, TextSize = 26, Position = UDim2.fromOffset(16, 12), Size = UDim2.new(1, -100, 0, 34), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 21, Parent = win })
-	M.button("✕", "cancel", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(56, 56), TextSize = 26, ZIndex = 21, Parent = win }, function()
+	M.button("✕", "cancel", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(48, 48), TextSize = 22, ZIndex = 21, Parent = win }, function()
 		M.close(win)
 	end)
-	local body = M.frame({ Name = "Body", BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 72), Size = UDim2.new(1, -20, 1, -82), ZIndex = 21, Parent = win })
+	local body = M.frame({ Name = "Body", BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 62), Size = UDim2.new(1, -20, 1, -70), ZIndex = 21, Parent = win })
 	return win, body, title
 end
 

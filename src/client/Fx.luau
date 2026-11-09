@@ -494,7 +494,7 @@ local function decorate(p: Player, char: Model)
 	local head = char:WaitForChild("Head", 10)
 	if head then
 		local crown = Instance.new("BillboardGui")
-		crown.Size = UDim2.fromOffset(60, 60)
+		crown.Size = UDim2.fromOffset(34, 34)
 		crown.StudsOffset = Vector3.new(0, 2.6, 0)
 		crown.AlwaysOnTop = true
 		crown.Enabled = p:GetAttribute("Crown") == true

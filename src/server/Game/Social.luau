@@ -390,7 +390,7 @@ local function refreshBoards()
 	-- топ-1 Титана — золотой ореол над головой
 	local top = cache.titan[1]
 	for _, p in Players:GetPlayers() do
-		p:SetAttribute("Crown", top ~= nil and p.Name == top.name)
+		p:SetAttribute("Crown", top ~= nil and #Players:GetPlayers() > 1 and p.Name == top.name)
 	end
 end
 

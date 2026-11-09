@@ -14,13 +14,22 @@
       "$className": "Lighting",
       "$properties": {
         "Technology": "ShadowMap",
-        "ClockTime": 20.5,
-        "Brightness": 2,
-        "Ambient": [0.102, 0.102, 0.18],
-        "OutdoorAmbient": [0.102, 0.102, 0.18],
+        "ClockTime": 16.2,
+        "Brightness": 3,
+        "Ambient": [
+          0.45,
+          0.45,
+          0.55
+        ],
+        "OutdoorAmbient": [
+          0.55,
+          0.55,
+          0.68
+        ],
         "GlobalShadows": true,
-        "EnvironmentDiffuseScale": 0.4,
-        "EnvironmentSpecularScale": 0.4
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "ExposureCompensation": 0.3
       }
     },
     "Players": {
@@ -33,7 +42,7 @@
     "StarterGui": {
       "$className": "StarterGui",
       "$properties": {
-        "ScreenOrientation": "Portrait",
+        "ScreenOrientation": "LandscapeSensor",
         "ResetPlayerGuiOnSpawn": false
       }
     },

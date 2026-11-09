@@ -251,21 +251,22 @@ function M.build()
 
 	-- атмосфера: свечение, лёгкий туман, цвет
 	local bloom = Instance.new("BloomEffect")
-	bloom.Intensity = 0.8
+	bloom.Intensity = 0.5
 	bloom.Threshold = 0.9
 	bloom.Size = 28
 	bloom.Parent = Lighting
 	local atm = Instance.new("Atmosphere")
-	atm.Density = 0.15
+	atm.Density = 0.25
 	atm.Offset = 0.2
-	atm.Color = Color3.fromHex("#3A2F6B")
-	atm.Decay = Color3.fromHex("#1A1A2E")
+	atm.Color = Color3.fromHex("#C9B8FF")
+	atm.Decay = Color3.fromHex("#6A5ACD")
 	atm.Glare = 0.2
-	atm.Haze = 1
+	atm.Haze = 1.5
 	atm.Parent = Lighting
 	local cc = Instance.new("ColorCorrectionEffect")
-	cc.Saturation = 0.15
-	cc.Contrast = 0.08
+	cc.Saturation = 0.25
+	cc.Contrast = 0.1
+	cc.Brightness = 0.05
 	cc.Parent = Lighting
 	local sky = Instance.new("Sky")
 	sky.StarCount = 3000
