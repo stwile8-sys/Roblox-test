@@ -30,7 +30,8 @@ end
 
 function M.fromLocale(locale: string): string
 	local code = string.lower(string.sub(locale, 1, 2))
-	return if M.NATIVE[code] then code else "ru"
+	-- русский — для русской локали, для любой другой без перевода — английский
+	return if M.NATIVE[code] then code else "en"
 end
 
 function M.lang(): string
@@ -55,7 +56,7 @@ function M.t(key: string, args: { [string]: any }?): string
 	local row = Strings[key]
 	local s: string
 	if row then
-		s = row[current] or row.ru or row.en or key
+		s = row[current] or (if current ~= "ru" then row.en else nil) or row.ru or row.en or key
 	else
 		s = key
 	end
@@ -106,7 +107,7 @@ function M.name(t: { [string]: string }?): string
 	if not t then
 		return "?"
 	end
-	return t[current] or t.ru or t.en or "?"
+	return t[current] or (if current ~= "ru" then t.en else nil) or t.ru or t.en or "?"
 end
 
 function M.duration(seconds: number): string

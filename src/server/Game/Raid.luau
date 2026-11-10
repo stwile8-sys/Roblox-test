@@ -78,7 +78,7 @@ local function updateSpeed(S: any)
 		return
 	end
 	local now = os.clock()
-	local speed = S.baseSpeed or 16
+	local speed = S.baseSpeed or Game.WALK_SPEED
 	local step = perks(S).step
 	if S.stunUntil and S.stunUntil > now then
 		speed = 0
@@ -93,7 +93,7 @@ local function updateSpeed(S: any)
 	if math.abs(hum.WalkSpeed - speed) > 0.05 then
 		hum.WalkSpeed = speed
 	end
-	S.expectedSpeed = math.max(speed, S.baseSpeed or 16)
+	S.expectedSpeed = math.max(speed, S.baseSpeed or Game.WALK_SPEED)
 end
 
 function M.stun(S: any, seconds: number, pose: string?)

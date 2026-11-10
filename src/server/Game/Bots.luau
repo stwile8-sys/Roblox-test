@@ -84,7 +84,7 @@ function M.spawnNpc(name: string, color: Color3, cf: CFrame, opts: any?): any
 		data = { tool = 2, clan = "", inv = {}, energy = 10, stats = {} },
 		passes = {},
 		rates = {},
-		baseSpeed = 16,
+		baseSpeed = 20,
 		dirty = {},
 	}
 	if opts then

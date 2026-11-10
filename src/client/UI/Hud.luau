@@ -90,6 +90,9 @@ local function gainText(pill: GuiObject, text: string, color: Color3)
 		g:Destroy()
 	end)
 	Kit.pop(pill, 1.12)
+	if M.onGain then
+		pcall(M.onGain)
+	end
 end
 State.on("cash", function(v)
 	local first = cashTarget == 0 and shownCash == 0
@@ -326,6 +329,8 @@ function M.toast(text: string, kind: string?)
 	end)
 	if kind == "bad" then
 		Fx.sfx("click", nil, 0.3)
+	elseif kind == "good" or kind == "gold" then
+		Fx.sfx("pop", nil, 0.3)
 	end
 end
 State.toast = M.toast

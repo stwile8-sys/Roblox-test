@@ -24,6 +24,8 @@ local L = require(Shared.Lang.L)
 pcall(function()
 	L.set(L.fromLocale(game:GetService("LocalizationService").RobloxLocaleId))
 end)
+-- все русские тексты интерфейса — на язык игрока (если он не русский)
+require(script.Parent.Translate).start()
 
 pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) -- своя кнопка дубинки (Hud)
@@ -40,6 +42,66 @@ Animate.start()
 require(script.Parent.Art.World).start()
 Kit.onClick = function()
 	Fx.sfx("click", nil, 0.4)
+end
+
+-- ── Звуки событий на стороне игрока ─────────────────────────
+-- взял существо на руки / донёс
+local carrying = false
+State.on("carry", function(v)
+	local now = v ~= nil and v ~= false
+	if now and not carrying then
+		Fx.sfx("pop", nil, 0.9)
+		task.delay(0.08, function()
+			Fx.sfx("steal", nil, 0.45)
+		end)
+	end
+	carrying = now
+end)
+-- дубинка: достал — щелчок, замах — свист
+local function hookTool(tool: Instance)
+	if not tool:IsA("Tool") or tool:GetAttribute("SfxHooked") then
+		return
+	end
+	tool:SetAttribute("SfxHooked", true)
+	tool.Equipped:Connect(function()
+		Fx.sfx("click", nil, 0.6)
+	end)
+	tool.Activated:Connect(function()
+		Fx.sfx("whoosh", nil, 0.75)
+	end)
+end
+local function hookChar(char: Model)
+	for _, c in char:GetChildren() do
+		hookTool(c)
+	end
+	char.ChildAdded:Connect(hookTool)
+end
+if player.Character then
+	hookChar(player.Character)
+end
+player.CharacterAdded:Connect(hookChar)
+task.spawn(function()
+	local bp = player:WaitForChild("Backpack", 30)
+	if bp then
+		for _, c in bp:GetChildren() do
+			hookTool(c)
+		end
+		bp.ChildAdded:Connect(hookTool)
+	end
+	player.CharacterAdded:Connect(function()
+		local nb = player:WaitForChild("Backpack", 30)
+		if nb then
+			nb.ChildAdded:Connect(hookTool)
+		end
+	end)
+end)
+-- открыл окно — мягкий «поп»
+Kit.onOpen = function()
+	Fx.sfx("pop", nil, 0.35)
+end
+-- деньги/осколки прилетели (сбор, награда) — монетка
+Hud.onGain = function()
+	Fx.sfx("coin", nil, 0.35)
 end
 
 Hud.onScan = Windows.scan

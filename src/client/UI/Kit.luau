@@ -365,6 +365,9 @@ function M.open(win: Frame)
 	if M.openWindow and M.openWindow ~= win then
 		M.openWindow.Visible = false
 	end
+	if not win.Visible and M.onOpen then
+		pcall(M.onOpen)
+	end
 	M.openWindow = win
 	win.Visible = true
 	local bd = backdrop(win)

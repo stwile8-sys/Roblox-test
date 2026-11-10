@@ -288,7 +288,7 @@ local function onJoin(player: Player)
 		dirty = {},
 		rates = {},
 		passes = {} :: { [string]: boolean },
-		baseSpeed = Game.TEST_TOOLS and 16 or 16,
+		baseSpeed = Game.WALK_SPEED,
 	}
 	Ctx.sessions[player] = S
 	Anticheat.onLoad(S)
