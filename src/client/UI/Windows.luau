@@ -147,6 +147,16 @@ function M.shop(tab: string?)
 end
 
 -- сезонный пропуск: уровни, награды free/premium
+
+-- после покупки (в т.ч. тестовой) перерисовать открытый магазин, чтобы стало «Есть ✓»
+for _, key in { "once", "passes", "skins" } do
+	State.on(key, function()
+		if shopWin.Visible then
+			M.shop()
+		end
+	end)
+end
+
 function M.passBody(s: Instance)
 	local p = State.s.pass or { xp = 0, prem = false, cf = {}, cp = {} }
 	local theme = workspace:GetAttribute("Season") or 1

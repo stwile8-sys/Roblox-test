@@ -11,6 +11,7 @@ local M: any = {}
 M.dress = nil -- модуль Dress подставит себя, когда 3D-модели загрузятся
 
 local R = 230
+local WALL_H = 21 -- высота стен (было 14, подняли на 50%)
 
 local function mk(parent: Instance, props: { [string]: any }, class: string?): BasePart
 	local p = Instance.new(class or "Part")
@@ -328,8 +329,8 @@ function M.build(index: number): Model
 	for name, s in SEGS do
 		local seg = solid(walls, {
 			Name = name,
-			Size = Vector3.new(SEG_LEN, 14, 2),
-			CFrame = cf * CFrame.new(s.x, 7, s.z) * (if s.alongZ then CFrame.Angles(0, math.pi / 2, 0) else CFrame.new()),
+			Size = Vector3.new(SEG_LEN, WALL_H, 2),
+			CFrame = cf * CFrame.new(s.x, WALL_H / 2, s.z) * (if s.alongZ then CFrame.Angles(0, math.pi / 2, 0) else CFrame.new()),
 			Color = Palette.wood,
 			Material = Enum.Material.WoodPlanks,
 		})

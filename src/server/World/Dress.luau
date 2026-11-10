@@ -55,7 +55,20 @@ function M.wall(seg: BasePart, level: number)
 		old:Destroy()
 	end
 	local name = (if seg:GetAttribute("Gate") then "gate" else "wall") .. math.clamp(level, 1, 5)
-	local skin = place(name, seg, seg.CFrame * CFrame.new(0, -seg.Size.Y / 2, 0), seg.Size.X / 39)
+	local bottom = seg.CFrame * CFrame.new(0, -seg.Size.Y / 2, 0)
+	local skin = place(name, seg, bottom, seg.Size.X / 39)
+	-- модель стены рассчитана на высоту 14: растягиваем только по вертикали
+	local ky = seg.Size.Y / 14
+	if skin and math.abs(ky - 1) > 0.02 then
+		local by = bottom.Position.Y
+		for _, p in skin:GetDescendants() do
+			if p:IsA("BasePart") then
+				local pos = p.Position
+				p.Size = Vector3.new(p.Size.X, p.Size.Y * ky, p.Size.Z)
+				p.CFrame = p.CFrame.Rotation + Vector3.new(pos.X, by + (pos.Y - by) * ky, pos.Z)
+			end
+		end
+	end
 	if not skin then
 		return
 	end
@@ -131,6 +144,17 @@ local function islandUnder(holder: Instance, parent: Instance, name: string, top
 	local size = if name == "islandBig" then 49.55 else 26.23
 	local m = place(name, parent, CFrame.new(center.X, topY - size * (scale or 1), center.Z), scale, "IslandSkin")
 	if m then
+		-- по траве модели можно ходить: невидимый диск чуть меньше острова
+		local ext = m:GetExtentsSize()
+		local disc = Instance.new("Part")
+		disc.Name = "IslandFloor"
+		disc.Shape = Enum.PartType.Cylinder
+		disc.Size = Vector3.new(4, ext.X * 0.94, ext.X * 0.94)
+		disc.CFrame = CFrame.new(center.X, topY - 2.05, center.Z) * CFrame.Angles(0, 0, math.pi / 2)
+		disc.Anchored = true
+		disc.Transparency = 1
+		disc.CastShadow = false
+		disc.Parent = parent
 		for _, p in holder:GetChildren() do
 			if p:IsA("BasePart") and p:GetAttribute("IslandVis") ~= nil then
 				hide(p)
@@ -235,6 +259,15 @@ end
 
 -- ── Хаб, мосты, сезонный остров ─────────────────────────────
 local function dressBridge(rec: any, parent: Instance)
+	-- мосты между соседними базами: большие острова баз теперь смыкаются, мосты не нужны
+	if rec.w == 12 then
+		for _, p in rec.parts do
+			hide(p)
+			p.CanCollide = false
+			p.CanQuery = false
+		end
+		return
+	end
 	local len = (rec.b - rec.a).Magnitude
 	local n = math.max(1, math.floor(len / 30 + 0.5))
 	local seg = len / n
@@ -347,7 +380,7 @@ function M.floor2(f2: Instance, cf: CFrame)
 		end
 	end
 	if place("floor2", f2, cf * CFrame.new(0, 0, 33), nil, "FloorSkin") then
-		place("stairs", f2, cf * CFrame.new(51, 0, -13), nil, "StairsSkin")
+		place("stairs", f2, cf * CFrame.new(51, 0, -13) * CFrame.Angles(0, math.pi, 0), nil, "StairsSkin")
 		hideList(old)
 	end
 	dressPedestals(f2, true)
