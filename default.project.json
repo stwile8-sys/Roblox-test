@@ -61,7 +61,9 @@
       "$properties": {
         "CharacterWalkSpeed": 16,
         "CameraMaxZoomDistance": 60,
-        "AutoJumpEnabled": false
+        "AutoJumpEnabled": false,
+        "CharacterUseJumpPower": false,
+        "CharacterJumpHeight": 0
       },
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",

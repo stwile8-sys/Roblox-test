@@ -270,7 +270,7 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 			nextRing -= dt
 			if nextRing <= 0 and not landed and not raceRings then
 				nextRing = Config.RING_EVERY
-				local ahead = 1.1
+				local ahead = 2.5
 				local pred = pos + vel * ahead + Vector3.new(0, -0.5 * g * ahead * ahead, 0)
 				if pred.Y > 25 then
 					local off = (math.random() * 2 - 1) * 26
@@ -293,7 +293,7 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 					if M.onRing then
 						M.onRing(M.rings)
 					end
-				elseif not raceRings and t - r.t > 3.5 then
+				elseif not raceRings and t - r.t > 5 then
 					r.model:Destroy()
 					table.remove(rings, i)
 				end
@@ -308,12 +308,14 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 		local target = hrp.Position
 		local flat = Vector3.new(vel.X * 0.3, 0, math.max(vel.Z, 1))
 		flat = if flat.Magnitude > 0.1 then flat.Unit else Vector3.new(0, 0, 1)
-		local back = math.clamp(28 + M.speed * 0.025, 28, 70)
-		local want = target - flat * back + Vector3.new(0, 10 + back * 0.25, 0)
+		local back = math.clamp(30 + M.speed * 0.03, 30, 80)
+		local want = target - flat * back + Vector3.new(0, 14 + back * 0.35, 0)
 		camPos = camPos:Lerp(want, math.min(dt * (if landed then 3 else 9), 1))
 		shake = math.max(0, shake - dt * 2)
 		local jitter = if shake > 0 then Vector3.new(math.random() - 0.5, math.random() - 0.5, 0) * shake * 2 else Vector3.zero
-		camera.CFrame = CFrame.lookAt(camPos + jitter, target + flat * 12)
+		-- смотрим заранее вперёд по полёту: чем быстрее летим, тем дальше
+		local lookAhead = if landed then 12 else math.clamp(M.speed * 0.35, 25, 220)
+		camera.CFrame = CFrame.lookAt(camPos + jitter, target + flat * lookAhead)
 		camera.FieldOfView = camera.FieldOfView + ((70 + math.min(M.speed / 30, 25)) - camera.FieldOfView) * math.min(dt * 3, 1)
 	end)
 end
