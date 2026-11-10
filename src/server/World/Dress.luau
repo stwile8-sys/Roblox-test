@@ -34,16 +34,14 @@ end
 -- какие модели клиент оживляет (Art/World.luau): порталы крутят свечение, деревья качаются, кристаллы парят…
 local ANIM: { [string]: string } = {
 	portalStart = "portal", portalEnd = "portal", seasonPortal = "portal", portal = "portal",
-	chestLid = "lid",
 	crystalHub = "crystal", crystalA = "crystal", crystalB = "crystal", crystalC = "crystal",
 	tree = "sway", bush = "sway", s2Tree = "sway", s3Palm = "sway", s4Sakura = "sway", s4Flowers = "sway", s6Coral = "sway",
 	collectPlate = "glow", rebirthAltar = "glow", titanAltar = "glow", leaderboard = "glow", statuePedestal = "glow",
-	lantern = "glow", beacon = "glow", skinPodium = "glow", chestPedestal = "glow", bench = "glow",
+	lantern = "glow", beacon = "glow", skinPodium = "glow", bench = "glow",
 	s5Planet = "float", s6Bubbles = "float", s5Meteor = "float", s1Torch = "glow",
 	blackHole = "spin", slowField = "spin",
 	lockButton = "button",
 	cage = "cage",
-	chest = "glow",
 }
 
 -- поставить модель name в точку cf (низ по центру), необязательный масштаб
@@ -427,12 +425,7 @@ function M.hub(hub: Instance)
 			local rim = py + by * (3.5 / 5.54)
 			local cf, size = lid:GetBoundingBox()
 			lid:PivotTo(lid:GetPivot() + Vector3.new(-cf.Position.X, rim - (cf.Position.Y - size.Y / 2), -cf.Position.Z))
-			local bsize = if body then body:GetExtentsSize() else Vector3.new(10, 5.5, 7.5)
-			-- петли — задняя верхняя кромка корпуса; приоткрыта, чтобы были видны сокровища
-			local hinge = CFrame.new(0, rim, bsize.Z / 2 - 0.15)
-			lid:PivotTo(hinge * CFrame.Angles(math.rad(38), 0, 0) * hinge:Inverse() * lid:GetPivot())
-			lid:SetAttribute("Hinge", hinge)
-		end
+					end
 		hideList(old)
 	end
 	-- кольцевой конвейер: 44 дуги вокруг центра (опора дуги — центр кольца)
