@@ -249,6 +249,8 @@ def write_outputs(state, manifest):
         "  Мост — вдоль Z. Стены и ворота — вдоль X, толщина по Z.",
         "- Кольцевой конвейер: `beltArc` × 44, сегмент i — `PivotTo(center * CFrame.Angles(0, i * 2π/44, 0))`.",
         "- `lockButton`: кнопка — деталь `Button`, её цвет меняется через `Color` (по умолчанию красная, на перезарядке — серая).",
+        "- Существа `art_<id>` (id из `Art/Defs.luau`; сезонные Титаны — `art_s1`…`art_s6`): детали по ролям `Body`, `Head`, `Eye`, `Mouth`,",
+        "  `Limb`, `Prop`, `Glow_…`; рост = размер редкости (1 / 2 / 3 / 5 / 4), лицо на −Z.",
         "- Клетка `cage`: прутья — детали `Bar1`…`Bar8` (у каждого прута две детали с одним именем: стержень и шар), `Base`, `Top`.", "",
         "```lua", "local ModelLib = require(script.Parent.World.ModelLib)",
         "local m = ModelLib.get(\"pedestal\") -- копия Model или nil (тогда строим старый вариант из деталей)",
