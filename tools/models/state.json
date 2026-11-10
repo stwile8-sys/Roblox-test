@@ -332,7 +332,7 @@
  "floor2": {
   "assetId": 92277536569010,
   "moderation": "Approved",
-  "sha256": "903b9cd3dd870a4bd0b4c50dd06535ab665a698bc2ff797f3fe86d1dfce7a127"
+  "sha256": "e08e1c230a58cc9c21ced6ceb6c42437bad3e04d11067365a2cf337aab607aae"
  },
  "gate1": {
   "assetId": 102029875094248,
@@ -507,7 +507,7 @@
  "stairs": {
   "assetId": 96874622247553,
   "moderation": "Approved",
-  "sha256": "a19eaf3c3bc69848deb379b7764bd281ad5b67746292cb81878e884ddd160272"
+  "sha256": "152cf3f88a2c9a5cae6733c9f148e1bfd2f693956eacb51f4c05b57c9818001a"
  },
  "statuePedestal": {
   "assetId": 79535248734362,
