@@ -15,15 +15,21 @@ class Model:
     def __init__(self):
         self.parts = {}
 
-    def add(self, mesh, glow=None, t=None):
-        """glow — hex-цвет свечения (узел Glow_…), t — прозрачность в процентах."""
-        name = "Body"
+    def add(self, mesh, glow=None, t=None, node=None):
+        """glow — hex-цвет свечения (узел Glow_…), t — прозрачность в процентах, node — своё имя детали."""
+        name = node or "Body"
         if glow:
             g = glow if glow.startswith("#") else "#%02X%02X%02X" % tuple(int(round(x * 255)) for x in PAL[glow])
             name = "Glow_" + g.lstrip("#").upper() + (f"_T{t}" if t else "")
             mesh.paint(mix(col(g), PAL["white"], 0.45))
         self.parts.setdefault(name, []).append(mesh)
         return mesh
+
+    def scale(self, k):
+        for v in self.parts.values():
+            for mesh in v:
+                mesh.scale(k)
+        return self
 
     def nodes(self):
         return {k: merge(v) for k, v in self.parts.items()}
@@ -284,16 +290,18 @@ def crystal_small(kind):
 
 
 # ================= 6. Декор =================
-def tree():
+def tree(g=("grassDark", "grass", "grassLight"), fruit="orange", trunk=("woodDark", "woodLight")):
     m = Model()
+    G = {"grassDark": g[0], "grass": g[1], "grassLight": g[2]}
+    trunk_c = trunk
     trunk = lathe(fillet([(0, 0), (1.25, 0), (0.75, 1.4), (0.6, 4.4), (0.95, 5.6), (0, 5.6)], 0.5), 10, color="wood")
-    m.add(trunk.grad("woodDark", "woodLight"))
+    m.add(trunk.grad(trunk_c[0], trunk_c[1]))
     for r, x, y, z, c0, c1, sd in ((3.3, 0, 7.4, 0, "grassDark", "grass", 1), (2.3, 1.9, 8.9, 0.7, "grass", "grassLight", 2),
                                    (2.2, -2.0, 8.1, -0.9, "grassDark", "grass", 3), (1.7, -0.3, 10.2, 0.2, "grass", "grassLight", 4),
                                    (1.8, 0.6, 7.0, -2.2, "grassDark", "grass", 5)):
-        m.add(blob(r, sd, 0.1, 12, 7).scale(1, 0.88, 1).move(x, y, z)).grad(c0, c1)
+        m.add(blob(r, sd, 0.1, 12, 7).scale(1, 0.88, 1).move(x, y, z)).grad(G[c0], G[c1])
     for x, y, z in ((2.6, 7.2, -1.6), (-2.9, 7.3, 0.9), (0.4, 9.3, -2.2), (1.3, 6.3, 2.4)):
-        m.add(sphere(0.42, 8, 5, "orange").move(x, y, z))
+        m.add(sphere(0.42, 8, 5, fruit).move(x, y, z))
     return m
 
 
@@ -370,23 +378,23 @@ def conveyor():
     return m
 
 
-def portal():
-    """Арка-портал, из которой выходят артефакты. Проём смотрит на −Z."""
+def portal(c_arch=("dark", "violet"), c_glow="chrono", c_swirl="violet", c_top="gold"):
+    """Арка-портал. Проём смотрит на −Z."""
     m = Model()
     m.add(rbox(13.0, 0.9, 4.4, 0.35, 1, "stoneDark").move(0, 0.45, 0))
     m.add(rbox(11.0, 0.6, 3.4, 0.25, 1, "stone").move(0, 1.1, 0))
     path = [(-4.6, 1.2, 0), (-4.6, 4.0, 0)] + [(x, y + 6.4, 0) for x, y, _ in arc(4.6, 180, 0, 12)] + [(4.6, 4.0, 0), (4.6, 1.2, 0)]
-    m.add(tube(path, 1.05, 8, color="violet", crease=50)).grad("dark", "violet")
+    m.add(tube(path, 1.05, 8, color="violet", crease=50)).grad(c_arch[0], c_arch[1])
     for a in (150, 90, 30):
         ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
         m.add(torus(1.2, 0.26, 10, 5, "gold").rot("x", 90).rot("z", a).move(4.6 * ca, 6.4 + 4.6 * sa, 0))
     for s in (-1, 1):
         m.add(torus(1.2, 0.26, 10, 5, "gold").move(s * 4.6, 3.0, 0))
-        m.add(crystal(0.5, 1.6, 6, 0.4, 0.3).move(s * 6.0, 1.3, -1.1), glow="chrono")
-    m.add(crystal(0.9, 2.6, 6, 0.4, 0.35).move(0, 11.7, 0), glow="gold")
-    m.add(sphere(1.0, 16, 8).scale(3.8, 4.9, 0.14).move(0, 6.1, 0), glow="chrono", t=35)
+        m.add(crystal(0.5, 1.6, 6, 0.4, 0.3).move(s * 6.0, 1.3, -1.1), glow=c_glow)
+    m.add(crystal(0.9, 2.6, 6, 0.4, 0.35).move(0, 11.7, 0), glow=c_top)
+    m.add(sphere(1.0, 16, 8).scale(3.8, 4.9, 0.14).move(0, 6.1, 0), glow=c_glow, t=35)
     for R in (2.9, 1.7):
-        m.add(torus(R, 0.13, 20, 5).scale(1, 1, 1.2).rot("x", 90).move(0, 6.2, 0), glow="violet")
+        m.add(torus(R, 0.13, 20, 5).scale(1, 1, 1.2).rot("x", 90).move(0, 6.2, 0), glow=c_swirl)
     return m
 
 
@@ -419,17 +427,18 @@ def bench():
 
 
 def beacon():
+    """Маяк базы, столб ~26 стад."""
     m = Model()
-    m.add(cyl(1.7, 0.9, 0.3, 14, "dark", r2=1.45)).grad("dark", "violet")
-    m.add(cyl(1.15, 5.2, 0.25, 14, "cream", r2=0.85).move(0, 0.8, 0)).grad(mix(PAL["cream"], PAL["orange"], 0.3), "cream")
-    m.add(torus(1.07, 0.2, 14, 6, "orange").move(0, 2.2, 0))
-    m.add(torus(0.97, 0.2, 14, 6, "red").move(0, 4.2, 0))
-    m.add(cyl(1.25, 0.4, 0.15, 14, "dark").move(0, 5.9, 0))
-    m.add(cyl(0.85, 1.7, 0.2, 12).move(0, 6.25, 0), glow="gold")
-    for x, y, z in ring_pos(4, 1.0, 0, math.pi / 4):
-        m.add(tube([(x, 6.2, z), (x, 8.0, z)], 0.09, 4, color="dark"))
-    m.add(lathe(fillet([(0, 7.9), (1.55, 7.9), (1.2, 8.4), (0.3, 9.5), (0, 9.6)], 0.2), 14, color="red")).grad("red", "pink")
-    m.add(sphere(0.3, 8, 5, "gold").move(0, 9.75, 0))
+    m.add(cyl(2.5, 1.4, 0.4, 14, "dark", r2=2.1)).grad("dark", "violet")
+    m.add(cyl(1.75, 17.2, 0.3, 14, "cream", r2=1.15).move(0, 1.2, 0)).grad(mix(PAL["cream"], PAL["orange"], 0.3), "cream")
+    for y, r, c in ((4.5, 1.62, "orange"), (9.5, 1.45, "red"), (14.5, 1.3, "orange")):
+        m.add(torus(r, 0.26, 14, 6, c).move(0, y, 0))
+    m.add(cyl(2.0, 0.6, 0.2, 14, "dark").move(0, 18.3, 0))
+    m.add(cyl(1.3, 2.8, 0.3, 12).move(0, 18.8, 0), glow="gold")
+    for x, y, z in ring_pos(4, 1.5, 0, math.pi / 4):
+        m.add(tube([(x, 18.8, z), (x, 21.7, z)], 0.12, 4, color="dark"))
+    m.add(lathe(fillet([(0, 21.5), (2.35, 21.5), (1.8, 22.3), (0.4, 24.9), (0, 25.0)], 0.3), 14, color="red")).grad("red", "pink")
+    m.add(sphere(0.5, 8, 5, "gold").move(0, 25.4, 0))
     return m
 
 
@@ -454,6 +463,8 @@ def slow_field():
     for x, y, z in ring_pos(4, 2.55, 0, math.pi / 4):
         m.add(cyl(0.3, 0.75, 0.1, 6, "gold", r2=0.2).move(x, 0.2, z))
         m.add(sphere(0.26, 6, 4).move(x, 1.1, z), glow="violet")
+    dome = [(2.75, 0.3)] + [(2.75 * math.cos(math.radians(a)), 0.3 + 2.3 * math.sin(math.radians(a))) for a in (20, 40, 60, 78)] + [(0, 2.6)]
+    m.add(lathe(dome, 16, crease=80), glow="violet", t=75)
     # стрелки «часов» — намёк на замедление
     m.add(rbox(0.16, 0.08, 1.2, 0.04, 1, "cream").move(0, 0.36, -0.6))
     m.add(rbox(0.8, 0.08, 0.16, 0.04, 1, "cream").move(0.4, 0.36, 0))
@@ -502,9 +513,9 @@ MODELS = {
     "conveyor": (conveyor, 2000, "Секция конвейера (лента вдоль +X, верх на 1.2)"),
     "portal": (portal, 2000, "Портал-арка артефактов"),
     "bench": (bench, 2000, "Верстак"),
-    "beacon": (beacon, 2000, "Маяк базы"),
+    "beacon": (beacon, 2000, "Маяк базы, столб ~26"),
     "mine": (mine, 2000, "Ловушка: мина"),
-    "slowField": (slow_field, 2000, "Ловушка: замедляющее поле"),
+    "slowField": (slow_field, 2000, "Ловушка: замедляющее поле (купол)"),
     "decoyPedestal": (lambda: pedestal("decoy"), 2000, "Ловушка: ложный пьедестал"),
     "blackHole": (black_hole, 2000, "Скин ловушки «Чёрная дыра»"),
 }

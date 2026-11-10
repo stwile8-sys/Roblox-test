@@ -453,19 +453,19 @@
  },
  "beacon": {
   "file": "beacon.glb",
-  "sha256": "a0e04793da551e6cced73e3a4f42d14625b4e2e975f618ecbc5dfdb8aeb126fb",
-  "tris": 1664,
+  "sha256": "9d924e7f897a04cce7b0e8afb685bc8b5296130cda213f0ca1ec5838e153083a",
+  "tris": 1832,
   "budget": 2000,
   "size": [
-   3.26,
-   10.05,
-   3.18
+   4.81,
+   25.9,
+   4.69
   ],
   "nodes": [
    "Body",
    "Glow_FFE066"
   ],
-  "desc": "Маяк базы"
+  "desc": "Маяк базы, столб ~26"
  },
  "mine": {
   "file": "mine.glb",
@@ -485,20 +485,21 @@
  },
  "slowField": {
   "file": "slowField.glb",
-  "sha256": "83c29dddc5be999bb4a0aee186bce42b8f3b37ce2ef4dcdd01f95752efef477e",
-  "tris": 1536,
+  "sha256": "16dcacb3d19561cc28bb58cffaf0833b44b76abf50cbfd27615637485313fc43",
+  "tris": 1696,
   "budget": 2000,
   "size": [
    5.93,
-   1.36,
+   2.6,
    5.93
   ],
   "nodes": [
    "Body",
    "Glow_00E5FF",
-   "Glow_7B2FF7"
+   "Glow_7B2FF7",
+   "Glow_7B2FF7_T75"
   ],
-  "desc": "Ловушка: замедляющее поле"
+  "desc": "Ловушка: замедляющее поле (купол)"
  },
  "decoyPedestal": {
   "file": "decoyPedestal.glb",
@@ -532,5 +533,1420 @@
    "Glow_FFB347"
   ],
   "desc": "Скин ловушки «Чёрная дыра»"
+ },
+ "chest": {
+  "file": "chest.glb",
+  "sha256": "00a77555b17ee57b3b61f87a3644dfd680e060966c4ce208228f6eb924811def",
+  "tris": 2428,
+  "budget": 5000,
+  "size": [
+   10.35,
+   5.54,
+   7.72
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7",
+   "Glow_FF2E63"
+  ],
+  "desc": "Золотой сундук — корпус с монетами и самоцветами (10×~5×7)"
+ },
+ "chestLid": {
+  "file": "chestLid.glb",
+  "sha256": "893f0460bd79edd45c1c863a2cc963d961fb1ec4cc68b0a4f09f22dd75cda769",
+  "tris": 392,
+  "budget": 2000,
+  "size": [
+   10.0,
+   3.6,
+   7.43
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Крышка сундука; опора — ось петель (ставить в (0, 3.5, +3.5) от опоры сундука, открывать вокруг X)",
+  "pivot": [
+   0.0,
+   0.0,
+   3.635
+  ]
+ },
+ "chestPedestal": {
+  "file": "chestPedestal.glb",
+  "sha256": "c9f67a13a74e52847153675e2ed69c401ec610ed6aa7e0c3ad22690df26e6769",
+  "tris": 2152,
+  "budget": 5000,
+  "size": [
+   20.1,
+   4.75,
+   20.1
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFE066"
+  ],
+  "desc": "Пьедестал под сундук, 3 яруса"
+ },
+ "beltArc": {
+  "file": "beltArc.glb",
+  "sha256": "4654e9b0121389e9397b4e11811f557d9d3c52f6ff4b525bccb6de45ce8e22e6",
+  "tris": 400,
+  "budget": 2000,
+  "size": [
+   4.38,
+   1.85,
+   7.06
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сегмент кольцевого конвейера 1/44 (R=27, ширина 7); опора — центр кольца",
+  "pivot": [
+   0.0,
+   0.0,
+   26.969
+  ]
+ },
+ "portalStart": {
+  "file": "portalStart.glb",
+  "sha256": "5641f9db7297f1c3f299fb14509e01544dfa13dc93cc11908e5ff5c9eb1ec00b",
+  "tris": 1432,
+  "budget": 2000,
+  "size": [
+   7.51,
+   9.24,
+   2.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_00E5FF_T35",
+   "Glow_FFE066"
+  ],
+  "desc": "Портал начала конвейера (бирюзовый)"
+ },
+ "portalEnd": {
+  "file": "portalEnd.glb",
+  "sha256": "b6ef6eabcd92cc394679b0fa107f0523d577e0922837aad3c4b2552755804820",
+  "tris": 1432,
+  "budget": 2000,
+  "size": [
+   7.51,
+   9.24,
+   2.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_7B2FF7",
+   "Glow_7B2FF7_T35",
+   "Glow_FFE066"
+  ],
+  "desc": "Портал конца конвейера (фиолетовый)"
+ },
+ "skinPodium": {
+  "file": "skinPodium.glb",
+  "sha256": "319b8a1a5711266b775976686e4404770cd4baa57b895b2e39d61d13a2ba1946",
+  "tris": 1888,
+  "budget": 2000,
+  "size": [
+   7.88,
+   8.52,
+   7.88
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Подиум с манекеном для скинов"
+ },
+ "leaderboard": {
+  "file": "leaderboard.glb",
+  "sha256": "d55947e8d0d9b7434134b85ada75046cc0be08a73d43c5555be35f13e85f4d53",
+  "tris": 1252,
+  "budget": 2000,
+  "size": [
+   16.28,
+   14.7,
+   2.4
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Доска лидерборда 16×14 на ножках"
+ },
+ "rebirthAltar": {
+  "file": "rebirthAltar.glb",
+  "sha256": "ed0323a217cf394203e13ca5c4ce701aab0b0ff3598a97e0b58c49e21392c966",
+  "tris": 2168,
+  "budget": 5000,
+  "size": [
+   14.0,
+   4.8,
+   14.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Алтарь ребёрса, 5 ступеней, верх светится"
+ },
+ "statuePedestal": {
+  "file": "statuePedestal.glb",
+  "sha256": "43f6f2b669543d0414610dac62170a1fc91036214fa7e230262e22d1152c0c45",
+  "tris": 1764,
+  "budget": 2000,
+  "size": [
+   7.88,
+   4.11,
+   7.88
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Пьедестал под статую-маскота"
+ },
+ "seasonPortal": {
+  "file": "seasonPortal.glb",
+  "sha256": "b184371c2b4f93d469e3f80d7025d48a139ec96432e108f914f71ab51711d5fd",
+  "tris": 1684,
+  "budget": 2000,
+  "size": [
+   10.91,
+   12.0,
+   3.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFB347",
+   "Glow_FFE066",
+   "Glow_FFE066_T35"
+  ],
+  "desc": "Сезонный портал-арка ~12"
+ },
+ "lockButton": {
+  "file": "lockButton.glb",
+  "sha256": "f2c1cee6cba3858c02669db062e734c9a9587312db581d5c831674fa3b3592cf",
+  "tris": 1766,
+  "budget": 2000,
+  "size": [
+   8.86,
+   2.75,
+   8.86
+  ],
+  "nodes": [
+   "Body",
+   "Button"
+  ],
+  "desc": "Кнопка замка: тумба ~9, кнопка — узел Button (перекрашивается), замочек"
+ },
+ "collectPlate": {
+  "file": "collectPlate.glb",
+  "sha256": "4790730eefea816432292e59436a7f4e7432c4eb81934832e28777d82b3c9cdd",
+  "tris": 1812,
+  "budget": 2000,
+  "size": [
+   10.04,
+   0.71,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Плита сбора дохода 10×10, золотая, с монетой"
+ },
+ "collectPad": {
+  "file": "collectPad.glb",
+  "sha256": "7e24d1655e2c9f9612aa8ec385d0b371e7cf468fe307991041dabcfea5853601",
+  "tris": 1088,
+  "budget": 2000,
+  "size": [
+   10.0,
+   0.81,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Плита сбора дохода 10×10 (старый вариант, см. collectPlate)"
+ },
+ "floor2": {
+  "file": "floor2.glb",
+  "sha256": "903b9cd3dd870a4bd0b4c50dd06535ab665a698bc2ff797f3fe86d1dfce7a127",
+  "tris": 1600,
+  "budget": 5000,
+  "size": [
+   20.0,
+   6.32,
+   20.0
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Секция пола второго этажа 20×20 с перилами (верх на 2.0)"
+ },
+ "stairs": {
+  "file": "stairs.glb",
+  "sha256": "a19eaf3c3bc69848deb379b7764bd281ad5b67746292cb81878e884ddd160272",
+  "tris": 3840,
+  "budget": 5000,
+  "size": [
+   8.64,
+   26.66,
+   33.52
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Лестница на второй этаж: подъём 22, ширина 8, вверх к −Z"
+ },
+ "titanAltar": {
+  "file": "titanAltar.glb",
+  "sha256": "a49c0387172a5aae7561bc51007d8b09d0a903d0488ba988e5af0183e53b0942",
+  "tris": 1868,
+  "budget": 2000,
+  "size": [
+   10.0,
+   3.8,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFB347"
+  ],
+  "desc": "Алтарь сезонного Титана 10×10"
+ },
+ "cage": {
+  "file": "cage.glb",
+  "sha256": "723629cd83e81f116d78051790df3c5a513fd5b3f8e8510da41501594b6102e1",
+  "tris": 1544,
+  "budget": 5000,
+  "size": [
+   11.0,
+   12.13,
+   11.0
+  ],
+  "nodes": [
+   "Bar1",
+   "Bar2",
+   "Bar3",
+   "Bar4",
+   "Bar5",
+   "Bar6",
+   "Bar7",
+   "Bar8",
+   "Base",
+   "Glow_00E5FF",
+   "Top"
+  ],
+  "desc": "Клетка алтаря: прутья Bar1…Bar8 отдельными деталями"
+ },
+ "s1Pumpkin": {
+  "file": "s1Pumpkin.glb",
+  "sha256": "61bb62983c6b5a6b6f27f73895419bd1409a932a373360ba311e0da71be97e8d",
+  "tris": 582,
+  "budget": 2000,
+  "size": [
+   3.85,
+   3.41,
+   3.85
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 1 (Хэллоуин): тыква"
+ },
+ "s1Torch": {
+  "file": "s1Torch.glb",
+  "sha256": "3d352f968ca25a5203dfae28fc603ad71122ece2f7a6e73c058474bb31201992",
+  "tris": 708,
+  "budget": 2000,
+  "size": [
+   1.45,
+   6.3,
+   1.45
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFB347",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 1 (Хэллоуин): факел"
+ },
+ "s2Tree": {
+  "file": "s2Tree.glb",
+  "sha256": "92fed342061302b337efc90dd59f78cab64ae08dc9a5faf3ad8d92714ddc4134",
+  "tris": 1692,
+  "budget": 2000,
+  "size": [
+   6.12,
+   8.9,
+   5.98
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 2 (Новый год): ёлка"
+ },
+ "s2Snowman": {
+  "file": "s2Snowman.glb",
+  "sha256": "a16c552dd480738c18267f8d6d4c8615da8fd8758d0233a9b7e32c5c19801cd9",
+  "tris": 1404,
+  "budget": 2000,
+  "size": [
+   5.14,
+   6.92,
+   3.26
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 2 (Новый год): снеговик"
+ },
+ "s3Palm": {
+  "file": "s3Palm.glb",
+  "sha256": "fcb9072a78498dd5932cb31b31d279ce9133261be9457cc1165b77968ad7cf84",
+  "tris": 964,
+  "budget": 2000,
+  "size": [
+   7.99,
+   8.69,
+   7.02
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 3 (Лето): пальма"
+ },
+ "s3Shells": {
+  "file": "s3Shells.glb",
+  "sha256": "d0873382c3ee2003ed2bf15a8e4c3b066b6da7fa3edd910b1758a97e30a27506",
+  "tris": 932,
+  "budget": 2000,
+  "size": [
+   4.42,
+   1.86,
+   3.54
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 3 (Лето): ракушки"
+ },
+ "s4Sakura": {
+  "file": "s4Sakura.glb",
+  "sha256": "9fd77a6b78aac600f96fbc580774980f90f3d1c773d6cb577e0286374653fab2",
+  "tris": 1296,
+  "budget": 2000,
+  "size": [
+   8.46,
+   11.71,
+   7.4
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 4 (Весна): сакура"
+ },
+ "s4Flowers": {
+  "file": "s4Flowers.glb",
+  "sha256": "452c59d14d656e90dc33f165f99bdf4ff2aacb89b19036cb6613dbb4e7bca615",
+  "tris": 1208,
+  "budget": 2000,
+  "size": [
+   3.53,
+   3.37,
+   2.84
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 4 (Весна): цветы"
+ },
+ "s5Planet": {
+  "file": "s5Planet.glb",
+  "sha256": "b71dc2bc649ad67e907d33f3ce075e1559c02238d31479936099730833419b03",
+  "tris": 980,
+  "budget": 2000,
+  "size": [
+   6.41,
+   6.35,
+   6.54
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 5 (Космос): планета"
+ },
+ "s5Meteor": {
+  "file": "s5Meteor.glb",
+  "sha256": "1bb912cdb363c5e26c807a81f70904e8f395a9694860fe915ed7e121d50482db",
+  "tris": 464,
+  "budget": 2000,
+  "size": [
+   5.24,
+   3.59,
+   4.43
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFB347",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 5 (Космос): метеорит"
+ },
+ "s6Coral": {
+  "file": "s6Coral.glb",
+  "sha256": "08d4cf5403b27c5d3fad3aa37d04763c6ecc95cacef860902147d5f5d4d3f2ca",
+  "tris": 708,
+  "budget": 2000,
+  "size": [
+   3.89,
+   4.75,
+   3.27
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 6 (Глубина): кораллы"
+ },
+ "s6Bubbles": {
+  "file": "s6Bubbles.glb",
+  "sha256": "12fefa686d8d4869c5bede3c8d0781099688ba1fc7c8e64741f0e0faa5e4ad11",
+  "tris": 1224,
+  "budget": 2000,
+  "size": [
+   3.16,
+   7.29,
+   2.53
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF_T60"
+  ],
+  "desc": "Сезон 6 (Глубина): пузыри"
+ },
+ "club": {
+  "file": "club.glb",
+  "sha256": "2bc297efd7dbc3defd9c1a73bcbb21dd6c6dbbe3065d83d805bf3cdfea6a28be",
+  "tris": 904,
+  "budget": 2000,
+  "size": [
+   1.92,
+   4.0,
+   1.66
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Дубинка в руку, длина ~4"
+ },
+ "art_c_drop": {
+  "file": "art_c_drop.glb",
+  "sha256": "5bba706d002c2d55f2ced7165ed05393f3977197a90c39bedecf33372afd3c52",
+  "tris": 644,
+  "budget": 2000,
+  "size": [
+   0.74,
+   1.03,
+   0.79
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Mouth"
+  ],
+  "desc": "Существо «Капля Времени» (common, drop)"
+ },
+ "art_c_moss": {
+  "file": "art_c_moss.glb",
+  "sha256": "1b7df7516185454b5fb759194a82056fc028749e8c5a49234789c32a79b3d70c",
+  "tris": 676,
+  "budget": 2000,
+  "size": [
+   1.01,
+   0.89,
+   0.93
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_7CFF9E",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Мшистый Камень» (common, stone)"
+ },
+ "art_c_feather": {
+  "file": "art_c_feather.glb",
+  "sha256": "0ea39a807bbef3dad6ea4c1c3b7c0d485173138f8822660d7f5d62c0b2135ee9",
+  "tris": 704,
+  "budget": 2000,
+  "size": [
+   0.8,
+   1.2,
+   0.6
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Пёрышко Часов» (common, feather)"
+ },
+ "art_c_tick": {
+  "file": "art_c_tick.glb",
+  "sha256": "d74cf0fe774610826199417483cc9b2f1f67aa8da6f337ad7335e514b0f27638",
+  "tris": 292,
+  "budget": 2000,
+  "size": [
+   0.6,
+   1.0,
+   0.62
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Mouth"
+  ],
+  "desc": "Существо «Тик-Так» (common, gem)"
+ },
+ "art_c_bubble": {
+  "file": "art_c_bubble.glb",
+  "sha256": "be5e2ec74c615f33edd9fcd8c79aa4f7ee2495d53e68f5c3075bf8cd95ef5eed",
+  "tris": 736,
+  "budget": 2000,
+  "size": [
+   0.96,
+   1.06,
+   0.98
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_8FB4FF",
+   "Mouth"
+  ],
+  "desc": "Существо «Пузырик» (common, blob)"
+ },
+ "art_c_shroom": {
+  "file": "art_c_shroom.glb",
+  "sha256": "782a7b180cef2aecd6e2d986c7bc64aa6115cf6f25654141a6755835de50d5e4",
+  "tris": 1280,
+  "budget": 2000,
+  "size": [
+   0.93,
+   0.94,
+   0.91
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FF8A65",
+   "Head",
+   "Mouth"
+  ],
+  "desc": "Существо «Грибочек-Минутка» (common, mush)"
+ },
+ "art_c_spark": {
+  "file": "art_c_spark.glb",
+  "sha256": "d57629e4bf9926e2e095b8c2a16069fad796e03920d754107d714fc926ecdc37",
+  "tris": 620,
+  "budget": 2000,
+  "size": [
+   0.79,
+   1.0,
+   0.79
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Mouth"
+  ],
+  "desc": "Существо «Искорка» (common, gem)"
+ },
+ "art_c_pebble": {
+  "file": "art_c_pebble.glb",
+  "sha256": "4980a849822f9a716b21c94f597eba5bd43780fbe4ba8e4af313e0526ef95aae",
+  "tris": 480,
+  "budget": 2000,
+  "size": [
+   1.01,
+   0.83,
+   0.93
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Mouth"
+  ],
+  "desc": "Существо «Песчинка» (common, stone)"
+ },
+ "art_c_jelly": {
+  "file": "art_c_jelly.glb",
+  "sha256": "4b10ad03a72480d2e644d85867835a3ad647661484eea3f8a95f417301bb5654",
+  "tris": 604,
+  "budget": 2000,
+  "size": [
+   0.93,
+   0.99,
+   0.98
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Mouth"
+  ],
+  "desc": "Существо «Желейка» (common, blob)"
+ },
+ "art_c_snail": {
+  "file": "art_c_snail.glb",
+  "sha256": "a199e931689ae05d5f46e29fcfd0f067776870774a1ce8afaed7c20a0d57d814",
+  "tris": 1052,
+  "budget": 2000,
+  "size": [
+   0.97,
+   0.86,
+   0.78
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_5FFFC8",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Улитка-Секунда» (common, snail)"
+ },
+ "art_r_beetle": {
+  "file": "art_r_beetle.glb",
+  "sha256": "f2aa7578e6dde38def38093e007e19c00337d095c8a3c0ce2f563c003a6dc3e1",
+  "tris": 876,
+  "budget": 2000,
+  "size": [
+   1.95,
+   2.0,
+   2.99
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Хроно-Жук» (rare, bug)"
+ },
+ "art_r_fox": {
+  "file": "art_r_fox.glb",
+  "sha256": "6822d97c353ddb60435b576138474e4b700a6624fbb4ec4b70b065c80a2a01c3",
+  "tris": 1156,
+  "budget": 2000,
+  "size": [
+   1.4,
+   2.46,
+   3.19
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Кристальный Лис» (rare, fox)"
+ },
+ "art_r_whisper": {
+  "file": "art_r_whisper.glb",
+  "sha256": "2840d886fa2312b2c239219cab2c3cfd237f4528ef1cb7e03a9860d0c64419b3",
+  "tris": 896,
+  "budget": 2000,
+  "size": [
+   2.31,
+   2.29,
+   1.79
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_C3A6FF",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Шептун» (rare, owl)"
+ },
+ "art_r_bat": {
+  "file": "art_r_bat.glb",
+  "sha256": "0551a5fd3884acb9363ae985e13df763d51e0dd7780a98383658ab1c62d68c82",
+  "tris": 796,
+  "budget": 2000,
+  "size": [
+   2.46,
+   1.76,
+   1.28
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Летучая Полночь» (rare, bat)"
+ },
+ "art_r_golem": {
+  "file": "art_r_golem.glb",
+  "sha256": "57d0376ee3ecbb40615ee33133e00779318dbafb7df8d57b6ca81fdbb6a824db",
+  "tris": 1352,
+  "budget": 2000,
+  "size": [
+   2.23,
+   2.27,
+   1.05
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Каменный Малыш» (rare, golem)"
+ },
+ "art_r_owl": {
+  "file": "art_r_owl.glb",
+  "sha256": "7b359adf8aa11e6036397b4c538640aab7906380cd44cc09c0a93c0e173bd1ae",
+  "tris": 1132,
+  "budget": 2000,
+  "size": [
+   2.31,
+   2.48,
+   1.79
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Совушка-Будильник» (rare, owl)"
+ },
+ "art_r_frog": {
+  "file": "art_r_frog.glb",
+  "sha256": "d3521114cf039e5ed6ad2e2001ac6ab137ec31f873b308957162744edad02ed0",
+  "tris": 800,
+  "budget": 2000,
+  "size": [
+   2.43,
+   2.06,
+   1.89
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_39FF14",
+   "Head",
+   "Limb"
+  ],
+  "desc": "Существо «Квакстрелка» (rare, blob)"
+ },
+ "art_r_mole": {
+  "file": "art_r_mole.glb",
+  "sha256": "7eab7f5a7d0474f173751872a16751497fec67071212e52a88d64f33cd7f2bb2",
+  "tris": 1576,
+  "budget": 2000,
+  "size": [
+   2.64,
+   2.44,
+   1.22
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Крот-Копатель» (rare, golem)"
+ },
+ "art_r_moth": {
+  "file": "art_r_moth.glb",
+  "sha256": "3df4d26c7597aa00b5b98284d780a83f03070e4a08bedb04e74c4e43e33f6365",
+  "tris": 808,
+  "budget": 2000,
+  "size": [
+   3.18,
+   1.85,
+   1.28
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_9BE7FF",
+   "Head",
+   "Mouth"
+  ],
+  "desc": "Существо «Лунный Мотылёк» (rare, bat)"
+ },
+ "art_r_crab": {
+  "file": "art_r_crab.glb",
+  "sha256": "60c453ab16dbf3d75a494bde83f415289c6ece015cca6525e94d4c25c85fc7e9",
+  "tris": 1524,
+  "budget": 2000,
+  "size": [
+   3.01,
+   2.04,
+   3.11
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FF2E63",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Шестерёнчатый Краб» (rare, bug)"
+ },
+ "art_e_dragon": {
+  "file": "art_e_dragon.glb",
+  "sha256": "671a00c2463852c1341c22d0d29781ef2b64899bdfa7dddb49ad9dc9fb47c2de",
+  "tris": 1220,
+  "budget": 2000,
+  "size": [
+   4.55,
+   3.45,
+   4.57
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Механический Дракончик» (epic, dragon)"
+ },
+ "art_e_hourglass": {
+  "file": "art_e_hourglass.glb",
+  "sha256": "ca9642b6a4b11bd5990158de334d82a04671c48210b92f0fca07db962faadf9c",
+  "tris": 1628,
+  "budget": 2000,
+  "size": [
+   3.15,
+   2.97,
+   2.99
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Хранитель Песочных Часов» (epic, hourglass)"
+ },
+ "art_e_knight": {
+  "file": "art_e_knight.glb",
+  "sha256": "d6e878ba82f4438d5cb1717eece2045c37bf449a06d759fa001d0fcdee22c0cc",
+  "tris": 1284,
+  "budget": 2000,
+  "size": [
+   3.54,
+   3.7,
+   2.28
+  ],
+  "nodes": [
+   "Body",
+   "Glow_9BE7FF",
+   "Head",
+   "Limb",
+   "Prop"
+  ],
+  "desc": "Существо «Латный Страж» (epic, knight)"
+ },
+ "art_e_serpent": {
+  "file": "art_e_serpent.glb",
+  "sha256": "90da616f863e7469d62d8d0d3090a45014a375c9d1302b445414008cd623b27e",
+  "tris": 1204,
+  "budget": 2000,
+  "size": [
+   3.16,
+   3.66,
+   3.16
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_39FF14",
+   "Head",
+   "Mouth"
+  ],
+  "desc": "Существо «Змей Циферблата» (epic, serpent)"
+ },
+ "art_e_turtle": {
+  "file": "art_e_turtle.glb",
+  "sha256": "39d64d2282ea671f96d169f092b7fe054943ed64aceaa4a4f657b8dc0172b54a",
+  "tris": 1216,
+  "budget": 2000,
+  "size": [
+   3.44,
+   2.76,
+   4.43
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_7CFF9E",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Черепаха-Бастион» (epic, golem)"
+ },
+ "art_e_phoenix": {
+  "file": "art_e_phoenix.glb",
+  "sha256": "d1d6c8404941d2bc96837999876de76db743de1fb610562a28a41a4f4ab1ef9e",
+  "tris": 1040,
+  "budget": 2000,
+  "size": [
+   4.55,
+   3.85,
+   4.57
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Феникс Рассвета» (epic, dragon)"
+ },
+ "art_e_lynx": {
+  "file": "art_e_lynx.glb",
+  "sha256": "753223d7d7eedc6732997764fb8c7979acfe8c608fd17a80eedcece6cf83bfdb",
+  "tris": 1224,
+  "budget": 2000,
+  "size": [
+   2.42,
+   3.84,
+   4.79
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_C3A6FF",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Призрачная Рысь» (epic, fox)"
+ },
+ "art_e_golem": {
+  "file": "art_e_golem.glb",
+  "sha256": "6456396d6ce7b7c485aa878afd4568ee197d2f7485535dace181c28ae1dc55b7",
+  "tris": 1740,
+  "budget": 2000,
+  "size": [
+   3.95,
+   3.96,
+   3.68
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Шестерёночный Голем» (epic, golem)"
+ },
+ "art_l_titan": {
+  "file": "art_l_titan.glb",
+  "sha256": "e4fe639610794846568ef85673c57f6e8c849876e39a918addfa5791a9b9c499",
+  "tris": 1972,
+  "budget": 2000,
+  "size": [
+   6.8,
+   5.56,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Титан Вечности» (legendary, titan)"
+ },
+ "art_l_eater": {
+  "file": "art_l_eater.glb",
+  "sha256": "a8b5db5a0fbf833fa55198d1b1ed552400e706d8d37e2655b007fd1410fdd518",
+  "tris": 1428,
+  "budget": 2000,
+  "size": [
+   6.2,
+   5.56,
+   6.05
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_B47CFF",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Пожиратель Секунд» (legendary, eater)"
+ },
+ "art_l_colossus": {
+  "file": "art_l_colossus.glb",
+  "sha256": "c87810bd161ea655b82581973fd30bfbfc4f9074bc1a19193e0de97bbd3b35ef",
+  "tris": 1788,
+  "budget": 2000,
+  "size": [
+   5.85,
+   6.7,
+   2.52
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Колосс Полудня» (legendary, colossus)"
+ },
+ "art_l_kraken": {
+  "file": "art_l_kraken.glb",
+  "sha256": "45ab371eec551fa79f9f469310962adcb4a837e9511e5b3a1bf26b3de9587e9d",
+  "tris": 1404,
+  "budget": 2000,
+  "size": [
+   6.2,
+   4.91,
+   6.05
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_5FFFC8",
+   "Head",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Кракен Безвременья» (legendary, eater)"
+ },
+ "art_l_owlking": {
+  "file": "art_l_owlking.glb",
+  "sha256": "18cdf60a0f31dc5b801abd2df543f512eff3a610a6e99a125871a1996f44cf28",
+  "tris": 1668,
+  "budget": 2000,
+  "size": [
+   6.8,
+   5.79,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Совиный Король» (legendary, titan)"
+ },
+ "art_l_whale": {
+  "file": "art_l_whale.glb",
+  "sha256": "ad874e801be2a9ae5d3874e2c2f7487188dd881f3d87f3852212eb6c988f112a",
+  "tris": 1332,
+  "budget": 2000,
+  "size": [
+   6.36,
+   5.06,
+   7.23
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_9BE7FF",
+   "Limb",
+   "Mouth"
+  ],
+  "desc": "Существо «Небесный Кит» (legendary, colossus)"
+ },
+ "art_x_rift": {
+  "file": "art_x_rift.glb",
+  "sha256": "2018cfee0b5dba7a1f34085b92dbfe36213a5710c91a3c2639a08104bf1d5f37",
+  "tris": 848,
+  "budget": 2000,
+  "size": [
+   4.0,
+   3.16,
+   4.04
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Mouth"
+  ],
+  "desc": "Существо «Разлом Времени» (chrono, rift)"
+ },
+ "art_x_paradox": {
+  "file": "art_x_paradox.glb",
+  "sha256": "dfd7a7da94080d80d2037f7f8ec43e7e067f4624cb30c18eac39a1df07772f92",
+  "tris": 1424,
+  "budget": 2000,
+  "size": [
+   4.53,
+   3.42,
+   4.53
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_7B2FF7",
+   "Head",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Двойник Парадокса» (chrono, paradox)"
+ },
+ "art_x_zero": {
+  "file": "art_x_zero.glb",
+  "sha256": "c49c0d9df8f80b70c2774d23b19ccc34b0fe8cf33c97a899e530635aecde4a9d",
+  "tris": 1224,
+  "budget": 2000,
+  "size": [
+   4.61,
+   3.68,
+   4.83
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Head",
+   "Mouth"
+  ],
+  "desc": "Существо «Ноль» (chrono, zero)"
+ },
+ "art_x_echo": {
+  "file": "art_x_echo.glb",
+  "sha256": "f9dda753ee93b8e6c043e26f4f522fa8301001e932289302da34f5c2b78e9848",
+  "tris": 948,
+  "budget": 2000,
+  "size": [
+   4.64,
+   4.51,
+   4.04
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Mouth"
+  ],
+  "desc": "Существо «Эхо Будущего» (chrono, rift)"
+ },
+ "art_x_loop": {
+  "file": "art_x_loop.glb",
+  "sha256": "d5c94c740a7cb6488798b5ff7ec27368b8c6db69c023456e2effbe2741091261",
+  "tris": 1268,
+  "budget": 2000,
+  "size": [
+   4.61,
+   3.34,
+   4.83
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FF2E63",
+   "Head",
+   "Mouth"
+  ],
+  "desc": "Существо «Петля» (chrono, zero)"
+ },
+ "art_x_aegis": {
+  "file": "art_x_aegis.glb",
+  "sha256": "ce422f110071f7119b66b64e199e4a1e7ed4ec26adee44fdd9d83aee168a410f",
+  "tris": 1632,
+  "budget": 2000,
+  "size": [
+   4.53,
+   3.5,
+   4.53
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_00E5FF",
+   "Head",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Хроно-Эгида» (chrono, paradox)"
+ },
+ "art_s1": {
+  "file": "art_s1.glb",
+  "sha256": "0c45145537dba83338696f5f1bc549846a04c48bde92d0e27f2cced678f5096b",
+  "tris": 1610,
+  "budget": 2000,
+  "size": [
+   6.8,
+   5.98,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFB347",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Тыквенный Титан» (legendary, titan)"
+ },
+ "art_s2": {
+  "file": "art_s2.glb",
+  "sha256": "c294aa0d9bc9bd04bc44ed61291348d527ed8c653d90213ae510d6baefede402",
+  "tris": 1616,
+  "budget": 2000,
+  "size": [
+   6.8,
+   6.24,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_9BE7FF",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Ледяной Титан» (legendary, titan)"
+ },
+ "art_s3": {
+  "file": "art_s3.glb",
+  "sha256": "526113a17331aac50a6ee414e50a8827f9fdd07ac4ff1bc6f157491018a832a4",
+  "tris": 1632,
+  "budget": 2000,
+  "size": [
+   6.8,
+   6.04,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FFE066",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Песчаный Титан» (legendary, titan)"
+ },
+ "art_s4": {
+  "file": "art_s4.glb",
+  "sha256": "6f6369741906429550dc0d813d91d1694575d10f94061ef58ca5f40856e76ab1",
+  "tris": 1744,
+  "budget": 2000,
+  "size": [
+   6.8,
+   5.54,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_FF8FC4",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Цветущий Титан» (legendary, titan)"
+ },
+ "art_s5": {
+  "file": "art_s5.glb",
+  "sha256": "502ca0c9ff224d886285e844a45bebf8e6a6ca0665f528092d45c58af995b24a",
+  "tris": 1692,
+  "budget": 2000,
+  "size": [
+   6.8,
+   5.19,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_8C7BFF",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Звёздный Титан» (legendary, titan)"
+ },
+ "art_s6": {
+  "file": "art_s6.glb",
+  "sha256": "ff28597156a235d27eba18fc70a26ba5138dcff73ff8ffc2953294628a322acc",
+  "tris": 1664,
+  "budget": 2000,
+  "size": [
+   6.8,
+   6.41,
+   6.9
+  ],
+  "nodes": [
+   "Body",
+   "Eye",
+   "Glow_5FFFC8",
+   "Head",
+   "Limb",
+   "Mouth",
+   "Prop"
+  ],
+  "desc": "Существо «Коралловый Титан» (legendary, titan)"
  }
 }

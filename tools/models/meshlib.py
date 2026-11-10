@@ -354,6 +354,36 @@ def arc(R, a0, a1, n, y=0.0, plane="xy"):
     return out
 
 
+def prism(poly, x0, x1, crease=40, color="cream"):
+    """Выдавливание выпуклого контура [(z, y)…] вдоль X от x0 до x1."""
+    n = len(poly)
+    V = [(x0, y, z) for z, y in poly] + [(x1, y, z) for z, y in poly]
+    cz = sum(p[0] for p in poly) / n; cy = sum(p[1] for p in poly) / n
+    V += [(x0, cy, cz), (x1, cy, cz)]
+    F = []
+    for i in range(n):
+        j = (i + 1) % n
+        F += [[i, j, n + j], [i, n + j, n + i], [2 * n, j, i], [2 * n + 1, n + i, n + j]]
+    return build(V, F, crease=crease, color=color)
+
+
+def arc_prism(r0, r1, y0, y1, a0, a1, n=4, color="cream"):
+    """Дуговой брусок вокруг оси Y: радиусы r0..r1, высоты y0..y1, углы a0..a1 (градусы, 0 = направление −Z)."""
+    V, F = [], []
+    for i in range(n + 1):
+        a = math.radians(a0 + (a1 - a0) * i / n)
+        s, c = math.sin(a), -math.cos(a)
+        V += [(r0 * s, y0, r0 * c), (r1 * s, y0, r1 * c), (r1 * s, y1, r1 * c), (r0 * s, y1, r0 * c)]
+    for i in range(n):
+        b = i * 4
+        for k in range(4):
+            p, q = b + k, b + (k + 1) % 4
+            F += [[p, q, q + 4], [p, q + 4, p + 4]]
+    e = n * 4
+    F += [[0, 1, 2], [0, 2, 3], [e, e + 2, e + 1], [e, e + 3, e + 2]]
+    return build(V, F, crease=50, color=color)
+
+
 # ---------- GLB ----------
 def _pad(b, fill=b"\x00"):
     return b + fill * ((4 - len(b) % 4) % 4)
