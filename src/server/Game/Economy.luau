@@ -330,6 +330,10 @@ function M.buyFromBelt(S: any, B: any, item: any)
 		Ctx.notify(S, "msg.noRoom", nil, "bad")
 		return
 	end
+	if S.carry then
+		Ctx.notify(S, "msg.handsFull", nil, "bad")
+		return
+	end
 	if not M.spend(S, item.price) then
 		Ctx.notify(S, "msg.noCash", nil, "bad")
 		return
@@ -337,9 +341,14 @@ function M.buyFromBelt(S: any, B: any, item: any)
 	table.remove(B.belt, table.find(B.belt, item))
 	local pos = item.anchor.Position
 	item.anchor:Destroy()
-	local _, where = M.give(S, item.id, 1)
 	Ctx.fx("buy", pos, { id = item.id }, nil)
-	Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = Defs.BY_ID[item.id].name.ru }, "good")
+	-- купленное существо игрок несёт домой сам; не вышло взять в руки — сразу на базу
+	if api.carryBought and api.carryBought(S, item.id) then
+		Ctx.notify(S, "msg.carryHome", { name = Defs.BY_ID[item.id].name.ru }, "good")
+	else
+		local _, where = M.give(S, item.id, 1)
+		Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = Defs.BY_ID[item.id].name.ru }, "good")
+	end
 	if api.quest then
 		api.quest(S, "buy", 1)
 	end

@@ -13,6 +13,9 @@ local M: any = {}
 
 local function hide(p: Instance)
 	if p:IsA("BasePart") then
+		-- клиент анимирует прозрачность у Pulse/Float — снимаем теги, иначе деталь «проявится»
+		CollectionService:RemoveTag(p, "Pulse")
+		CollectionService:RemoveTag(p, "Float")
 		p.Transparency = 1
 		p.CastShadow = false
 	elseif p:IsA("Decal") or p:IsA("Texture") then
@@ -396,10 +399,17 @@ function M.hub(hub: Instance)
 		local py = if ped then ped:GetExtentsSize().Y else 4.6
 		local body = place("chest", chest, CFrame.new(0, py, 0), nil, "ChestSkin")
 		local by = if body then body:GetExtentsSize().Y else 5.5
-		place("chestLid", chest, CFrame.new(0, py + by - 0.15, 3.635) * CFrame.Angles(math.rad(32), 0, 0), nil, "LidSkin")
-		hideList(old, function(p)
-			return CollectionService:HasTag(p, "Float")
-		end)
+		-- крышку ставим по габариту (ось импорта может быть развёрнута): ровно на корпус,
+		-- потом поворачиваем вокруг заднего верхнего ребра корпуса, чтобы приоткрыть
+		local lid = place("chestLid", chest, CFrame.new(0, py + by, 0), nil, "LidSkin")
+		if lid then
+			local cf, size = lid:GetBoundingBox()
+			lid:PivotTo(lid:GetPivot() + Vector3.new(-cf.Position.X, (py + by) - (cf.Position.Y - size.Y / 2), -cf.Position.Z))
+			local bsize = if body then body:GetExtentsSize() else Vector3.new(10, 5.5, 7.5)
+			local hinge = CFrame.new(0, py + by, bsize.Z / 2)
+			lid:PivotTo(hinge * CFrame.Angles(math.rad(28), 0, 0) * hinge:Inverse() * lid:GetPivot())
+		end
+		hideList(old)
 	end
 	-- кольцевой конвейер: 44 дуги вокруг центра (опора дуги — центр кольца)
 	local ring = hub:FindFirstChild("Ring")

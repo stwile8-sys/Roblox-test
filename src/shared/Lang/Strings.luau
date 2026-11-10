@@ -72,6 +72,8 @@ local S: { [string]: { [string]: string } } = {
 	["msg.caveNoCash"] = { ru = "Прыжок в пещеру стоит ${cost}", en = "Cave jump costs ${cost}" },
 	["msg.lockCdS"] = { ru = "Замок перезарядится через {s} сек", en = "Lock recharges in {s}s" },
 	["msg.bought"] = { ru = "Куплено: {name} — уже на твоей базе!", en = "Bought {name} — it's on your base!" },
+	["msg.carryHome"] = { ru = "Куплено: {name}! Неси домой на базу 🏠", en = "Bought {name}! Carry it home to your base 🏠" },
+	["msg.handsFull"] = { ru = "Руки заняты — сначала донеси то, что несёшь", en = "Hands full — deliver what you carry first" },
 	["msg.boughtInv"] = { ru = "Куплено: {name} — в хранилище (пьедесталы заняты)", en = "Bought {name} — in storage (pedestals full)" },
 }
 return S

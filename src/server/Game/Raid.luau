@@ -417,6 +417,17 @@ function M.failCarry(S: any, reason: string, catcher: any?)
 	if not c then
 		return
 	end
+	-- купленное не теряется: упал/время вышло — существо всё равно попадает на базу
+	if c.kind == "bought" then
+		endCarry(S)
+		local where
+		if api.give then
+			_, where = api.give(S, c.id, 1)
+		end
+		local d = Defs.BY_ID[c.id]
+		Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = d and d.name.ru or "" }, "good")
+		return
+	end
 	-- перк «Двойник»: 20% шанс всё равно унести добычу
 	if reason == "caught" and perks(S).double and math.random() < 0.2 then
 		Ctx.notify(S, "msg.doubleSaved", nil, "gold")
@@ -465,6 +476,17 @@ end
 local function deliver(S: any)
 	local c = S.carry
 	if not c then
+		return
+	end
+	if c.kind == "bought" then
+		endCarry(S)
+		local where
+		if api.give then
+			_, where = api.give(S, c.id, 1)
+		end
+		local d = Defs.BY_ID[c.id]
+		Ctx.fx("escape", Ctx.root(S) and Ctx.root(S).Position, { id = c.id })
+		Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = d and d.name.ru or "" }, "good")
 		return
 	end
 	local ok, why = true, nil
@@ -1173,6 +1195,14 @@ function M.giveBat(S: any)
 			end
 		end)
 	end
+end
+
+-- купленное с конвейера: нести домой (кражей не считается, отнять нельзя)
+api.carryBought = function(S: any, id: string): boolean
+	if S.carry or S.isBot then
+		return false
+	end
+	return M.startCarry(S, { id = id, lvl = 1, kind = "bought" })
 end
 
 -- ── Главный цикл рейдов ─────────────────────────────────────
