@@ -370,7 +370,8 @@ local function drawBoard(part: Instance?, rows: { any }, fmt: (number) -> string
 		t.Font = Enum.Font.GothamBold
 		t.TextScaled = true
 		t.TextXAlignment = Enum.TextXAlignment.Left
-		t.TextColor3 = Color3.fromHex("#2A2140")
+		-- 3D-доска тёмная: Dress ставит атрибут Ink (светлый цвет текста)
+		t.TextColor3 = (part :: Instance):GetAttribute("Ink") or Color3.fromHex("#2A2140")
 		t.Text = if r.empty then r.name else string.format("%s%d. %s — %s", if i == 1 then "👑 " else "", i, r.name, fmt(r.value))
 		t.LayoutOrder = i
 		t.Parent = list

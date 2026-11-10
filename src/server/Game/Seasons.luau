@@ -43,8 +43,13 @@ local function setCage(hp: number)
 		setState(if hp > 0 then "caged" else "open")
 	end
 	local broken = hp <= 0
+	local Island = require(script.Parent.Parent.World.Island) :: any
+	local dressed = workspace.Map.Season:FindFirstChild("CageSkin") ~= nil
+	if Island.dress then
+		pcall(Island.dress.cage, not broken)
+	end
 	for _, p in cageParts() do
-		p.Transparency = if broken then 1 else 0
+		p.Transparency = if broken or dressed then 1 else 0
 		p.CanCollide = not broken
 		p:SetAttribute("HP", hp)
 	end

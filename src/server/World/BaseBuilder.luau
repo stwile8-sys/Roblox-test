@@ -354,7 +354,7 @@ function M.build(index: number): Model
 	local collect = mk(base, { Name = "Collect", Size = Vector3.new(10, 0.4, 10), CFrame = cf * CFrame.new(0, 0.2, -22), Color = Palette.gold, Material = Enum.Material.Neon, Transparency = 0.2 })
 	collect.CanTouch = true
 	CollectionService:AddTag(collect, "Pulse")
-	mk(base, { Size = Vector3.new(12, 0.3, 12), CFrame = cf * CFrame.new(0, 0.1, -22), Color = Palette.orange, Material = Enum.Material.Metal })
+	mk(base, { Name = "CollectRim", Size = Vector3.new(12, 0.3, 12), CFrame = cf * CFrame.new(0, 0.1, -22), Color = Palette.orange, Material = Enum.Material.Metal })
 
 	-- верстак
 	local bench = Instance.new("Model")

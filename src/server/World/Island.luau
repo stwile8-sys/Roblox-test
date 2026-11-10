@@ -9,7 +9,7 @@ local Players = game:GetService("Players")
 
 local Palette = require(ReplicatedStorage.Shared.Config.Palette)
 
-local M = {}
+local M: any = {}
 
 local STATUES = { "l_titan", "l_eater", "e_dragon", "x_rift" }
 local R = 230
@@ -512,6 +512,9 @@ function M.setSeason(i: number)
 			local b = mk(decor, { Shape = Enum.PartType.Ball, Size = Vector3.new(1, 1, 1), CFrame = CFrame.new(pos + Vector3.new(0, 6, 0)), Color = Color3.fromHex("#BFEFFF"), Material = Enum.Material.Glass, Transparency = 0.4 })
 			CollectionService:AddTag(b, "Float")
 		end
+	end
+	if M.dress then
+		pcall(M.dress.seasonDecor, i)
 	end
 	-- тематичный акцент на хабе: кольцо цвета сезона
 	local hub = workspace.Map.Hub

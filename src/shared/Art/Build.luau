@@ -549,6 +549,46 @@ SHAPES.zero = function(c)
 	face(c, Vector3.new(0, 0.02, -0.12), 0.35, d.emotion, 2, d.glow)
 end
 
+-- ── 3D-модели существ (Фейбл): ReplicatedStorage.ArtMeshes.art_<id> ──
+-- Шаблон стоит низом в начале координат, рост ≈ размер редкости. Переносим детали так,
+-- чтобы центр габарита был в начале координат (как у сборки из деталей), и ставим роли по именам.
+local MESH_ROLE: { [string]: string } = { Body = "body", Head = "head", Eye = "eye", Mouth = "mouth", Limb = "limb", Prop = "prop", Ring = "ring", Shard = "shard" }
+
+local function meshTemplate(id: string): Model?
+	local rs = game:GetService("ReplicatedStorage")
+	local f = rs:FindFirstChild("ArtMeshes")
+	local t = f and f:FindFirstChild("art_" .. id)
+	return if t and t:IsA("Model") then t else nil
+end
+
+function M.hasMesh(id: string): boolean
+	return meshTemplate(id) ~= nil
+end
+
+local function meshBuild(c: Ctx, tpl: Model)
+	local native = tpl:GetExtentsSize()
+	local s = c.k / math.max(0.01, Defs.RARITY[c.def.rarity].size)
+	local lift = Vector3.new(0, native.Y / 2, 0)
+	for _, p in tpl:GetDescendants() do
+		if p:IsA("BasePart") then
+			local q = p:Clone()
+			q.Size = p.Size * s
+			q.CFrame = CFrame.new((p.Position - lift) * s) * p.CFrame.Rotation
+			q.Anchored = true
+			q.CanCollide = false
+			q.CanQuery = false
+			q.CanTouch = false
+			q.Massless = true
+			local role = if string.sub(p.Name, 1, 5) == "Glow_" then "glow" else (MESH_ROLE[p.Name] or "body")
+			q:SetAttribute("Role", role)
+			if c.def.rarity == "chrono" and role == "glow" then
+				q:SetAttribute("Glitch", true)
+			end
+			q.Parent = c.model
+		end
+	end
+end
+
 -- ── Публичное API ───────────────────────────────────────────
 function M.size(id: string): number
 	local d = Defs.BY_ID[id]
@@ -573,8 +613,14 @@ function M.model(id: string, scale: number?, noFx: boolean?): Model
 	root.Parent = model
 	model.PrimaryPart = root
 	local c: Ctx = { model = model, root = root, k = k, def = d, cf = CFrame.new() }
-	local builder = SHAPES[d.shape] or SHAPES.blob
-	builder(c)
+	local tpl = meshTemplate(d.id)
+	if tpl then
+		meshBuild(c, tpl)
+	else
+		local builder = SHAPES[d.shape] or SHAPES.blob
+		builder(c)
+	end
+	model:SetAttribute("Mesh", tpl ~= nil)
 	model:SetAttribute("Rarity", d.rarity)
 	model:SetAttribute("K", k)
 	if not noFx then

@@ -62,6 +62,7 @@ local function build(anchor: BasePart): any
 		offsets = offsets,
 		roles = roles,
 		def = d,
+		mesh = model:GetAttribute("Mesh") == true,
 		k = k,
 		rarity = Defs.RARITY[d.rarity].index,
 		phase = math.random() * 10,
@@ -382,7 +383,7 @@ local function cull()
 		else
 			local dist = (anchor.Position - cp).Magnitude
 			local id = anchor:GetAttribute("Id")
-			if v and v.def.id ~= id then
+			if v and (v.def.id ~= id or (not v.mesh and Build.hasMesh(id))) then
 				destroy(v)
 				visuals[anchor] = nil
 				v = nil

@@ -8,6 +8,7 @@ local Ctx = require(script.Parent.Ctx)
 local Bases = require(script.Parent.Bases)
 local Profiles = require(script.Parent.Parent.Data.Profiles)
 local BaseBuilder = require(script.Parent.Parent.World.BaseBuilder)
+local ModelLib = require(script.Parent.Parent.World.ModelLib)
 
 local Game = Ctx.Game
 local Defs = Ctx.Defs
@@ -775,8 +776,18 @@ function M.lock(S: any): (boolean, string?)
 	-- кнопка серая, пока замок на перезарядке
 	local lb = B.model:FindFirstChild("LockButton")
 	local btn = lb and lb:FindFirstChild("Button")
+	local function paint(c: Color3)
+		if btn then
+			btn.Color = c
+		end
+		local skin = lb and lb:FindFirstChild("Skin")
+		local mb = skin and skin:FindFirstChild("Button", true)
+		if mb and mb:IsA("BasePart") then
+			mb.Color = c
+		end
+	end
 	if btn then
-		btn.Color = Color3.fromHex("#9A93AD")
+		paint(Color3.fromHex("#9A93AD"))
 		local stamp = S.lockCdUntil
 		task.spawn(function()
 			local label = btn:FindFirstChild("Tag") and btn.Tag:FindFirstChild("Text")
@@ -787,7 +798,7 @@ function M.lock(S: any): (boolean, string?)
 				end
 				task.wait(1)
 			end
-			btn.Color = Color3.fromHex("#FFC93C")
+			paint(Color3.fromHex("#FFC93C"))
 			if label then
 				label.Text = "🔒 ЗАМОК"
 			end
@@ -1073,6 +1084,29 @@ function M.makeBat(): Tool
 		w.Part0 = handle
 		w.Part1 = p
 		w.Parent = p
+	end
+	-- 3D-модель дубинки (если загружена): рукоять невидима, детали модели приварены к ней
+	local club = ModelLib.get("club")
+	if club then
+		handle.Transparency = 1
+		head:Destroy()
+		band:Destroy()
+		-- низ модели у конца рукояти, ось Y модели — вдоль оси X рукояти
+		club:PivotTo(handle.CFrame * CFrame.new(-2, 0, 0) * CFrame.Angles(0, 0, -math.pi / 2))
+		for _, p in club:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.Anchored = false
+				p.CanCollide = false
+				p.CanTouch = false
+				p.CanQuery = false
+				p.Massless = true
+				local w = Instance.new("WeldConstraint")
+				w.Part0 = handle
+				w.Part1 = p
+				w.Parent = p
+			end
+		end
+		club.Parent = tool
 	end
 	return tool
 end

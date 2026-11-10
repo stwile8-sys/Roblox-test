@@ -7,6 +7,7 @@ local CollectionService = game:GetService("CollectionService")
 local ModelLib = require(script.Parent.ModelLib)
 local BaseBuilder = require(script.Parent.BaseBuilder)
 local Island = require(script.Parent.Island)
+local Defs = require(game:GetService("ReplicatedStorage").Shared.Art.Defs)
 
 local M: any = {}
 
@@ -161,6 +162,36 @@ function M.base(base: any)
 	if f2 then
 		dressPedestals(f2, true)
 	end
+	-- плита сбора дохода
+	local collect = base:FindFirstChild("Collect")
+	if collect and not base:FindFirstChild("CollectSkin") then
+		local rim = base:FindFirstChild("CollectRim")
+		local at = (cf - cf.Position) + Vector3.new(collect.Position.X, cf.Position.Y, collect.Position.Z)
+		if place("collectPlate", base, at, nil, "CollectSkin") then
+			hide(collect)
+			if rim then
+				hide(rim)
+			end
+		end
+	end
+	-- кнопка замка: модель-тумба, её деталь Button перекрашивает Raid (жёлтая / серая на перезарядке)
+	local lock = base:FindFirstChild("LockButton")
+	local btn = lock and lock:FindFirstChild("Button")
+	if lock and btn and not lock:FindFirstChild("Skin") then
+		local at = (cf - cf.Position) + Vector3.new(btn.Position.X, cf.Position.Y, btn.Position.Z)
+		local m = place("lockButton", lock, at)
+		if m then
+			local mb = m:FindFirstChild("Button", true)
+			if mb and mb:IsA("BasePart") then
+				mb.Color = btn.Color
+			end
+			for _, p in lock:GetChildren() do
+				if p:IsA("BasePart") then
+					hide(p)
+				end
+			end
+		end
+	end
 	-- верстак
 	local bench = base:FindFirstChild("Bench")
 	local prompt = bench and bench:FindFirstChild("Prompt")
@@ -264,9 +295,13 @@ function M.world()
 			dressBridge(rec, bridges)
 		end
 	end
+	if hub then
+		pcall(M.hub, hub)
+	end
 	local season = map:FindFirstChild("Season")
 	if season then
 		islandUnder(season, season, "islandMid", 86, 1)
+		pcall(M.season, season)
 	end
 	for _, b in workspace.Bases:GetChildren() do
 		if b:IsA("Model") then
@@ -275,12 +310,265 @@ function M.world()
 	end
 end
 
+
+-- ── Хаб: сундук, кольцевой конвейер, порталы, подиумы, доски, алтарь, статуи ──
+-- список старых деталей снимаем ДО того, как положить модель внутрь
+local function snapshot(root: Instance): { BasePart }
+	local out = {}
+	for _, p in root:GetDescendants() do
+		if p:IsA("BasePart") then
+			table.insert(out, p)
+		end
+	end
+	return out
+end
+
+local function hideList(list: { BasePart }, keep: ((BasePart) -> boolean)?)
+	for _, p in list do
+		if not (keep and keep(p)) then
+			hide(p)
+		end
+	end
+end
+
+local function flatLook(pos: Vector3, target: Vector3): CFrame
+	local t = Vector3.new(target.X, pos.Y, target.Z)
+	return CFrame.lookAt(pos, t)
+end
+
+function M.hub(hub: Instance)
+	-- сундук на пьедестале, крышка приоткрыта на петлях
+	local chest = hub:FindFirstChild("Chest")
+	if chest and not chest:FindFirstChild("Skin") and ModelLib.has("chest") and ModelLib.has("chestPedestal") then
+		local old = snapshot(chest)
+		local ped = place("chestPedestal", chest, CFrame.new(0, 0, 0))
+		local py = if ped then ped:GetExtentsSize().Y else 4.6
+		local body = place("chest", chest, CFrame.new(0, py, 0), nil, "ChestSkin")
+		local by = if body then body:GetExtentsSize().Y else 5.5
+		place("chestLid", chest, CFrame.new(0, py + by - 0.15, 3.635) * CFrame.Angles(math.rad(32), 0, 0), nil, "LidSkin")
+		hideList(old, function(p)
+			return CollectionService:HasTag(p, "Float")
+		end)
+	end
+	-- кольцевой конвейер: 44 дуги вокруг центра (опора дуги — центр кольца)
+	local ring = hub:FindFirstChild("Ring")
+	local R, A0, span = hub:GetAttribute("RingR"), hub:GetAttribute("RingA0"), hub:GetAttribute("RingSpan")
+	if ring and R and A0 and span and not ring:FindFirstChild("Arcs") and ModelLib.has("beltArc") then
+		local old = snapshot(ring)
+		local arcs = Instance.new("Folder")
+		arcs.Name = "Arcs"
+		arcs.Parent = ring
+		local N = 44
+		local d = span / N
+		for i = 0, N - 1 do
+			local a = A0 + d * (i + 0.5)
+			place("beltArc", arcs, CFrame.Angles(0, -a - math.pi / 2, 0), R / 26.969, "Arc")
+		end
+		local function portal(name: string, a: number)
+			local cf = CFrame.new(math.cos(a) * R, 0, math.sin(a) * R) * CFrame.Angles(0, -a, 0)
+			place(name, arcs, cf, 1.15, "Portal")
+		end
+		portal("portalStart", A0)
+		portal("portalEnd", A0 + span)
+		hideList(old)
+	end
+	-- подиумы скинов (манекен уже в модели)
+	for i = 1, 4 do
+		local pm = hub:FindFirstChild("Podium" .. i)
+		local stand = pm and pm:FindFirstChild("Stand")
+		if pm and stand and not pm:FindFirstChild("Skin") then
+			local pos = Vector3.new(stand.Position.X, 0, stand.Position.Z)
+			local old = snapshot(pm)
+			if place("skinPodium", pm, flatLook(pos, Vector3.zero)) then
+				hideList(old)
+				local rig = pm:FindFirstChild("Mannequin")
+				if rig then
+					rig:Destroy()
+				end
+			end
+		end
+	end
+	-- доски лидеров: тёмное поле модели, текст светлый
+	for _, name in { "Board_Titan", "Board_Collection", "Board_Clans" } do
+		local b = hub:FindFirstChild(name)
+		if b and b:IsA("BasePart") and not b:GetAttribute("Dressed") then
+			local pos = Vector3.new(b.Position.X, 0, b.Position.Z)
+			local cf = flatLook(pos, Vector3.zero)
+			local holder = Instance.new("Folder")
+			holder.Name = name .. "_Skin"
+			holder.Parent = hub
+			if place("leaderboard", holder, cf) then
+				b:SetAttribute("Dressed", true)
+				b:SetAttribute("Ink", Color3.fromHex("#FFF4DE"))
+				-- старые рамка и стойки рядом с доской
+				for _, p in hub:GetChildren() do
+					if p:IsA("BasePart") and p ~= b and p.Name == "Part" and (p.Position - b.Position).Magnitude < 14 then
+						hide(p)
+					end
+				end
+				b.Size = Vector3.new(14.6, 8.6, 0.2)
+				b.CFrame = cf * CFrame.new(0, 9.3, -0.45)
+				b.Transparency = 1
+				local title = b:FindFirstChild("Gui") and b.Gui:FindFirstChild("Title")
+				if title then
+					title.TextColor3 = Color3.fromHex("#FFE066")
+				end
+				for _, t in (b:FindFirstChild("Gui") and b.Gui:FindFirstChild("List") or holder):GetChildren() do
+					if t:IsA("TextLabel") then
+						t.TextColor3 = Color3.fromHex("#FFF4DE")
+					end
+				end
+			end
+		end
+	end
+	-- алтарь ребёрса
+	local altar = hub:FindFirstChild("Altar")
+	local top = altar and altar:FindFirstChild("Top")
+	if altar and top and not altar:FindFirstChild("Skin") then
+		local old = snapshot(altar)
+		if place("rebirthAltar", altar, CFrame.new(top.Position.X, 0, top.Position.Z)) then
+			hideList(old)
+		end
+	end
+	-- статуи на пьедесталах
+	local statues = hub:FindFirstChild("Statues")
+	if statues and not statues:GetAttribute("Dressed") then
+		statues:SetAttribute("Dressed", true)
+		for _, p in statues:GetChildren() do
+			if p:IsA("BasePart") and not string.match(p.Name, "^Statue") then
+				local pos = Vector3.new(p.Position.X, 0, p.Position.Z)
+				if place("statuePedestal", statues, flatLook(pos, Vector3.zero), nil, "Pedestal") then
+					hide(p)
+				end
+			end
+		end
+		-- существо стоит на верху пьедестала
+		for _, a in statues:GetChildren() do
+			if a:IsA("BasePart") and string.match(a.Name, "^Statue") then
+				local d = Defs.BY_ID[a:GetAttribute("Id")]
+				local size = (if d then Defs.RARITY[d.rarity].size else 2) * ((a:GetAttribute("Scale") or 1) :: number)
+				a.CFrame = (a.CFrame - a.Position) + Vector3.new(a.Position.X, 4.11 + size / 2 + 0.1, a.Position.Z)
+			end
+		end
+	end
+	-- сезонный портал
+	local sp = hub:FindFirstChild("SeasonPortal")
+	if sp and sp:IsA("BasePart") and not hub:FindFirstChild("SeasonPortalSkin") then
+		local pos = Vector3.new(sp.Position.X, 0.4, sp.Position.Z)
+		if place("seasonPortal", hub, flatLook(pos, Vector3.zero), nil, "SeasonPortalSkin") then
+			hide(sp)
+		end
+	end
+end
+
+-- ── Сезонный остров: алтарь Титана, клетка, декор сезона ────
+local SEASON_PROPS = {
+	{ "s1Pumpkin", "s1Torch" },
+	{ "s2Tree", "s2Snowman" },
+	{ "s3Palm", "s3Shells" },
+	{ "s4Sakura", "s4Flowers" },
+	{ "s5Planet", "s5Meteor" },
+	{ "s6Coral", "s6Bubbles" },
+}
+
+function M.season(season: Instance)
+	local vault = season:FindFirstChild("Vault")
+	if vault and not season:FindFirstChild("AltarSkin") then
+		local h = 3.8
+		if place("titanAltar", season, CFrame.new(0, vault.Position.Y - 0.2 - h, 0), nil, "AltarSkin") then
+			for _, p in season:GetChildren() do
+				-- три яруса старого алтаря и их ободки — цилиндры в центре
+				if p:IsA("BasePart") and p.Name == "Part" and p.Shape == Enum.PartType.Cylinder and Vector3.new(p.Position.X, 0, p.Position.Z).Magnitude < 1 and p.Position.Y > 89.5 then
+					hide(p)
+				end
+			end
+			hide(vault)
+		end
+	end
+	local cage = season:FindFirstChild("Cage")
+	local frame = season:FindFirstChild("CageFrame")
+	if cage and frame and not season:FindFirstChild("CageSkin") then
+		if place("cage", season, CFrame.new(0, (vault and vault.Position.Y or 93.2) + 0.1, 0), nil, "CageSkin") then
+			for _, p in frame:GetChildren() do
+				if p:IsA("BasePart") then
+					hide(p)
+				end
+			end
+			for _, p in cage:GetChildren() do
+				if p:IsA("BasePart") then
+					hide(p)
+				end
+			end
+			M.cage((cage:GetAttribute("HP") or season:GetAttribute("CageHP") or 1) :: number > 0)
+		end
+	end
+	M.seasonDecor(workspace:GetAttribute("Season") or 1)
+end
+
+-- клетка цела / сломана (вызывает Seasons)
+function M.cage(intact: boolean)
+	local season = workspace.Map:FindFirstChild("Season")
+	local skin = season and season:FindFirstChild("CageSkin")
+	if not skin then
+		return
+	end
+	for _, p in skin:GetDescendants() do
+		if p:IsA("BasePart") then
+			local isBar = string.match(p.Name, "^Bar") ~= nil
+			if isBar then
+				p.Transparency = if intact then (p:GetAttribute("T0") or 0) else 1
+			end
+		end
+	end
+end
+
+function M.seasonDecor(i: number)
+	local season = workspace.Map:FindFirstChild("Season")
+	local decor = season and season:FindFirstChild("Decor")
+	local pair = SEASON_PROPS[i] or SEASON_PROPS[1]
+	if not decor or not ModelLib.has(pair[1]) then
+		return
+	end
+	decor:ClearAllChildren()
+	local rng = Random.new(i * 77)
+	for n = 1, 18 do
+		local a = n / 18 * math.pi * 2 + rng:NextNumber(-0.1, 0.1)
+		if math.abs(math.sin(a) - 1) < 0.12 then
+			continue
+		end
+		local r = if n % 2 == 0 then rng:NextNumber(30, 40) else rng:NextNumber(17, 25)
+		local name = pair[(n % 2) + 1]
+		place(name, decor, CFrame.new(math.cos(a) * r, 90, math.sin(a) * r) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0), rng:NextNumber(0.9, 1.25), "Prop")
+	end
+end
+
+-- 3D-существа для клиента: копии art_<id> в ReplicatedStorage.ArtMeshes
+local function publishArt()
+	local rs = game:GetService("ReplicatedStorage")
+	local f = rs:FindFirstChild("ArtMeshes") or Instance.new("Folder")
+	f.Name = "ArtMeshes"
+	local Models = require(rs.Shared.Config.Models)
+	for name in Models do
+		if string.sub(name, 1, 4) == "art_" and not f:FindFirstChild(name) then
+			local m = ModelLib.get(name)
+			if m then
+				m.Name = name
+				m:PivotTo(CFrame.new())
+				m.Parent = f
+			end
+		end
+	end
+	f.Parent = rs
+end
+
 -- Запуск: ждём загрузку моделей и переодеваем мир. Новое (стены при апгрейде, ловушки, второй этаж) —
 -- через хуки BaseBuilder.dress.
 function M.start()
 	task.spawn(function()
-		ModelLib.wait(40)
+		ModelLib.wait(120)
 		BaseBuilder.dress = M
+		Island.dress = M
+		pcall(publishArt)
 		local ok, err = pcall(M.world)
 		if not ok then
 			warn("[Dress]", err)
