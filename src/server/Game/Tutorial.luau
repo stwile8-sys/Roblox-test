@@ -146,24 +146,50 @@ function M.raidStep(S: any)
 		noSteal = true,
 		onShield = function()
 			Ctx.popup(S, "defended", { id = "", thief = "Рейдер" })
-			finish(S)
+			if S.tut and S.data.ftue == 4 then
+				M.buyStep(S)
+			end
 		end,
 	})
 	task.delay(40, function()
-		if S.tut then
+		if S.tut and S.data.ftue == 4 then
+			M.buyStep(S)
+		end
+	end)
+end
+
+-- последний шаг: купить существо на кольцевом конвейере в центре и донести домой
+function M.buyStep(S: any)
+	if not S.tut then
+		return
+	end
+	local hub = workspace.Map:FindFirstChild("Hub")
+	local R, A0 = hub and hub:GetAttribute("RingR"), hub and hub:GetAttribute("RingA0")
+	local target = if R and A0 then Vector3.new(math.cos(A0 + 0.6) * R, 2, math.sin(A0 + 0.6) * R) else Vector3.new(0, 2, 0)
+	step(S, 5, { target = target })
+	task.delay(150, function()
+		if S.tut and (S.data.ftue == 5 or S.data.ftue == 6) then
 			finish(S)
 		end
 	end)
 end
 
--- нажата кнопка «Замок»
+-- события обучения: замок нажат, покупка с конвейера, покупка донесена
 function M.event(S: any, name: string)
-	if name == "lock" and S.tut and S.data.ftue == 4 then
+	if not S.tut then
+		return
+	end
+	if name == "lock" and S.data.ftue == 4 then
 		task.delay(3, function()
-			if S.tut then
-				finish(S)
+			if S.tut and S.data.ftue == 4 then
+				M.buyStep(S)
 			end
 		end)
+	elseif name == "bought" and S.data.ftue == 5 then
+		local B = S.B
+		step(S, 6, { target = B and (B.cf * CFrame.new(0, 2, -20)).Position })
+	elseif name == "delivered" and S.data.ftue == 6 then
+		finish(S)
 	end
 end
 

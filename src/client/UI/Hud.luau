@@ -339,11 +339,29 @@ Net.event("Notify").OnClientEvent:Connect(function(key, args, kind)
 end)
 
 -- ── Попапы ──────────────────────────────────────────────────
-local popupWin = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45), Size = UDim2.fromOffset(400, 340), Visible = false, ZIndex = 40, Parent = root }, { Kit.corner(24), Kit.stroke(C.line, 4) })
-local popTitle = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 30, Position = UDim2.fromOffset(10, 12), Size = UDim2.new(1, -20, 0, 40), ZIndex = 41, Parent = popupWin }))
-local popArt = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.new(0.5, -60, 0, 54), Size = UDim2.fromOffset(120, 110), ZIndex = 41, Parent = popupWin })
-local popText = cap(Kit.label({ Text = "", TextSize = 22, Position = UDim2.fromOffset(16, 166), Size = UDim2.new(1, -32, 0, 86), ZIndex = 41, Parent = popupWin }))
-local popButtons = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.new(1, -24, 0, 60), ZIndex = 41, Parent = popupWin }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+-- карточка: цветная шапка с лучами и существом/иконкой, текст на белом, кнопки снизу, затемнение фона
+local popBg = Kit.frame({ BackgroundColor3 = Color3.fromHex("#140E26"), BackgroundTransparency = 0.5, Size = UDim2.new(1, 400, 1, 400), Position = UDim2.fromOffset(-200, -200), Visible = false, ZIndex = 39, Parent = root })
+local popupWin = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(420, 330), Visible = false, BackgroundColor3 = C.bg, ZIndex = 40, Parent = root }, { Kit.corner(26) })
+local popBand = Kit.frame({ Size = UDim2.new(1, 0, 0, 150), BackgroundColor3 = C.brand, ClipsDescendants = true, ZIndex = 40, Parent = popupWin }, { Kit.corner(26), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(200, 200, 200)) }) })
+-- лучи за наградой (крутятся)
+local rays = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 98), Size = UDim2.fromOffset(300, 300), ZIndex = 40, Parent = popBand })
+for i = 1, 8 do
+	Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(26, 300), Rotation = i * 22.5, BackgroundColor3 = C.white, BackgroundTransparency = 0.82, ZIndex = 40, Parent = rays })
+end
+local popTitle = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 26, TextColor3 = C.white, Position = UDim2.fromOffset(16, 8), Size = UDim2.new(1, -32, 0, 34), ZIndex = 42, Parent = popupWin })
+popTitle.TextStrokeColor3 = Color3.fromHex("#231A3B")
+popTitle.TextStrokeTransparency = 0.55
+local popArt = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 44), Size = UDim2.fromOffset(130, 110), ZIndex = 41, Parent = popupWin })
+local popText = Kit.label({ Text = "", TextSize = 19, TextColor3 = C.text, Position = UDim2.fromOffset(20, 160), Size = UDim2.new(1, -40, 0, 84), ZIndex = 41, Parent = popupWin })
+local popButtons = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16), Size = UDim2.new(1, -24, 0, 56), ZIndex = 41, Parent = popupWin }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+task.spawn(function()
+	while true do
+		if popupWin.Visible then
+			rays.Rotation = (rays.Rotation + 0.6) % 360
+		end
+		task.wait(1 / 30)
+	end
+end)
 local queue = {}
 local showing = false
 
@@ -353,7 +371,7 @@ local function showNext()
 	end
 	showing = true
 	local p = table.remove(queue, 1)
-	popupWin.BackgroundColor3 = p.color
+	popBand.BackgroundColor3 = p.color
 	popTitle.Text = p.title
 	popText.Text = p.text or ""
 	Kit.clear(popArt)
@@ -363,9 +381,10 @@ local function showNext()
 		Kit.label({ Text = p.icon, TextScaled = true, Size = UDim2.fromScale(1, 1), ZIndex = 42, Parent = popArt })
 	end
 	Kit.clear(popButtons)
-	for _, b in p.buttons or { { "Ок", "plain" } } do
-		Kit.button(b[1], b[2], { Size = UDim2.fromOffset(150, 56), ZIndex = 42, Parent = popButtons }, function()
+	for _, b in p.buttons or { { "Ок", "thief" } } do
+		Kit.button(b[1], b[2], { Size = UDim2.fromOffset(if #(p.buttons or {}) > 2 then 120 else 170, 52), ZIndex = 42, Parent = popButtons }, function()
 			popupWin.Visible = false
+			popBg.Visible = false
 			showing = false
 			if b[3] then
 				b[3]()
@@ -373,8 +392,9 @@ local function showNext()
 			task.delay(0.15, showNext)
 		end)
 	end
+	popBg.Visible = true
 	popupWin.Visible = true
-	Kit.pop(popupWin, 0.6)
+	Kit.pop(popupWin, 0.7)
 	Fx.sfx("pop")
 end
 
@@ -394,7 +414,7 @@ M.onTradeInvite = nil :: ((any) -> ())?
 
 local POP: { [string]: (any) -> () } = {
 	robbed = function(d)
-		M.popup({ title = "Вас обокрали!", color = Color3.fromHex("#FF5C7A"), art = d.id, text = artName(d.id) .. (if d.thief ~= "" then "\nВор: " .. d.thief else ""), buttons = {
+		M.popup({ title = "Вас обокрали!", color = Color3.fromHex("#FF4D6D"), art = d.id, text = artName(d.id) .. (if d.thief ~= "" then "\nВор: " .. d.thief else ""), buttons = {
 			{ "Отомстить", "gold", function()
 				State.act("revenge", { thiefId = d.thiefId })
 			end },
@@ -503,7 +523,10 @@ arrow.TextureSpeed = 2
 arrow.Texture = "rbxasset://textures/ui/ArrowRightThin.png"
 arrow.Enabled = false
 arrow.Parent = workspace.Terrain
-local hint = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 34, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 132), Size = UDim2.fromOffset(300, 44), Visible = false, Parent = root }))
+-- подсказка обучения: тёмная «пилюля» с белым текстом
+local hint = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 22, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#231A3B"), BackgroundTransparency = 0.1, AutomaticSize = Enum.AutomaticSize.X, TextWrapped = false, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 132), Size = UDim2.fromOffset(0, 46), Visible = false, Parent = root })
+Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = hint })
+Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 22), PaddingRight = UDim.new(0, 22), Parent = hint })
 
 M.onTutorial = function(d)
 	local step = d.step
@@ -513,13 +536,26 @@ M.onTutorial = function(d)
 	if step == 2 or step == 3 then
 		tutTarget = d.target
 		arrow.Enabled = tutTarget ~= nil
-		hint.Text = if step == 2 then "Догони вора!" else "Неси домой!"
+		hint.Text = if step == 2 then "🏃 Вор утащил существо — беги за ним!" else "🏠 Неси добычу домой!"
 		hint.Visible = true
 	elseif step == 4 then
-		hint.Text = "Беги к кнопке замка!"
+		hint.Text = "🔒 Рейдер идёт! Встань на кнопку замка"
 		hint.Visible = true
 		tutTarget = d.target
 		arrow.Enabled = tutTarget ~= nil
+	elseif step == 5 then
+		hint.Text = "🛒 Купи существо на конвейере в центре"
+		hint.Visible = true
+		tutTarget = d.target
+		arrow.Enabled = tutTarget ~= nil
+	elseif step == 6 then
+		hint.Text = "🏠 Неси покупку домой на базу"
+		hint.Visible = true
+		tutTarget = d.target
+		arrow.Enabled = tutTarget ~= nil
+	end
+	if hint.Visible then
+		Kit.pop(hint, 0.8)
 	end
 end
 task.spawn(function()

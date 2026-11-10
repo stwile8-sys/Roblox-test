@@ -487,6 +487,9 @@ local function deliver(S: any)
 		local d = Defs.BY_ID[c.id]
 		Ctx.fx("escape", Ctx.root(S) and Ctx.root(S).Position, { id = c.id })
 		Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = d and d.name.ru or "" }, "good")
+		if api.tutorialEvent then
+			api.tutorialEvent(S, "delivered")
+		end
 		return
 	end
 	local ok, why = true, nil

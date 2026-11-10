@@ -28,21 +28,84 @@ RCOL.common = Color3.fromHex("#6F7F99")
 RCOL.legendary = Color3.fromHex("#E08A00")
 RCOL.chrono = Color3.fromHex("#0FA3C4")
 
-local function txt(parent: Instance, text: string, size: number?, color: Color3?, h: number?, order: number?): TextLabel
-	return Kit.label({ Text = text, TextSize = size or 20, TextColor3 = color or C.text, Size = UDim2.new(1, 0, 0, h or 28), LayoutOrder = order or 0, ZIndex = 22, Parent = parent })
-end
 
-local function card(parent: Instance, h: number, order: number?, color: Color3?): Frame
-	local f = Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order or 0, ZIndex = 22, Parent = parent }, { Kit.corner(18) })
-	if color then
-		Kit.new("UIStroke", { Color = color, Thickness = 2, Transparency = 0.35, Parent = f })
-	end
-	return f
-end
 
 local function scrollBody(body: Frame): ScrollingFrame
 	Kit.clear(body)
-	return Kit.scroll({ ZIndex = 22, Parent = body }, { Kit.list(nil, 8), Kit.pad(4) })
+	return Kit.scroll({ ZIndex = 22, Parent = body }, { Kit.list(nil, 8, Enum.HorizontalAlignment.Left), Kit.pad(2) })
+end
+
+-- ярлык-«пилюля»
+local function chip(parent: Instance, text: string, bg: Color3, fg: Color3?, props: { [string]: any }?): TextLabel
+	local base = { Text = text, Font = Kit.BLACK, TextSize = 13, TextColor3 = fg or C.white, BackgroundColor3 = bg, BackgroundTransparency = 0, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 22), TextWrapped = false, ZIndex = 24, Parent = parent }
+	local pp: any = props or {}
+	for k, v in pp do
+		base[k] = v
+	end
+	local l = Kit.label(base)
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = l })
+	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9), Parent = l })
+	return l
+end
+
+-- заголовок раздела внутри окна
+local function section(parent: Instance, text: string, sub: string?, order: number)
+	local f = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, if sub then 44 else 28), LayoutOrder = order, ZIndex = 22, Parent = parent })
+	Kit.label({ Text = text, Font = Kit.BLACK, TextSize = 19, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 24), ZIndex = 22, Parent = f })
+	if sub then
+		Kit.label({ Text = sub, TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(0, 24), Size = UDim2.new(1, 0, 0, 18), ZIndex = 22, Parent = f })
+	end
+end
+
+-- строка-карточка: цветная плитка с иконкой слева, заголовок и подпись, кнопка справа
+type RowOpts = { icon: string, color: Color3, title: string, sub: string?, subColor: Color3?, btn: string?, kind: string?, onClick: (() -> ())?, h: number?, btnW: number?, dim: boolean? }
+local function row(parent: Instance, order: number, o: RowOpts): Frame
+	local h = o.h or 74
+	local c = Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order, ZIndex = 22, Parent = parent }, { Kit.corner(18) })
+	local tile = Kit.frame({ AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 10, 0.5, 0), Size = UDim2.fromOffset(h - 20, h - 20), BackgroundColor3 = o.color, ZIndex = 23, Parent = c }, { Kit.corner(14), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(205, 205, 205)) }) })
+	Kit.label({ Text = o.icon, TextScaled = true, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.62, 0.62), ZIndex = 24, Parent = tile })
+	local right = if o.btn then (o.btnW or 140) + 20 else 14
+	Kit.label({ Text = o.title, Font = Kit.BLACK, TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false, Position = UDim2.new(0, h, 0, if o.sub then h / 2 - 22 else 0), Size = UDim2.new(1, -h - right, 0, if o.sub then 22 else h), ZIndex = 23, Parent = c })
+	if o.sub then
+		Kit.label({ Text = o.sub, TextSize = 14, TextColor3 = o.subColor or C.dim, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Position = UDim2.new(0, h, 0, h / 2 + 1), Size = UDim2.new(1, -h - right, 0, h / 2 - 6), ZIndex = 23, Parent = c })
+	end
+	if o.btn then
+		Kit.button(o.btn, o.kind or "buy", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(o.btnW or 140, 46), TextSize = 16, ZIndex = 23, Parent = c }, function()
+			if o.onClick then
+				o.onClick()
+			end
+		end)
+	end
+	if o.dim then
+		c.BackgroundTransparency = 0.4
+	end
+	return c
+end
+
+-- плитка существа: цвет редкости, уровень, отметка выбора
+local function artTile(parent: Instance, it: any, size: number, order: number, selected: boolean?, badge: string?, silhouette: boolean?): TextButton
+	local d = Defs.BY_ID[it.id]
+	local rc = d and Defs.RARITY[d.rarity].color or C.grey
+	local b = Kit.new("TextButton", { Text = "", AutoButtonColor = true, BackgroundColor3 = if silhouette then C.soft else rc, BackgroundTransparency = if selected then 0.55 elseif silhouette then 0.3 else 0.82, Size = UDim2.fromOffset(size, size), LayoutOrder = order, ZIndex = 23, Parent = parent }, { Kit.corner(14), Kit.new("UIStroke", { Color = if selected then Color3.fromHex("#FFB020") else rc, Thickness = if selected then 3 else 1.5, Transparency = if selected then 0 elseif silhouette then 0.8 else 0.4 }) })
+	Kit.creature(it.id, { Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 2), ZIndex = 24, Parent = b }, silhouette)
+	if it.lvl then
+		local lv = Kit.label({ Text = "ур." .. it.lvl, Font = Kit.BLACK, TextSize = 11, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#231A3B"), BackgroundTransparency = 0.35, AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 4, 1, -4), Size = UDim2.fromOffset(0, 16), TextWrapped = false, ZIndex = 25, Parent = b })
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = lv })
+		Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5), Parent = lv })
+	end
+	if selected then
+		local ck = Kit.label({ Text = "✓", Font = Kit.BLACK, TextSize = 14, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#FFB020"), BackgroundTransparency = 0, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(20, 20), ZIndex = 25, Parent = b })
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ck })
+	elseif badge then
+		Kit.label({ Text = badge, TextSize = 14, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 3), Size = UDim2.fromOffset(18, 18), ZIndex = 25, Parent = b })
+	end
+	return b
+end
+
+local function tileGrid(parent: Instance, cell: number, order: number): Frame
+	local g = Kit.frame({ BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, -6, 0, 0), LayoutOrder = order, ZIndex = 22, Parent = parent })
+	Kit.new("UIGridLayout", { CellSize = UDim2.fromOffset(cell, cell), CellPadding = UDim2.fromOffset(8, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = g })
+	return g
 end
 
 -- ── Сканер ──────────────────────────────────────────────────
@@ -56,17 +119,36 @@ function M.scan()
 		return
 	end
 	local s = scrollBody(scanBody)
-	txt(s, "Выбери базу для рейда (−1 ⚡ уже списана)", 18, C.dim, 26, 0)
+	section(s, "Куда идём на дело?", "−1 ⚡ уже списана. Чем выше защита, тем дороже добыча", 0)
 	for i, b in list do
-		local c = card(s, 130, i, DEF_COL[b.defense])
-		Kit.label({ Text = (if b.kind == "offline" then "💤 " elseif b.kind == "bot" then "🤖 " else "🟢 ") .. (b.name ~= "" and b.name or "База " .. b.index), Font = Kit.BLACK, TextSize = 22, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 8), Size = UDim2.new(1, -28, 0, 28), ZIndex = 23, Parent = c })
-		Kit.label({ Text = "🛡️ " .. DEF_NAME[b.defense] .. "   🧱 ур." .. b.wall .. (if b.shield then "   🔒" else ""), TextSize = 19, TextColor3 = DEF_COL[b.defense], TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 40), Size = UDim2.new(1, -28, 0, 24), ZIndex = 23, Parent = c })
-		Kit.label({ Text = "💰 лут ≈ " .. L.money(b.loot), TextSize = 19, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 66), Size = UDim2.new(1, -28, 0, 24), ZIndex = 23, Parent = c })
-		Kit.button("Вторгнуться", if b.defense == 3 then "danger" else "thief", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -10, 1, -10), Size = UDim2.fromOffset(170, 50), ZIndex = 23, Parent = c }, function()
-			if State.act("invade", { index = b.index }) then
-				Kit.close(scanWin)
-			end
-		end)
+		local col = DEF_COL[b.defense]
+		local icon = if b.kind == "offline" then "💤" elseif b.kind == "bot" then "🤖" else "🏠"
+		local c = row(s, i, {
+			icon = icon,
+			color = col,
+			title = (b.name ~= "" and b.name or "База " .. b.index),
+			sub = "💰 лут ≈ " .. L.money(b.loot),
+			subColor = C.gold,
+			btn = "Вторгнуться",
+			kind = if b.defense == 3 then "danger" else "thief",
+			btnW = 150,
+			h = 84,
+			onClick = function()
+				if State.act("invade", { index = b.index }) then
+					Kit.close(scanWin)
+				end
+			end,
+		})
+		-- ярлыки защиты справа от названия
+		local tags = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.new(0, 84, 1, -28), Size = UDim2.new(1, -260, 0, 22), ZIndex = 23, Parent = c }, { Kit.list(Enum.FillDirection.Horizontal, 5, Enum.HorizontalAlignment.Left) })
+		chip(tags, "🛡️ " .. DEF_NAME[b.defense], col)
+		chip(tags, "🧱 ур." .. b.wall, C.soft, C.text)
+		if b.shield then
+			chip(tags, "🔒 замок", C.grey)
+		end
+		if b.kind == "offline" then
+			chip(tags, "не в игре", C.soft, C.dim)
+		end
 	end
 	Kit.open(scanWin)
 end
@@ -178,13 +260,6 @@ local function grid(parent: Instance, order: number): Frame
 	return g
 end
 
-local function section(parent: Instance, text: string, sub: string?, order: number)
-	local f = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, if sub then 44 else 28), LayoutOrder = order, ZIndex = 22, Parent = parent })
-	Kit.label({ Text = text, Font = Kit.BLACK, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 24), ZIndex = 22, Parent = f })
-	if sub then
-		Kit.label({ Text = sub, TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(0, 24), Size = UDim2.new(1, 0, 0, 18), ZIndex = 22, Parent = f })
-	end
-end
 
 local SHOP_TABS = { { "passes", "Навсегда" }, { "boost", "Бусты" }, { "cosmetic", "Стиль" }, { "shards", "Осколки" }, { "season", "Пропуск" } }
 
@@ -392,7 +467,7 @@ State.on("pass", function()
 end)
 
 -- ── Коллекция + хранилище ───────────────────────────────────
-local collWin, collBody = Kit.window(root, "📖 Коллекция", 0.85, Color3.fromHex("#2EB8F0"))
+local collWin, collBody = Kit.window(root, "📖 Коллекция", 0.88, Color3.fromHex("#2EB8F0"))
 function M.collection()
 	local s = scrollBody(collBody)
 	local coll = State.s.coll or {}
@@ -403,17 +478,19 @@ function M.collection()
 			n += 1
 		end
 	end
-	txt(s, "Собрано " .. n .. " / " .. #Defs.LIST, 22, C.gold, 30, 0)
+	-- общий прогресс
+	local head = Kit.frame({ Size = UDim2.new(1, -6, 0, 54), BackgroundColor3 = C.panel, LayoutOrder = 0, ZIndex = 22, Parent = s }, { Kit.corner(16) })
+	Kit.label({ Text = "Собрано " .. n .. " / " .. #Defs.LIST, Font = Kit.BLACK, TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 6), Size = UDim2.new(1, -28, 0, 22), ZIndex = 23, Parent = head })
+	local bar = Kit.frame({ Position = UDim2.fromOffset(14, 32), Size = UDim2.new(1, -28, 0, 10), BackgroundColor3 = C.soft, ZIndex = 23, Parent = head }, { Kit.corner(5) })
+	Kit.frame({ Size = UDim2.fromScale(math.max(0.02, n / #Defs.LIST), 1), BackgroundColor3 = Color3.fromHex("#2EB8F0"), ZIndex = 24, Parent = bar }, { Kit.corner(5) })
 	if #inv > 0 then
-		txt(s, "📦 Хранилище (" .. #inv .. "/" .. Game.INVENTORY_MAX .. ") — нажми, чтобы поставить на пьедестал", 16, C.dim, 40, 1)
-		local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#inv / 4) * 108), LayoutOrder = 2, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(84, 100), 6) })
+		section(s, "📦 Хранилище (" .. #inv .. "/" .. Game.INVENTORY_MAX .. ")", "Нажми на существо — поставить на пьедестал или сдать в осколки", 1)
+		local g = tileGrid(s, 84, 2)
 		for i, a in inv do
 			local d = Defs.BY_ID[a.id]
-			local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(d and RCOL[d.rarity] or C.soft, 3) })
-			Kit.creature(a.id, { Size = UDim2.new(1, 0, 1, -22), ZIndex = 23, Parent = b })
-			Kit.label({ Text = "ур." .. a.lvl, TextSize = 14, Position = UDim2.new(0, 0, 1, -22), Size = UDim2.new(1, 0, 0, 20), ZIndex = 23, Parent = b })
-			b.Activated:Connect(function()
-				Hud.popup({ title = d and L.name(d.name) or "?", color = C.panel2, art = a.id, text = "Доход: " .. L.money((d and d.income or 0) * (1 + 0.25 * (a.lvl - 1))) .. "/с", buttons = {
+			local t = artTile(g, a, 84, i)
+			t.Activated:Connect(function()
+				Hud.popup({ title = d and L.name(d.name) or "?", color = Color3.fromHex("#2EB8F0"), art = a.id, text = "Доход: " .. L.money((d and d.income or 0) * (1 + Game.ART_LVL_BONUS * (a.lvl - 1))) .. "/с", buttons = {
 					{ "Поставить", "buy", function()
 						State.act("invPlace", { i = i })
 						M.collection()
@@ -428,48 +505,80 @@ function M.collection()
 	end
 	local order = 10
 	for _, r in Defs.RARITIES do
-		order += 1
-		txt(s, L.name(Defs.RARITY[r].name), 22, RCOL[r], 30, order)
 		local list = {}
+		local got = 0
 		for _, d in Defs.LIST do
 			if d.rarity == r then
 				table.insert(list, d)
+				if coll[d.id] then
+					got += 1
+				end
 			end
 		end
 		order += 1
-		local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#list / 4) * 118), LayoutOrder = order, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(84, 110), 6) })
+		local hdr = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, 28), LayoutOrder = order, ZIndex = 22, Parent = s })
+		chip(hdr, L.name(Defs.RARITY[r].name), Defs.RARITY[r].color, nil, { TextSize = 15, Size = UDim2.fromOffset(0, 26) })
+		Kit.label({ Text = got .. " / " .. #list, TextSize = 15, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, 0, 1, 0), ZIndex = 22, Parent = hdr })
+		order += 1
+		local g = tileGrid(s, 84, order)
 		for i, d in list do
-			local got = coll[d.id] == true
-			local f = Kit.frame({ BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(12), Kit.stroke(if got then RCOL[r] else C.soft, 3) })
-			Kit.creature(d.id, { Size = UDim2.new(1, 0, 1, -30), ZIndex = 23, Parent = f }, not got)
-			Kit.label({ Text = if got then L.name(d.name) else "?", TextSize = 13, Position = UDim2.new(0, 2, 1, -30), Size = UDim2.new(1, -4, 0, 28), ZIndex = 23, Parent = f })
+			local t = artTile(g, { id = d.id }, 84, i, false, nil, not coll[d.id])
+			t.AutoButtonColor = false
+			Kit.label({ Text = if coll[d.id] then L.name(d.name) else "???", Font = Kit.BLACK, TextSize = 11, TextColor3 = if coll[d.id] then C.text else C.dim, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 2, 1, -2), Size = UDim2.new(1, -4, 0, 14), TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false, ZIndex = 26, Parent = t })
 		end
 	end
 	Kit.open(collWin)
 end
 
 -- ── Лидерборды ──────────────────────────────────────────────
-local boardWin, boardBody = Kit.window(root, "🏆 Лидерборды", 0.8, Color3.fromHex("#F29A00"))
+local boardWin, boardBody = Kit.window(root, "🏆 Лидерборды", 0.85, Color3.fromHex("#F29A00"))
 function M.boards()
 	local _, b = State.act("boards")
 	b = b or State.boards
 	local s = scrollBody(boardBody)
+	local mine = Kit.frame({ Size = UDim2.new(1, -6, 0, 48), BackgroundColor3 = Color3.fromHex("#FFF6D6"), LayoutOrder = 0, ZIndex = 22, Parent = s }, { Kit.corner(16) })
+	Kit.label({ Text = "Твой Титан-ранг: " .. tostring(State.s.titan or 0), Font = Kit.BLACK, TextSize = 18, TextColor3 = Color3.fromHex("#B36B00"), Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = mine })
+	local MEDAL = { "🥇", "🥈", "🥉" }
 	for i, sec in { { "titan", "⚔️ Титан-ранг (сезон)" }, { "collection", "📖 Коллекция" }, { "clans", "🛡️ Кланы" } } do
-		txt(s, sec[2], 22, C.gold, 30, i * 20)
-		for j, row in b[sec[1]] or {} do
-			local v = if sec[1] == "collection" then math.floor(row.value / 100) .. "/40" else tostring(row.value)
-			txt(s, (if j == 1 then "👑 " else j .. ". ") .. row.name .. " — " .. v, 19, if j == 1 then C.gold else C.text, 26, i * 20 + j)
+		section(s, sec[2], nil, i * 20)
+		local rows = b[sec[1]] or {}
+		if #rows == 0 then
+			Kit.label({ Text = "Пока пусто — стань первым!", TextSize = 15, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, -6, 0, 22), LayoutOrder = i * 20 + 1, ZIndex = 22, Parent = s })
+		end
+		for j, r in rows do
+			local v = if sec[1] == "collection" then math.floor(r.value / 100) .. "/40" else tostring(r.value)
+			local line = Kit.frame({ Size = UDim2.new(1, -6, 0, 38), BackgroundColor3 = if j <= 3 then Color3.fromHex("#FFF6D6") else C.panel, LayoutOrder = i * 20 + j, ZIndex = 22, Parent = s }, { Kit.corner(12) })
+			Kit.label({ Text = MEDAL[j] or tostring(j), Font = Kit.BLACK, TextSize = if j <= 3 then 20 else 15, TextColor3 = C.dim, Size = UDim2.fromOffset(44, 38), ZIndex = 23, Parent = line })
+			Kit.label({ Text = r.name, Font = Kit.BLACK, TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false, Position = UDim2.fromOffset(46, 0), Size = UDim2.new(1, -150, 1, 0), ZIndex = 23, Parent = line })
+			Kit.label({ Text = v, Font = Kit.BLACK, TextSize = 16, TextColor3 = Color3.fromHex("#B36B00"), TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.new(1, -110, 0, 0), Size = UDim2.fromOffset(98, 38), ZIndex = 23, Parent = line })
 		end
 	end
-	txt(s, "Твой Титан-ранг: " .. tostring(State.s.titan or 0), 20, C.chrono, 30, 100)
 	Kit.open(boardWin)
 end
 
 -- ── Квесты и серия ──────────────────────────────────────────
-local questWin, questBody = Kit.window(root, "📜 Ежедневные квесты", 0.7, Color3.fromHex("#22B455"))
+local questWin, questBody = Kit.window(root, "📜 Ежедневные квесты", 0.85, Color3.fromHex("#22B455"))
 function M.quests()
 	local s = scrollBody(questBody)
 	local q = State.s.quests or { list = {} }
+	-- серия входов: 7 кружков
+	local st = State.s.streak or { count = 0 }
+	local sc = Kit.frame({ Size = UDim2.new(1, -6, 0, 86), BackgroundColor3 = Color3.fromHex("#FFF1E6"), LayoutOrder = 0, ZIndex = 22, Parent = s }, { Kit.corner(18) })
+	Kit.label({ Text = "🔥 Серия входов: " .. st.count .. " из 7", Font = Kit.BLACK, TextSize = 17, TextColor3 = Color3.fromHex("#C25A00"), TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 6), Size = UDim2.new(1, -200, 0, 22), ZIndex = 23, Parent = sc })
+	local days = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 34), Size = UDim2.new(1, -200, 0, 40), ZIndex = 23, Parent = sc }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left) })
+	for d = 1, 7 do
+		local on = d <= st.count
+		local dot = Kit.frame({ Size = UDim2.fromOffset(36, 36), BackgroundColor3 = if on then Color3.fromHex("#FF7A45") else C.white, LayoutOrder = d, ZIndex = 24, Parent = days }, { Kit.corner(18), Kit.new("UIStroke", { Color = Color3.fromHex("#FF7A45"), Thickness = 2, Transparency = if on then 0 else 0.5 }) })
+		Kit.label({ Text = if d == 7 then "🎁" else tostring(d), Font = Kit.BLACK, TextSize = 14, TextColor3 = if on then C.white else C.dim, Size = UDim2.fromScale(1, 1), ZIndex = 25, Parent = dot })
+	end
+	Kit.button(if st.claimed == false then "Забрать награду дня" else "Завтра — ещё награда", if st.claimed == false then "gold" else "cancel", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(176, 50), TextSize = 15, ZIndex = 23, Parent = sc }, function()
+		if st.claimed == false then
+			State.act("streakClaim")
+			task.wait(0.3)
+			M.quests()
+		end
+	end)
+	section(s, "Задания на сегодня", "За каждое: 💎 " .. Game.QUEST_REWARD.shards .. " и 🔨 " .. Game.QUEST_REWARD.tokens .. ", плюс опыт пропуска", 1)
 	for i, item in q.list do
 		local cfg
 		for _, c in Game.QUESTS do
@@ -479,100 +588,97 @@ function M.quests()
 		end
 		if cfg then
 			local done = item.p >= cfg.goal
-			local c = card(s, 84, i, if item.claimed then C.grey elseif done then C.gold else C.line)
-			Kit.label({ Text = L.name(cfg.name), Font = Kit.BLACK, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 8), Size = UDim2.new(1, -170, 0, 30), ZIndex = 23, Parent = c })
-			Kit.label({ Text = item.p .. " / " .. cfg.goal .. "   🎁 💎" .. Game.QUEST_REWARD.shards .. " 🔨" .. Game.QUEST_REWARD.tokens, TextSize = 17, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 42), Size = UDim2.new(1, -170, 0, 26), ZIndex = 23, Parent = c })
-			Kit.button(if item.claimed then "✓" elseif done then "Забрать" else "…", if done and not item.claimed then "gold" else "cancel", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(130, 52), ZIndex = 23, Parent = c }, function()
-				if done and not item.claimed and State.act("questClaim", { i = i }) then
-					task.wait(0.3)
-					M.quests()
-				end
-			end)
+			local c = row(s, 10 + i, {
+				icon = if item.claimed then "✅" elseif done then "🎁" else "📜",
+				color = if item.claimed then C.grey elseif done then Color3.fromHex("#FFB020") else Color3.fromHex("#22B455"),
+				title = L.name(cfg.name),
+				sub = math.min(item.p, cfg.goal) .. " / " .. cfg.goal,
+				btn = if item.claimed then "Готово" elseif done then "Забрать" else "В процессе",
+				kind = if done and not item.claimed then "gold" else "cancel",
+				btnW = 130,
+				dim = item.claimed,
+				onClick = function()
+					if done and not item.claimed and State.act("questClaim", { i = i }) then
+						task.wait(0.3)
+						M.quests()
+					end
+				end,
+			})
+			-- полоса прогресса под подписью
+			local pb = Kit.frame({ Position = UDim2.new(0, 74, 1, -16), Size = UDim2.new(1, -234, 0, 6), BackgroundColor3 = C.soft, ZIndex = 23, Parent = c }, { Kit.corner(3) })
+			Kit.frame({ Size = UDim2.fromScale(math.clamp(item.p / cfg.goal, 0.03, 1), 1), BackgroundColor3 = if done then Color3.fromHex("#FFB020") else Color3.fromHex("#22B455"), ZIndex = 24, Parent = pb }, { Kit.corner(3) })
 		end
-	end
-	local st = State.s.streak or { count = 0 }
-	txt(s, "🔥 Серия входов: " .. st.count .. " / 7 (7-й день — редкий артефакт)", 18, C.orange, 30, 20)
-	if st.claimed == false then
-		Kit.button("Забрать награду дня", "gold", { Size = UDim2.new(1, -20, 0, 54), LayoutOrder = 21, ZIndex = 23, Parent = s }, function()
-			State.act("streakClaim")
-			task.wait(0.3)
-			M.quests()
-		end)
 	end
 	Kit.open(questWin)
 end
 
 -- ── Верстак ─────────────────────────────────────────────────
-local benchWin, benchBody = Kit.window(root, "🔨 Верстак", 0.8, Color3.fromHex("#C9853B"))
+local benchWin, benchBody = Kit.window(root, "🔨 Верстак", 0.88, Color3.fromHex("#C9853B"))
 local TRAP_ICON = { mine = "💣", slow = "🌀", decoy = "🎭" }
+local TRAP_COL = { mine = Color3.fromHex("#FF4D6D"), slow = Color3.fromHex("#7B5CFF"), decoy = Color3.fromHex("#FFB020") }
 function M.bench()
 	local s = scrollBody(benchBody)
 	local w = State.s.wall or { lvl = 1 }
-	txt(s, "🔨 Жетоны стройки: " .. (State.s.tokens or 0), 18, C.dim, 26, 0)
-	-- стены
-	local c = card(s, 110, 1, C.orange)
+	local tok = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, 26), LayoutOrder = 0, ZIndex = 22, Parent = s })
+	chip(tok, "🔨 Жетоны стройки: " .. (State.s.tokens or 0), Color3.fromHex("#C9853B"), nil, { TextSize = 14, Size = UDim2.fromOffset(0, 26) })
+	section(s, "Защита базы", nil, 1)
 	local cur = Game.WALLS[w.lvl]
-	Kit.label({ Text = "🧱 Стены: " .. L.name(cur.name) .. " (ур." .. w.lvl .. ", " .. cur.hp .. " HP)", Font = Kit.BLACK, TextSize = 19, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 8), Size = UDim2.new(1, -24, 0, 30), ZIndex = 23, Parent = c })
 	local nxt = Game.WALLS[w.lvl + 1]
+	local refresh = function()
+		task.wait(0.3)
+		M.bench()
+	end
 	if w.build then
-		Kit.label({ Text = "Строится: " .. L.duration(math.max(0, w.build.left)), TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 44), Size = UDim2.new(1, -200, 0, 26), ZIndex = 23, Parent = c })
-		Kit.button("🔨 " .. math.max(1, math.ceil(w.build.left / 60)) .. " — сразу", "chrono", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -10, 1, -10), Size = UDim2.fromOffset(170, 52), ZIndex = 23, Parent = c }, function()
+		row(s, 2, { icon = "🧱", color = Color3.fromHex("#C9853B"), title = "Стены: " .. L.name(cur.name) .. " · " .. cur.hp .. " HP", sub = "Строится: " .. L.duration(math.max(0, w.build.left)), subColor = C.gold, btn = "🔨 " .. math.max(1, math.ceil(w.build.left / 60)) .. " — сразу", kind = "chrono", btnW = 160, onClick = function()
 			State.act("finishBuild", { what = "wall" })
-			task.wait(0.3)
-			M.bench()
-		end)
+			refresh()
+		end })
 	elseif nxt then
-		Kit.label({ Text = "→ " .. L.name(nxt.name) .. ", " .. nxt.hp .. " HP, " .. L.duration(nxt.build), TextSize = 17, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 44), Size = UDim2.new(1, -200, 0, 26), ZIndex = 23, Parent = c })
-		Kit.button(L.money(nxt.cost), "buy", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -10, 1, -10), Size = UDim2.fromOffset(150, 52), ZIndex = 23, Parent = c }, function()
+		row(s, 2, { icon = "🧱", color = Color3.fromHex("#C9853B"), title = "Стены: " .. L.name(cur.name) .. " · " .. cur.hp .. " HP", sub = "Дальше: " .. L.name(nxt.name) .. ", " .. nxt.hp .. " HP, стройка " .. L.duration(nxt.build), btn = L.money(nxt.cost), btnW = 140, onClick = function()
 			State.act("wallUpgrade")
-			task.wait(0.3)
-			M.bench()
-		end)
+			refresh()
+		end })
+	else
+		row(s, 2, { icon = "🧱", color = Color3.fromHex("#C9853B"), title = "Стены: " .. L.name(cur.name) .. " · " .. cur.hp .. " HP", sub = "Максимальный уровень!", subColor = C.ok })
 	end
-	-- инструмент
 	local tool = State.s.tool or 1
-	local t2 = card(s, 90, 2, C.thief)
-	Kit.label({ Text = "⛏️ " .. L.name(Game.TOOLS[tool].name) .. " (урон " .. Game.TOOLS[tool].dmg .. ")", Font = Kit.BLACK, TextSize = 19, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 8), Size = UDim2.new(1, -24, 0, 30), ZIndex = 23, Parent = t2 })
 	local nt = Game.TOOLS[tool + 1]
-	if nt then
-		Kit.label({ Text = "→ " .. L.name(nt.name) .. " (урон " .. nt.dmg .. ")", TextSize = 17, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 44), Size = UDim2.new(1, -180, 0, 26), ZIndex = 23, Parent = t2 })
-		Kit.button(L.money(nt.cost), "buy", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -10, 1, -10), Size = UDim2.fromOffset(150, 50), ZIndex = 23, Parent = t2 }, function()
-			State.act("toolBuy", { tier = tool + 1 })
-			task.wait(0.3)
-			M.bench()
-		end)
-	end
-	-- ловушки
-	txt(s, "Ловушки (8 слотов по периметру)", 20, C.gold, 30, 3)
+	row(s, 3, { icon = "⛏️", color = Color3.fromHex("#7B5CFF"), title = L.name(Game.TOOLS[tool].name) .. " · урон " .. Game.TOOLS[tool].dmg, sub = if nt then "Дальше: " .. L.name(nt.name) .. ", урон " .. nt.dmg .. " — быстрее ломаешь стены" else "Лучший инструмент!", subColor = if nt then nil else C.ok, btn = if nt then L.money(nt.cost) else nil, onClick = function()
+		State.act("toolBuy", { tier = tool + 1 })
+		refresh()
+	end })
+	section(s, "Ловушки", "8 мест по периметру базы. Срабатывают на воров", 4)
 	local traps = (State.s.traps or { list = {} }).list
 	for slot = 1, Game.TRAP_SLOTS do
 		local t = traps[tostring(slot)]
-		local tc = card(s, 76, 10 + slot)
 		if t then
 			local cfg = Game.TRAPS[t.k]
-			Kit.label({ Text = TRAP_ICON[t.k] .. " " .. slot .. ". " .. L.name(cfg.name) .. " ур." .. t.l .. (if t.b then " ⏳" .. L.duration(math.max(0, t.b)) else ""), TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -180, 1, 0), ZIndex = 23, Parent = tc })
+			local sub = "Уровень " .. t.l .. " из " .. #cfg.cost .. (if t.b then " · строится " .. L.duration(math.max(0, t.b)) else "")
 			if t.b then
-				Kit.button("🔨 " .. math.max(1, math.ceil(t.b / 60)), "chrono", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(110, 50), ZIndex = 23, Parent = tc }, function()
+				row(s, 10 + slot, { icon = TRAP_ICON[t.k], color = TRAP_COL[t.k], title = slot .. ". " .. L.name(cfg.name), sub = sub, btn = "🔨 " .. math.max(1, math.ceil(t.b / 60)) .. " — сразу", kind = "chrono", btnW = 150, h = 66, onClick = function()
 					State.act("finishBuild", { slot = slot })
-					task.wait(0.3)
-					M.bench()
-				end)
+					refresh()
+				end })
 			elseif t.l < #cfg.cost then
-				Kit.button("↑ " .. L.money(cfg.cost[t.l + 1]), "buy", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(150, 50), ZIndex = 23, Parent = tc }, function()
+				row(s, 10 + slot, { icon = TRAP_ICON[t.k], color = TRAP_COL[t.k], title = slot .. ". " .. L.name(cfg.name), sub = sub, btn = "↑ " .. L.money(cfg.cost[t.l + 1]), btnW = 140, h = 66, onClick = function()
 					State.act("trapUpgrade", { slot = slot })
-					task.wait(0.3)
-					M.bench()
-				end)
+					refresh()
+				end })
+			else
+				row(s, 10 + slot, { icon = TRAP_ICON[t.k], color = TRAP_COL[t.k], title = slot .. ". " .. L.name(cfg.name), sub = "Максимальный уровень!", subColor = C.ok, h = 66 })
 			end
 		else
-			Kit.label({ Text = slot .. ".", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 0), Size = UDim2.fromOffset(30, 76), ZIndex = 23, Parent = tc })
+			-- пустое место: три варианта ловушки
+			local c = Kit.frame({ Size = UDim2.new(1, -6, 0, 66), BackgroundColor3 = C.panel, LayoutOrder = 10 + slot, ZIndex = 22, Parent = s }, { Kit.corner(18) })
+			Kit.label({ Text = slot .. ".", Font = Kit.BLACK, TextSize = 17, TextColor3 = C.dim, Size = UDim2.fromOffset(40, 66), ZIndex = 23, Parent = c })
+			local opts = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(40, 10), Size = UDim2.new(1, -50, 0, 46), ZIndex = 23, Parent = c }, { Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Left) })
 			for i, kind in Game.TRAP_KINDS do
 				local cfg = Game.TRAPS[kind]
-				Kit.button(TRAP_ICON[kind] .. " " .. L.short(cfg.cost[1]), "plain", { Position = UDim2.new(0, 40 + (i - 1) * 104, 0, 12), Size = UDim2.fromOffset(100, 52), TextSize = 17, ZIndex = 23, Parent = tc }, function()
+				local b = Kit.button(TRAP_ICON[kind] .. " " .. L.name(cfg.name) .. " · " .. L.short(cfg.cost[1]), "plain", { Size = UDim2.fromOffset(148, 46), TextSize = 13, LayoutOrder = i, ZIndex = 24, Parent = opts }, function()
 					State.act("trapPlace", { slot = slot, kind = kind })
-					task.wait(0.3)
-					M.bench()
+					refresh()
 				end)
+				b.TextWrapped = true
 			end
 		end
 	end
@@ -673,25 +779,29 @@ function M.pedestal(slot: number)
 end
 
 -- ── Ребёрс ──────────────────────────────────────────────────
-local rebWin, rebBody = Kit.window(root, "🌀 Ребёрс", 0.6, Color3.fromHex("#2EB8F0"))
+local rebWin, rebBody = Kit.window(root, "🌀 Ребёрс", 0.86, Color3.fromHex("#2EB8F0"))
 function M.rebirth()
 	local s = scrollBody(rebBody)
 	local r = State.s.rebirths
 	if not r or not r.req then
-		txt(s, "Все 18 ребёрсов пройдены! 👑", 22, C.gold, 40, 0)
+		section(s, "Все " .. Game.REBIRTH_MAX .. " ребёрсов пройдены! 👑", "Ты прошёл всё — легенда хроно-острова", 0)
 		Kit.open(rebWin)
 		return
 	end
-	txt(s, "Ребёрс " .. (r.n + 1) .. " / " .. Game.REBIRTH_MAX, 24, C.chrono, 32, 0)
-	txt(s, "Навсегда: доход ×" .. (r.n + 2) .. ", замок +10 сек", 19, C.ok, 28, 1)
-	txt(s, "Сбросится: деньги и артефакты на базе (хроно-аномалии останутся)", 17, C.dim, 44, 2)
-	txt(s, "Нужно:", 20, C.gold, 28, 3)
+	-- что получишь и что сбросится
+	local top = Kit.frame({ Size = UDim2.new(1, -6, 0, 96), BackgroundColor3 = Color3.fromHex("#E3F6FD"), LayoutOrder = 0, ZIndex = 22, Parent = s }, { Kit.corner(18) })
+	Kit.label({ Text = "Ребёрс " .. (r.n + 1) .. " из " .. Game.REBIRTH_MAX, Font = Kit.BLACK, TextSize = 22, TextColor3 = Color3.fromHex("#0F7FA8"), TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 8), Size = UDim2.new(1, -32, 0, 28), ZIndex = 23, Parent = top })
+	Kit.label({ Text = "✓ Навсегда: доход ×" .. (r.n + 2) .. ", замок +10 сек", Font = Kit.BLACK, TextSize = 15, TextColor3 = C.ok, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 40), Size = UDim2.new(1, -32, 0, 20), ZIndex = 23, Parent = top })
+	Kit.label({ Text = "↺ Сбросится: деньги и существа на базе (хроно-аномалии останутся)", TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 64), Size = UDim2.new(1, -32, 0, 20), ZIndex = 23, Parent = top })
+	section(s, "Что нужно", nil, 1)
 	local cash = State.s.cash or 0
-	txt(s, (if cash >= r.req.cash then "✅ " else "❌ ") .. L.money(r.req.cash), 20, C.text, 28, 4)
+	local okCash = cash >= r.req.cash
+	row(s, 2, { icon = if okCash then "✅" else "💰", color = if okCash then C.ok else Color3.fromHex("#FFB020"), title = L.money(r.req.cash), sub = if okCash then "Хватает" else "Ещё " .. L.money(r.req.cash - cash), subColor = if okCash then C.ok else C.dim, h = 62 })
 	for i, need in r.req.need do
-		txt(s, "• " .. need.count .. " × " .. L.name(Defs.RARITY[need.rarity].name) .. " или выше на пьедесталах", 18, RCOL[need.rarity], 28, 4 + i)
+		local info = Defs.RARITY[need.rarity]
+		row(s, 2 + i, { icon = "🥚", color = info.color, title = need.count .. " × " .. L.name(info.name) .. " или выше", sub = "Должны стоять на пьедесталах", h = 62 })
 	end
-	Kit.button("Вознестись", if r.can then "chrono" else "cancel", { Size = UDim2.new(1, -20, 0, 60), LayoutOrder = 20, ZIndex = 23, Parent = s }, function()
+	Kit.button(if r.can then "🌀 Вознестись" else "Пока не хватает", if r.can then "chrono" else "cancel", { Size = UDim2.new(1, -6, 0, 56), TextSize = 20, LayoutOrder = 20, ZIndex = 23, Parent = s }, function()
 		if r.can and State.act("rebirth") then
 			Kit.close(rebWin)
 		end
@@ -710,24 +820,6 @@ local function artIncome(it: any): number
 		return 0
 	end
 	return d.income * (1 + Game.ART_LVL_BONUS * ((it.lvl or 1) - 1))
-end
-
--- плитка существа: цвет редкости, уровень, отметка выбора
-local function artTile(parent: Instance, it: any, size: number, order: number, selected: boolean?, badge: string?): TextButton
-	local d = Defs.BY_ID[it.id]
-	local rc = d and Defs.RARITY[d.rarity].color or C.grey
-	local b = Kit.new("TextButton", { Text = "", AutoButtonColor = true, BackgroundColor3 = rc, BackgroundTransparency = if selected then 0.55 else 0.82, Size = UDim2.fromOffset(size, size), LayoutOrder = order, ZIndex = 23, Parent = parent }, { Kit.corner(14), Kit.new("UIStroke", { Color = if selected then Color3.fromHex("#FFB020") else rc, Thickness = if selected then 3 else 1.5, Transparency = if selected then 0 else 0.4 }) })
-	Kit.creature(it.id, { Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 2), ZIndex = 24, Parent = b })
-	local lv = Kit.label({ Text = "ур." .. (it.lvl or 1), Font = Kit.BLACK, TextSize = 11, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#231A3B"), BackgroundTransparency = 0.35, AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 4, 1, -4), Size = UDim2.fromOffset(0, 16), ZIndex = 25, Parent = b })
-	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = lv })
-	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5), Parent = lv })
-	if selected then
-		local ck = Kit.label({ Text = "✓", Font = Kit.BLACK, TextSize = 14, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#FFB020"), BackgroundTransparency = 0, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(20, 20), ZIndex = 25, Parent = b })
-		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ck })
-	elseif badge then
-		Kit.label({ Text = badge, TextSize = 14, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 3), Size = UDim2.fromOffset(18, 18), ZIndex = 25, Parent = b })
-	end
-	return b
 end
 
 local function drawTrade()
@@ -921,31 +1013,42 @@ function M.tradeNearest()
 end
 
 -- ── Кланы ───────────────────────────────────────────────────
-local clanWin, clanBody = Kit.window(root, "🛡️ Клан", 0.7, Color3.fromHex("#7B5CFF"))
+local clanWin, clanBody = Kit.window(root, "🛡️ Клан", 0.8, Color3.fromHex("#7B5CFF"))
+local function inputBox(parent: Instance, ph: string, order: number): TextBox
+	local f = Kit.frame({ Size = UDim2.new(1, -6, 0, 50), BackgroundColor3 = C.panel, LayoutOrder = order, ZIndex = 22, Parent = parent }, { Kit.corner(14), Kit.new("UIStroke", { Color = C.soft, Thickness = 2 }) })
+	return Kit.new("TextBox", { PlaceholderText = ph, PlaceholderColor3 = C.grey, Text = "", Font = Kit.FONT, TextSize = 19, TextColor3 = C.text, TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -28, 1, 0), ZIndex = 23, ClearTextOnFocus = false, Parent = f })
+end
 function M.clan()
 	local s = scrollBody(clanBody)
 	local c = State.s.clan
 	if c then
-		txt(s, "[" .. c.tag .. "] " .. (c.name or ""), 26, C.gold, 34, 0)
-		txt(s, "Участников: " .. (c.count or 1) .. "/" .. Game.CLAN_MAX .. "   Очки: " .. (c.points or 0), 19, C.dim, 28, 1)
-		txt(s, "Клановый рейд: 2+ соклановца на одной базе — взлом +30%, награда +20%", 17, C.ok, 44, 2)
-		txt(s, "Чат клана — вкладка в обычном чате Roblox", 16, C.dim, 26, 3)
-		Kit.button("Покинуть клан", "danger", { Size = UDim2.new(1, -20, 0, 54), LayoutOrder = 10, ZIndex = 23, Parent = s }, function()
+		local head = Kit.frame({ Size = UDim2.new(1, -6, 0, 92), BackgroundColor3 = Color3.fromHex("#EFEAFF"), LayoutOrder = 0, ZIndex = 22, Parent = s }, { Kit.corner(18) })
+		local badge = Kit.frame({ AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(68, 68), BackgroundColor3 = Color3.fromHex("#7B5CFF"), ZIndex = 23, Parent = head }, { Kit.corner(18) })
+		Kit.label({ Text = c.tag, Font = Kit.BLACK, TextSize = 20, TextColor3 = C.white, Size = UDim2.fromScale(1, 1), ZIndex = 24, Parent = badge })
+		Kit.label({ Text = c.name or "", Font = Kit.BLACK, TextSize = 22, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(94, 16), Size = UDim2.new(1, -110, 0, 28), ZIndex = 23, Parent = head })
+		local tags = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(94, 50), Size = UDim2.new(1, -110, 0, 24), ZIndex = 23, Parent = head }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left) })
+		chip(tags, "👥 " .. (c.count or 1) .. "/" .. Game.CLAN_MAX, Color3.fromHex("#7B5CFF"))
+		chip(tags, "⭐ Очки: " .. (c.points or 0), Color3.fromHex("#FFB020"), Color3.fromHex("#3A2600"))
+		section(s, "Бонусы клана", nil, 1)
+		row(s, 2, { icon = "⚔️", color = Color3.fromHex("#FF4D6D"), title = "Клановый рейд", sub = "2+ соклановца на одной базе: взлом +30%, награда +20%", h = 66 })
+		row(s, 3, { icon = "💬", color = Color3.fromHex("#2EB8F0"), title = "Чат клана", sub = "Отдельная вкладка в обычном чате Roblox", h = 66 })
+		Kit.button("Покинуть клан", "plain", { Size = UDim2.new(1, -6, 0, 50), TextColor3 = C.alarm, LayoutOrder = 10, ZIndex = 23, Parent = s }, function()
 			State.act("clanLeave")
 			task.wait(0.4)
 			M.clan()
 		end)
 	else
-		txt(s, "Вступи по тегу или создай свой (" .. L.money(Game.CLAN_COST) .. ")", 19, C.dim, 30, 0)
-		local tagBox = Kit.new("TextBox", { PlaceholderText = "ТЕГ (2–5 букв)", Text = "", Font = Kit.FONT, TextSize = 22, TextColor3 = C.text, BackgroundColor3 = C.panel, Size = UDim2.new(1, -20, 0, 54), LayoutOrder = 1, ZIndex = 23, ClearTextOnFocus = false, Parent = s }, { Kit.corner(12) })
-		local nameBox = Kit.new("TextBox", { PlaceholderText = "Название (для создания)", Text = "", Font = Kit.FONT, TextSize = 22, TextColor3 = C.text, BackgroundColor3 = C.panel, Size = UDim2.new(1, -20, 0, 54), LayoutOrder = 2, ZIndex = 23, ClearTextOnFocus = false, Parent = s }, { Kit.corner(12) })
-		local btns = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 60), LayoutOrder = 3, ZIndex = 22, Parent = s }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
-		Kit.button("Вступить", "chrono", { Size = UDim2.fromOffset(160, 56), ZIndex = 23, Parent = btns }, function()
+		section(s, "Играй вместе с друзьями", "Вступи по тегу или создай свой клан за " .. L.money(Game.CLAN_COST), 0)
+		row(s, 1, { icon = "⚔️", color = Color3.fromHex("#FF4D6D"), title = "Клановый рейд: взлом +30%, награда +20%", sub = "Когда 2+ соклановца грабят одну базу", h = 62 })
+		local tagBox = inputBox(s, "ТЕГ (2–5 букв)", 2)
+		local nameBox = inputBox(s, "Название (для создания)", 3)
+		local btns = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, 54), LayoutOrder = 4, ZIndex = 22, Parent = s }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+		Kit.button("Вступить", "chrono", { Size = UDim2.fromOffset(180, 52), ZIndex = 23, Parent = btns }, function()
 			State.act("clanJoin", { tag = tagBox.Text })
 			task.wait(0.4)
 			M.clan()
 		end)
-		Kit.button("Создать", "buy", { Size = UDim2.fromOffset(160, 56), ZIndex = 23, Parent = btns }, function()
+		Kit.button("Создать · " .. L.money(Game.CLAN_COST), "buy", { Size = UDim2.fromOffset(220, 52), ZIndex = 23, Parent = btns }, function()
 			State.act("clanCreate", { tag = tagBox.Text, name = nameBox.Text })
 			task.wait(0.4)
 			M.clan()
@@ -992,31 +1095,32 @@ function M.test()
 end
 
 -- ── Меню ────────────────────────────────────────────────────
-local menuWin, menuBody = Kit.window(root, "Меню", 0.6, Color3.fromHex("#231A3B"))
+local menuWin, menuBody = Kit.window(root, "Меню", 0.72, Color3.fromHex("#231A3B"))
 function M.menu()
 	Kit.clear(menuBody)
-	local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 22, Parent = menuBody }, { Kit.grid(Vector2.new(112, 112), 10) })
+	local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 22, Parent = menuBody })
+	Kit.new("UIGridLayout", { CellSize = UDim2.fromOffset(124, 112), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = g })
 	local items = {
-		{ "📖", "Коллекция", M.collection },
-		{ "🏆", "Рейтинг", M.boards },
-		{ "📜", "Квесты", M.quests },
-		{ "🛡️", "Клан", M.clan },
-		{ "🤝", "Обмен", M.tradeNearest },
-		{ "🌀", "Пропуск", function()
-			M.shop("season")
-		end },
+		{ "📖", "Коллекция", "#2EB8F0", M.collection },
+		{ "📜", "Квесты", "#22B455", M.quests },
+		{ "⭐", "Пропуск", "#7B5CFF", M.pass },
+		{ "🏆", "Рейтинг", "#F29A00", M.boards },
+		{ "🛡️", "Клан", "#7B5CFF", M.clan },
+		{ "🤝", "Обмен", "#FF7A45", M.tradeNearest },
 	}
 	if State.s.tester then
-		table.insert(items, { "🧪", "Тест", M.test })
+		table.insert(items, { "🧪", "Тест", "#6E6688", M.test })
 	end
-	for _, it in items do
-		local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, ZIndex = 22, Parent = g }, { Kit.corner(18), Kit.stroke(C.line, 3) })
-		Kit.label({ Text = it[1], TextScaled = true, Position = UDim2.fromOffset(28, 10), Size = UDim2.fromOffset(56, 56), ZIndex = 23, Parent = b })
-		Kit.label({ Text = it[2], TextSize = 18, Position = UDim2.new(0, 0, 1, -38), Size = UDim2.new(1, 0, 0, 30), ZIndex = 23, Parent = b })
+	for i, it in items do
+		local col = Color3.fromHex(it[3])
+		local b = Kit.new("TextButton", { Text = "", AutoButtonColor = true, BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(20) })
+		local tile = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12), Size = UDim2.fromOffset(58, 58), BackgroundColor3 = col, ZIndex = 23, Parent = b }, { Kit.corner(18), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(205, 205, 205)) }) })
+		Kit.label({ Text = it[1], TextScaled = true, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.62, 0.62), ZIndex = 24, Parent = tile })
+		Kit.label({ Text = it[2], Font = Kit.BLACK, TextSize = 16, Position = UDim2.new(0, 0, 1, -34), Size = UDim2.new(1, 0, 0, 24), ZIndex = 23, Parent = b })
 		b.Activated:Connect(function()
 			Kit.click(b)
 			Kit.close(menuWin)
-			it[3]()
+			it[4]()
 		end)
 	end
 	Kit.open(menuWin)

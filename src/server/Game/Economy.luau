@@ -345,6 +345,9 @@ function M.buyFromBelt(S: any, B: any, item: any)
 	-- купленное существо игрок несёт домой сам; не вышло взять в руки — сразу на базу
 	if api.carryBought and api.carryBought(S, item.id) then
 		Ctx.notify(S, "msg.carryHome", { name = Defs.BY_ID[item.id].name.ru }, "good")
+		if api.tutorialEvent then
+			api.tutorialEvent(S, "bought")
+		end
 	else
 		local _, where = M.give(S, item.id, 1)
 		Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = Defs.BY_ID[item.id].name.ru }, "good")
