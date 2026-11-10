@@ -27,7 +27,7 @@ export type Data = {
 	lastOnline: number,
 	receipts: { string },
 	ftue: number,
-	auto: boolean,
+	autoOn: boolean, -- авто-запуск включён игроком (по умолчанию выключен)
 	trails: { [string]: boolean },
 	trail: string,
 	today: { day: number, v: number }, -- лучшая дальность за сегодня (гонка дня)
@@ -70,7 +70,7 @@ function M.defaults(): Data
 		lastOnline = now,
 		receipts = {},
 		ftue = 0,
-		auto = true,
+		autoOn = false,
 		trails = { basic = true },
 		trail = "basic",
 		today = { day = 0, v = 0 },

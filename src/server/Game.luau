@@ -184,7 +184,7 @@ function M.push(player: Player)
 		dailyReady = d.daily.day ~= t,
 		streak = d.daily.streak,
 		friends = math.min(s.friends, Config.FRIEND_MAX),
-		auto = d.auto,
+		auto = d.autoOn,
 		ftue = d.ftue,
 		coinMult = M.coinMult(player),
 		bounces = M.bounces(player),
@@ -836,7 +836,7 @@ function M.setAuto(player: Player, on: any): (boolean, string?)
 	if not d then
 		return false, nil
 	end
-	d.auto = on == true
+	d.autoOn = on == true
 	M.push(player)
 	return true, nil
 end

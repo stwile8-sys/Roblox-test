@@ -203,7 +203,8 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 		if not landed then
 			-- руление
 			local mx = moveX()
-			lateral = math.clamp(lateral + mx * 90 * dt, -55, 55)
+			-- камера смотрит вдоль +Z, поэтому «вправо» на экране — это -X в мире
+			lateral = math.clamp(lateral - mx * 90 * dt, -55, 55)
 			lateral *= (1 - math.min(dt * 1.5, 1))
 			vel = Vector3.new(lateral, vel.Y - g * dt, vel.Z)
 			local nextPos = pos + vel * dt
