@@ -171,7 +171,7 @@ function M.get(name: string): Model?
 end
 
 function M.has(name: string): boolean
-	return ready[name] ~= nil
+	return if ready[name] then true else false
 end
 
 M.start()
