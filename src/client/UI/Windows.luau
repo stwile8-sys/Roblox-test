@@ -33,7 +33,11 @@ local function txt(parent: Instance, text: string, size: number?, color: Color3?
 end
 
 local function card(parent: Instance, h: number, order: number?, color: Color3?): Frame
-	return Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order or 0, ZIndex = 22, Parent = parent }, { Kit.corner(16), Kit.stroke(color or C.soft, 3) })
+	local f = Kit.frame({ Size = UDim2.new(1, -6, 0, h), BackgroundColor3 = C.panel, LayoutOrder = order or 0, ZIndex = 22, Parent = parent }, { Kit.corner(18) })
+	if color then
+		Kit.new("UIStroke", { Color = color, Thickness = 2, Transparency = 0.35, Parent = f })
+	end
+	return f
 end
 
 local function scrollBody(body: Frame): ScrollingFrame
@@ -42,7 +46,7 @@ local function scrollBody(body: Frame): ScrollingFrame
 end
 
 -- ── Сканер ──────────────────────────────────────────────────
-local scanWin, scanBody = Kit.window(root, "📡 Сканер", 0.7)
+local scanWin, scanBody = Kit.window(root, "📡 Сканер", 0.7, Color3.fromHex("#7B5CFF"))
 local DEF_NAME = { "Низкий", "Средний", "Высокий" }
 local DEF_COL = { C.ok, C.gold, C.alarm }
 
@@ -68,63 +72,173 @@ function M.scan()
 end
 
 -- ── Магазин ─────────────────────────────────────────────────
-local shopWin, shopBody = Kit.window(root, "🛍️ Магазин", 0.82)
+-- Каждая покупка открывает карточку-разъяснение: что именно даёт, навсегда или разово, цена.
+local shopWin, shopBody = Kit.window(root, "Магазин", 0.86, Color3.fromHex("#FF7A45"))
 local shopTab = "passes"
 
-local function buyButton(parent: Instance, price: number, key: string, owned: boolean)
-	Kit.button(if owned then "Есть ✓" else "R$ " .. price, if owned then "cancel" else "buy", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(120, 52), ZIndex = 23, Parent = parent }, function()
+local INFO: { [string]: { icon: string, tag: string, color: string, lines: { string }, note: string? } } = {
+	VIP = { icon = "👑", tag = "Навсегда", color = "#FFB020", lines = { "+10% к доходу, пока ты не в игре", "+5 💎 осколков каждый день", "Золотой ник над головой" } },
+	AutoCollect = { icon = "🤖", tag = "Навсегда", color = "#2EB8F0", lines = { "Деньги с плиты сами падают на счёт каждые 5 с", "Работает, даже когда ты в рейде", "Больше не нужно бегать к плите" } },
+	ScannerPlus = { icon = "📡", tag = "Навсегда", color = "#7B5CFF", lines = { "Сканер показывает 5 баз вместо 3", "Хозяин не увидит твоё имя, когда ты крадёшь" } },
+	SecondFloor = { icon = "🏰", tag = "Навсегда", color = "#C9853B", lines = { "Второй этаж на твоей базе с лестницей", "+10 пьедесталов — больше существ и дохода" } },
+	Starter = { icon = "🎁", tag = "Один раз", color = "#FF7A45", lines = { "500 💰 сразу", "Редкое существо «Жук-хранитель»", "Скин хроно-следа «Старт»" }, note = "Можно купить только один раз" },
+	Energy5 = { icon = "⚡", tag = "Разово", color = "#FFB020", lines = { "+5 ⚡ энергии сразу", "1 ⚡ = одно вторжение на чужую базу" }, note = "Энергия и так восстанавливается: 1 ⚡ за 5 минут" },
+	BoostX2 = { icon = "💰", tag = "15 минут", color = "#22B455", lines = { "Весь доход ×2 на 15 минут", "Купишь ещё — время продлится" } },
+	Titan = { icon = "🕳️", tag = "Один раз", color = "#1A1230", lines = { "Все твои мины станут «Чёрными дырами»", "Скин хроно-следа «Титан»" }, note = "Только внешний вид — силу не даёт" },
+	Shards100 = { icon = "💎", tag = "Разово", color = "#2EB8F0", lines = { "+100 💎 хроно-осколков", "Осколки тратятся на скины хроно-следа" } },
+	Shards550 = { icon = "💎", tag = "Выгодно", color = "#2EB8F0", lines = { "+550 💎 хроно-осколков", "На 10% выгоднее маленького набора" } },
+	Shards1500 = { icon = "💎", tag = "Лучшая цена", color = "#2EB8F0", lines = { "+1500 💎 хроно-осколков", "Самый выгодный набор" } },
+	SeasonPass = { icon = "⭐", tag = "Этот сезон", color = "#7B5CFF", lines = { "+20% к доходу до конца сезона", "Открывает ⭐ награды на всех 20 уровнях пропуска", "Сезонный скин сразу, Сезонный Титан — на 20 уровне" }, note = "Награды забираешь по мере прокачки уровня" },
+}
+
+local function priceOf(key: string): number
+	local p = Game.PASSES[key] or Game.PRODUCTS[key]
+	return p and p.price or 0
+end
+
+local function nameOf(key: string): string
+	local p = Game.PASSES[key] or Game.PRODUCTS[key]
+	return p and L.name(p.name) or key
+end
+
+-- лист покупки поверх всего интерфейса
+local sheetBg = Kit.new("TextButton", { Name = "SheetBg", Text = "", AutoButtonColor = false, BackgroundColor3 = Color3.fromHex("#140E26"), BackgroundTransparency = 0.45, Size = UDim2.new(1, 400, 1, 400), Position = UDim2.fromOffset(-200, -200), ZIndex = 40, Visible = false, Parent = root })
+local sheet = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(440, 330), BackgroundColor3 = C.bg, ZIndex = 41, Visible = false, Parent = root }, { Kit.corner(24) })
+sheetBg.Activated:Connect(function()
+	sheet.Visible = false
+	sheetBg.Visible = false
+end)
+
+function M.explain(key: string)
+	local info = INFO[key]
+	if not info then
+		return
+	end
+	Kit.clear(sheet)
+	local owned = (Game.PASSES[key] and (State.s.passes or {})[key]) or (Game.PRODUCTS[key] and Game.PRODUCTS[key].once and (State.s.once or {})[key])
+	local col = Color3.fromHex(info.color)
+	-- слева крупная иконка на цветной плашке, справа текст
+	local tile = Kit.frame({ Position = UDim2.fromOffset(20, 20), Size = UDim2.fromOffset(120, 120), BackgroundColor3 = col, ZIndex = 42, Parent = sheet }, { Kit.corner(28), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(200, 200, 200)) }) })
+	Kit.label({ Text = info.icon, TextScaled = true, Size = UDim2.fromScale(0.62, 0.62), Position = UDim2.fromScale(0.19, 0.19), ZIndex = 43, Parent = tile })
+	local pill = Kit.label({ Text = info.tag, Font = Kit.BLACK, TextSize = 14, TextColor3 = col, BackgroundTransparency = 0.85, BackgroundColor3 = col, AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.fromOffset(160, 22), Size = UDim2.fromOffset(0, 26), ZIndex = 42, Parent = sheet }, nil)
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = pill })
+	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), Parent = pill })
+	if key == "Titan" then
+		pill.TextColor3 = C.text
+	end
+	Kit.label({ Text = nameOf(key), Font = Kit.BLACK, TextSize = 30, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(160, 52), Size = UDim2.new(1, -180, 0, 36), ZIndex = 42, Parent = sheet })
+	local list = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(160, 94), Size = UDim2.new(1, -180, 0, 140), ZIndex = 42, Parent = sheet }, { Kit.list(nil, 6, Enum.HorizontalAlignment.Left) })
+	for i, line in info.lines do
+		Kit.label({ Text = "✓  " .. line, TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, 0, 0, 22), LayoutOrder = i, ZIndex = 42, Parent = list })
+	end
+	if info.note then
+		Kit.label({ Text = info.note, TextSize = 15, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(20, 236), Size = UDim2.new(1, -40, 0, 20), ZIndex = 42, Parent = sheet })
+	end
+	local close = function()
+		sheet.Visible = false
+		sheetBg.Visible = false
+	end
+	Kit.button("Не сейчас", "cancel", { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 20, 1, -18), Size = UDim2.fromOffset(150, 54), ZIndex = 42, Parent = sheet }, close)
+	Kit.button(if owned then "Уже есть ✓" else "Купить  R$ " .. priceOf(key), if owned then "cancel" else "buy", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -20, 1, -18), Size = UDim2.fromOffset(230, 54), TextSize = 22, ZIndex = 42, Parent = sheet }, function()
 		if not owned then
 			State.act("buy", { key = key, test = State.s.tester == true and M.testBuy == true })
 		end
+		close()
 	end)
+	sheetBg.Visible = true
+	sheet.Visible = true
+	Kit.pop(sheet, 0.9)
 end
 
-local function productCard(s: Instance, i: number, icon: string, name: string, desc: string?, price: number, key: string, owned: boolean)
-	local c = card(s, 92, i)
-	Kit.label({ Text = icon, TextScaled = true, Position = UDim2.fromOffset(10, 14), Size = UDim2.fromOffset(64, 64), ZIndex = 23, Parent = c })
-	Kit.label({ Text = name, Font = Kit.BLACK, TextSize = 21, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(84, 10), Size = UDim2.new(1, -220, 0, 26), ZIndex = 23, Parent = c })
-	Kit.label({ Text = desc or "", TextSize = 16, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Position = UDim2.fromOffset(84, 38), Size = UDim2.new(1, -220, 0, 46), ZIndex = 23, Parent = c })
-	buyButton(c, price, key, owned)
+-- карточка товара в сетке: иконка, название, коротко, цена; тап — разъяснение
+local function productCard(parent: Instance, order: number, key: string, owned: boolean)
+	local info = INFO[key]
+	local col = Color3.fromHex(info.color)
+	local c = Kit.new("TextButton", { Text = "", AutoButtonColor = true, BackgroundColor3 = C.panel, LayoutOrder = order, ZIndex = 22, Parent = parent }, { Kit.corner(18) })
+	local tile = Kit.frame({ Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 0, 74), BackgroundColor3 = col, ZIndex = 23, Parent = c }, { Kit.corner(14), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(200, 200, 200)) }) })
+	Kit.label({ Text = info.icon, TextScaled = true, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(50, 50), ZIndex = 24, Parent = tile })
+	local tag = Kit.label({ Text = info.tag, Font = Kit.BLACK, TextSize = 12, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#140E26"), BackgroundTransparency = 0.55, AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.fromOffset(6, 6), Size = UDim2.fromOffset(0, 20), ZIndex = 25, Parent = tile })
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = tag })
+	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = tag })
+	Kit.label({ Text = nameOf(key), Font = Kit.BLACK, TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 90), Size = UDim2.new(1, -24, 0, 20), ZIndex = 23, Parent = c })
+	Kit.label({ Text = info.lines[1], TextSize = 13, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Position = UDim2.fromOffset(12, 111), Size = UDim2.new(1, -24, 0, 32), ZIndex = 23, Parent = c })
+	local price = Kit.label({ Text = if owned then "Есть ✓" else "R$ " .. priceOf(key), Font = Kit.BLACK, TextSize = 16, TextColor3 = if owned then C.dim else C.white, BackgroundColor3 = if owned then C.soft else Color3.fromHex("#34C759"), AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 10, 1, -10), Size = UDim2.new(1, -20, 0, 32), ZIndex = 23, Parent = c })
+	Kit.new("UICorner", { CornerRadius = UDim.new(0, 10), Parent = price })
+	c.Activated:Connect(function()
+		Kit.click(c)
+		M.explain(key)
+	end)
+	return c
 end
+
+local function grid(parent: Instance, order: number): Frame
+	local g = Kit.frame({ BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, -6, 0, 0), LayoutOrder = order, ZIndex = 22, Parent = parent })
+	Kit.new("UIGridLayout", { CellSize = UDim2.fromOffset(160, 196), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = g })
+	return g
+end
+
+local function section(parent: Instance, text: string, sub: string?, order: number)
+	local f = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, -6, 0, if sub then 44 else 28), LayoutOrder = order, ZIndex = 22, Parent = parent })
+	Kit.label({ Text = text, Font = Kit.BLACK, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 24), ZIndex = 22, Parent = f })
+	if sub then
+		Kit.label({ Text = sub, TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(0, 24), Size = UDim2.new(1, 0, 0, 18), ZIndex = 22, Parent = f })
+	end
+end
+
+local SHOP_TABS = { { "passes", "Навсегда" }, { "boost", "Бусты" }, { "cosmetic", "Стиль" }, { "shards", "Осколки" }, { "season", "Пропуск" } }
 
 function M.shop(tab: string?)
 	shopTab = tab or shopTab
+	if shopTab == "season" then
+		M.pass()
+		return
+	end
 	Kit.clear(shopBody)
-	local tabs = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 52), ZIndex = 22, Parent = shopBody }, { Kit.list(Enum.FillDirection.Horizontal, 4) })
-	for _, t in { { "passes", "🎫" }, { "boost", "⚡" }, { "cosmetic", "✨" }, { "shards", "💎" }, { "season", "🌀" } } do
-		Kit.button(t[2], if t[1] == shopTab then "gold" else "plain", { Size = UDim2.fromOffset(68, 50), TextSize = 26, ZIndex = 22, Parent = tabs }, function()
+	-- вкладки-«пилюли»: активная залита
+	local tabs = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 44), ZIndex = 22, Parent = shopBody }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left) })
+	for i, t in SHOP_TABS do
+		local active = t[1] == shopTab
+		local b = Kit.new("TextButton", { Text = t[2], Font = Kit.BLACK, TextSize = 16, TextColor3 = if active then C.white else C.dim, BackgroundColor3 = if active then Color3.fromHex("#FF7A45") else C.panel, AutoButtonColor = true, Size = UDim2.fromOffset(98, 40), LayoutOrder = i, ZIndex = 22, Parent = tabs }, { Kit.corner(20) })
+		b.Activated:Connect(function()
+			Kit.click(b)
 			M.shop(t[1])
 		end)
 	end
-	local holder = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 58), Size = UDim2.new(1, 0, 1, -58), ZIndex = 22, Parent = shopBody })
-	local s = Kit.scroll({ ZIndex = 22, Parent = holder }, { Kit.list(nil, 8), Kit.pad(4) })
+	local holder = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 52), Size = UDim2.new(1, 0, 1, -52), ZIndex = 22, Parent = shopBody })
+	local s = Kit.scroll({ ZIndex = 22, Parent = holder }, { Kit.list(nil, 10, Enum.HorizontalAlignment.Left), Kit.pad(2) })
 	local passes = State.s.passes or {}
 	local once = State.s.once or {}
 	if shopTab == "passes" then
-		txt(s, "Пропуска — навсегда", 20, C.gold, 28, 0)
-		local icons = { VIP = "👑", AutoCollect = "🤖", ScannerPlus = "📡", SecondFloor = "🏰" }
-		local i = 1
-		for _, key in { "VIP", "AutoCollect", "ScannerPlus", "SecondFloor" } do
-			local p = Game.PASSES[key]
-			productCard(s, i, icons[key], L.name(p.name), L.name(p.desc), p.price, key, passes[key] == true)
-			i += 1
+		section(s, "Покупаются один раз и остаются навсегда", "Нажми на карточку — расскажем, что она даёт", 0)
+		local g = grid(s, 1)
+		for i, key in { "VIP", "AutoCollect", "ScannerPlus", "SecondFloor" } do
+			productCard(g, i, key, passes[key] == true)
 		end
 	elseif shopTab == "boost" then
-		txt(s, "Бустеры", 20, C.gold, 28, 0)
-		productCard(s, 1, "🎁", L.name(Game.PRODUCTS.Starter.name), L.name(Game.PRODUCTS.Starter.desc), 49, "Starter", once.Starter == true)
-		productCard(s, 2, "⚡", L.name(Game.PRODUCTS.Energy5.name), L.name(Game.PRODUCTS.Energy5.desc), 25, "Energy5", false)
-		productCard(s, 3, "✖️2", L.name(Game.PRODUCTS.BoostX2.name), L.name(Game.PRODUCTS.BoostX2.desc), 59, "BoostX2", false)
+		section(s, "Ускорители", "Действуют сразу после покупки", 0)
+		local g = grid(s, 1)
+		productCard(g, 1, "Starter", once.Starter == true)
+		productCard(g, 2, "BoostX2", false)
+		productCard(g, 3, "Energy5", false)
 	elseif shopTab == "cosmetic" then
-		txt(s, "Скины хроно-следа (за 💎)", 20, C.gold, 28, 0)
+		section(s, "Скины хроно-следа", "Покупаются за 💎 осколки, силу не дают", 0)
 		local skins = State.s.skins or {}
+		local g = Kit.frame({ BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, -6, 0, 0), LayoutOrder = 1, ZIndex = 22, Parent = s })
+		Kit.new("UIGridLayout", { CellSize = UDim2.fromOffset(160, 150), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = g })
 		for i, sk in Game.SKINS do
 			if sk.shards >= 0 or skins[sk.id] then
-				local c = card(s, 80, i, sk.color)
-				Kit.frame({ Position = UDim2.fromOffset(12, 14), Size = UDim2.fromOffset(52, 52), BackgroundColor3 = sk.color, ZIndex = 23, Parent = c }, { Kit.corner(26) })
-				Kit.label({ Text = L.name(sk.name), Font = Kit.BLACK, TextSize = 21, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(76, 0), Size = UDim2.new(1, -210, 1, 0), ZIndex = 23, Parent = c })
 				local owned = skins[sk.id]
 				local equipped = State.s.skin == sk.id
-				Kit.button(if equipped then "Надет" elseif owned then "Надеть" else "💎 " .. sk.shards, if equipped then "cancel" elseif owned then "chrono" else "buy", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(120, 52), ZIndex = 23, Parent = c }, function()
+				local c = Kit.frame({ BackgroundColor3 = C.panel, LayoutOrder = i, ZIndex = 22, Parent = g }, { Kit.corner(18) })
+				if equipped then
+					Kit.new("UIStroke", { Color = sk.color, Thickness = 3, Parent = c })
+				end
+				-- образец следа: три шарика по убыванию
+				for k = 1, 3 do
+					Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, (k - 2) * 30, 0, 38), Size = UDim2.fromOffset(34 - k * 6, 34 - k * 6), BackgroundColor3 = sk.color, BackgroundTransparency = (k - 1) * 0.25, ZIndex = 23, Parent = c }, { Kit.corner(20) })
+				end
+				Kit.label({ Text = L.name(sk.name), Font = Kit.BLACK, TextSize = 16, Position = UDim2.fromOffset(8, 66), Size = UDim2.new(1, -16, 0, 22), ZIndex = 23, Parent = c })
+				Kit.button(if equipped then "Надет" elseif owned then "Надеть" else "💎 " .. sk.shards, if equipped then "cancel" elseif owned then "chrono" else "buy", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -20, 0, 40), TextSize = 17, ZIndex = 23, Parent = c }, function()
 					if equipped then
 						return
 					end
@@ -134,21 +248,20 @@ function M.shop(tab: string?)
 				end)
 			end
 		end
-		productCard(s, 50, "🕳️", L.name(Game.PRODUCTS.Titan.name), L.name(Game.PRODUCTS.Titan.desc), 1999, "Titan", once.Titan == true)
+		section(s, "Наборы", nil, 2)
+		local g2 = grid(s, 3)
+		productCard(g2, 1, "Titan", once.Titan == true)
 	elseif shopTab == "shards" then
-		txt(s, "Хроно-осколки 💎", 20, C.gold, 28, 0)
-		productCard(s, 1, "💎", L.name(Game.PRODUCTS.Shards100.name), nil, 49, "Shards100", false)
-		productCard(s, 2, "💎💎", L.name(Game.PRODUCTS.Shards550.name), nil, 199, "Shards550", false)
-		productCard(s, 3, "💎💎💎", L.name(Game.PRODUCTS.Shards1500.name), nil, 449, "Shards1500", false)
-	else
-		M.passBody(s)
+		section(s, "Хроно-осколки 💎", "Валюта для скинов хроно-следа", 0)
+		local g = grid(s, 1)
+		productCard(g, 1, "Shards100", false)
+		productCard(g, 2, "Shards550", false)
+		productCard(g, 3, "Shards1500", false)
 	end
 	Kit.open(shopWin)
 end
 
--- сезонный пропуск: уровни, награды free/premium
-
--- после покупки (в т.ч. тестовой) перерисовать открытый магазин, чтобы стало «Есть ✓»
+-- после покупки (в т.ч. тестовой) перерисовать открытый магазин и пропуск
 for _, key in { "once", "passes", "skins" } do
 	State.on(key, function()
 		if shopWin.Visible then
@@ -157,52 +270,128 @@ for _, key in { "once", "passes", "skins" } do
 	end)
 end
 
-function M.passBody(s: Instance)
+-- ── Сезонный пропуск ────────────────────────────────────────
+-- Шапка: сезон, дни до конца, уровень и полоса опыта, откуда брать опыт.
+-- Ниже — горизонтальная дорожка 20 уровней: сверху бесплатные награды, снизу ⭐ премиум.
+local passWin, passBody = Kit.window(root, "Хроно-пропуск", 0.9, Color3.fromHex("#7B5CFF"))
+
+local function reward(r: any): (string, string)
+	if r.art == "seasonal" then
+		return "🏆", "Сезонный Титан"
+	elseif r.art then
+		local info = Defs.RARITY[r.art]
+		return "🥚", (info and L.name(info.name) or "") .. " существо"
+	elseif r.shards then
+		return "💎", tostring(r.shards)
+	elseif r.tokens then
+		return "🔨", "×" .. r.tokens
+	elseif r.skin then
+		return "✨", "Скин сезона"
+	end
+	return "💰", "5 мин дохода"
+end
+
+function M.pass()
+	Kit.clear(passBody)
 	local p = State.s.pass or { xp = 0, prem = false, cf = {}, cp = {} }
 	local theme = workspace:GetAttribute("Season") or 1
+	local sCfg = Game.SEASONS[theme] or Game.SEASONS[1]
 	local ends = workspace:GetAttribute("SeasonEnds") or os.time()
 	local lvl = math.floor(p.xp / Game.PASS_XP)
-	txt(s, "🌀 " .. L.name(Game.SEASONS[theme].name) .. " — осталось " .. math.max(0, math.floor((ends - os.time()) / 86400)) .. " дн.", 20, Game.SEASONS[theme].color, 28, 0)
-	txt(s, "Уровень " .. lvl .. "/" .. Game.PASS_LEVELS .. "  (" .. p.xp % Game.PASS_XP .. "/" .. Game.PASS_XP .. " XP)", 18, C.dim, 24, 1)
-	if not p.prem then
-		productCard(s, 2, "🌀", L.name(Game.PRODUCTS.SeasonPass.name), L.name(Game.PRODUCTS.SeasonPass.desc), 999, "SeasonPass", false)
+	local into = p.xp % Game.PASS_XP
+	if lvl >= Game.PASS_LEVELS then
+		into = Game.PASS_XP
 	end
-	local function rewardText(r: any): string
-		if r.art then
-			return if r.art == "seasonal" then "Сезонный Титан" else (L.name(Defs.RARITY[r.art] and Defs.RARITY[r.art].name) .. " арт.")
-		elseif r.shards then
-			return "💎" .. r.shards
-		elseif r.tokens then
-			return "🔨" .. r.tokens
-		elseif r.skin then
-			return "Скин"
-		end
-		return "💰"
+	-- шапка: значок уровня + полоса опыта
+	local badge = Kit.frame({ Size = UDim2.fromOffset(64, 64), BackgroundColor3 = sCfg.color, ZIndex = 22, Parent = passBody }, { Kit.corner(32), Kit.new("UIStroke", { Color = C.white, Thickness = 3 }) })
+	Kit.label({ Text = tostring(lvl), Font = Kit.BLACK, TextSize = 30, TextColor3 = C.white, Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = badge }).TextStrokeTransparency = 0.6
+	Kit.label({ Text = L.name(sCfg.name) .. " · ещё " .. math.max(0, math.ceil((ends - os.time()) / 86400)) .. " дн.", Font = Kit.BLACK, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(76, 2), Size = UDim2.new(1, -330, 0, 24), ZIndex = 22, Parent = passBody })
+	local bar = Kit.frame({ Position = UDim2.fromOffset(76, 32), Size = UDim2.new(1, -330, 0, 14), BackgroundColor3 = C.soft, ZIndex = 22, Parent = passBody }, { Kit.corner(7) })
+	Kit.frame({ Size = UDim2.fromScale(math.clamp(into / Game.PASS_XP, 0.02, 1), 1), BackgroundColor3 = sCfg.color, ZIndex = 23, Parent = bar }, { Kit.corner(7) })
+	Kit.label({ Text = if lvl >= Game.PASS_LEVELS then "Максимальный уровень!" else into .. " / " .. Game.PASS_XP .. " опыта до уровня " .. (lvl + 1), TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(76, 48), Size = UDim2.new(1, -330, 0, 18), ZIndex = 22, Parent = passBody })
+	-- откуда опыт
+	local chips = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.fromOffset(244, 66), ZIndex = 22, Parent = passBody })
+	Kit.new("UIGridLayout", { CellSize = UDim2.fromOffset(118, 30), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = chips })
+	for i, t in { { "🦝 Кража", Game.XP.steal }, { "📜 Квест", Game.XP.quest }, { "🛡️ Защита", Game.XP.defend }, { "🛒 Покупка", Game.XP.buy } } do
+		local chip = Kit.label({ Text = t[1] .. "  +" .. t[2], TextSize = 14, BackgroundColor3 = C.panel, BackgroundTransparency = 0, LayoutOrder = i, ZIndex = 23, Parent = chips })
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = chip })
 	end
+	-- подписи рядов
+	local TRACK_Y, ROW_H = 80, 92
+	local labels = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(0, TRACK_Y), Size = UDim2.fromOffset(70, ROW_H * 2 + 30), ZIndex = 22, Parent = passBody })
+	Kit.label({ Text = "Бесплатно", Font = Kit.BLACK, TextSize = 14, TextColor3 = C.dim, Position = UDim2.fromOffset(0, 0), Size = UDim2.new(1, 0, 0, ROW_H), ZIndex = 22, Parent = labels })
+	Kit.label({ Text = "⭐\nПремиум", Font = Kit.BLACK, TextSize = 14, TextColor3 = Color3.fromHex("#D98A00"), Position = UDim2.fromOffset(0, ROW_H + 30), Size = UDim2.new(1, 0, 0, ROW_H), ZIndex = 22, Parent = labels })
+	local track = Kit.scroll({ Position = UDim2.fromOffset(74, TRACK_Y), Size = UDim2.new(1, -74, 0, ROW_H * 2 + 40), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollBarThickness = 4, ZIndex = 22, Parent = passBody })
+	local COL_W = 96
+	-- линия прогресса между рядами
+	local lineY = ROW_H + 15
+	Kit.frame({ Position = UDim2.fromOffset(0, lineY - 3), Size = UDim2.fromOffset(COL_W * Game.PASS_LEVELS, 6), BackgroundColor3 = C.soft, ZIndex = 22, Parent = track }, { Kit.corner(3) })
+	Kit.frame({ Position = UDim2.fromOffset(0, lineY - 3), Size = UDim2.fromOffset(COL_W * math.clamp(lvl - 0.5, 0, Game.PASS_LEVELS), 6), BackgroundColor3 = sCfg.color, ZIndex = 22, Parent = track }, { Kit.corner(3) })
 	for level = 1, Game.PASS_LEVELS do
-		local c = card(s, 64, 10 + level, if level <= lvl then C.gold else C.line)
-		Kit.label({ Text = tostring(level), Font = Kit.BLACK, TextSize = 24, Size = UDim2.fromOffset(44, 64), ZIndex = 23, Parent = c })
-		for col, premium in { false, true } do
+		local x = (level - 1) * COL_W
+		local reached = level <= lvl
+		local node = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(x + COL_W / 2, lineY), Size = UDim2.fromOffset(28, 28), BackgroundColor3 = if reached then sCfg.color else C.bg, ZIndex = 23, Parent = track }, { Kit.corner(14), Kit.new("UIStroke", { Color = if reached then C.white else C.soft, Thickness = 2 }) })
+		Kit.label({ Text = tostring(level), Font = Kit.BLACK, TextSize = 13, TextColor3 = if reached then C.white else C.dim, Size = UDim2.fromScale(1, 1), ZIndex = 24, Parent = node })
+		for row, premium in { false, true } do
 			local key = tostring(level)
 			local claimed = if premium then p.cp[key] else p.cf[key]
-			local can = level <= lvl and not claimed and (not premium or p.prem)
-			Kit.button((if premium then "⭐ " else "") .. rewardText(Game.passReward(level, premium)), if claimed then "cancel" elseif can then "gold" else "plain", {
-				Position = UDim2.new(0, 48 + (col - 1) * 150, 0, 8),
-				Size = UDim2.fromOffset(144, 48),
-				TextSize = 16,
-				ZIndex = 23,
-				Parent = c,
-			}, function()
-				if can and State.act("passClaim", { level = level, premium = premium }) then
-					M.shop("season")
+			local locked = premium and not p.prem
+			local can = reached and not claimed and not locked
+			local icon, text = reward(Game.passReward(level, premium))
+			local big = premium and (level % 5 == 0 or level == 1)
+			local bg = if can then Color3.fromHex("#FFF3CC") elseif big then Color3.fromHex("#F3EDFF") else C.panel
+			local t = Kit.new("TextButton", { Text = "", AutoButtonColor = can, BackgroundColor3 = bg, Position = UDim2.fromOffset(x + 6, if row == 1 then 0 else ROW_H + 30), Size = UDim2.fromOffset(COL_W - 12, ROW_H), ZIndex = 23, Parent = track }, { Kit.corner(16) })
+			if can then
+				Kit.new("UIStroke", { Color = Color3.fromHex("#FFB020"), Thickness = 3, Parent = t })
+				Kit.pulse(t, true)
+			elseif big then
+				Kit.new("UIStroke", { Color = Color3.fromHex("#7B5CFF"), Thickness = 2, Transparency = 0.4, Parent = t })
+			end
+			Kit.label({ Text = icon, TextScaled = true, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10), Size = UDim2.fromOffset(38, 38), ZIndex = 24, Parent = t })
+			Kit.label({ Text = if can then "Забрать!" elseif claimed then "Получено" else text, Font = Kit.BLACK, TextSize = 12, TextColor3 = if can then Color3.fromHex("#B36B00") elseif claimed then C.ok else C.text, Position = UDim2.new(0, 4, 1, -36), Size = UDim2.new(1, -8, 0, 30), ZIndex = 24, Parent = t })
+			if claimed or locked or not reached then
+				-- приглушить недоступное
+				Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = C.bg, BackgroundTransparency = if claimed then 0.45 else 0.35, ZIndex = 25, Parent = t }, { Kit.corner(16) })
+				if locked then
+					Kit.label({ Text = "🔒", TextSize = 18, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(22, 22), ZIndex = 26, Parent = t })
+				elseif claimed then
+					Kit.label({ Text = "✓", Font = Kit.BLACK, TextSize = 20, TextColor3 = C.ok, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -6, 0, 2), Size = UDim2.fromOffset(22, 22), ZIndex = 26, Parent = t })
+				end
+			end
+			t.Activated:Connect(function()
+				if can then
+					Kit.click(t)
+					if State.act("passClaim", { level = level, premium = premium }) then
+						M.pass()
+					end
+				elseif locked then
+					M.explain("SeasonPass")
 				end
 			end)
 		end
 	end
+	-- прокрутить к текущему уровню
+	track.CanvasPosition = Vector2.new(math.max(0, (lvl - 2) * COL_W), 0)
+	if not p.prem then
+		Kit.button("⭐ Открыть премиум — R$ " .. priceOf("SeasonPass"), "gold", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -2), Size = UDim2.fromOffset(330, 50), TextSize = 19, ZIndex = 22, Parent = passBody }, function()
+			M.explain("SeasonPass")
+		end)
+	else
+		Kit.label({ Text = "⭐ Премиум открыт: +20% к доходу до конца сезона", Font = Kit.BLACK, TextSize = 16, TextColor3 = Color3.fromHex("#B36B00"), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, 0, 0, 24), ZIndex = 22, Parent = passBody })
+	end
+	Kit.open(passWin)
 end
+M.passBody = function(_s: Instance)
+	M.pass()
+end
+State.on("pass", function()
+	if passWin.Visible then
+		M.pass()
+	end
+end)
 
 -- ── Коллекция + хранилище ───────────────────────────────────
-local collWin, collBody = Kit.window(root, "📖 Коллекция", 0.85)
+local collWin, collBody = Kit.window(root, "📖 Коллекция", 0.85, Color3.fromHex("#2EB8F0"))
 function M.collection()
 	local s = scrollBody(collBody)
 	local coll = State.s.coll or {}
@@ -259,7 +448,7 @@ function M.collection()
 end
 
 -- ── Лидерборды ──────────────────────────────────────────────
-local boardWin, boardBody = Kit.window(root, "🏆 Лидерборды", 0.8)
+local boardWin, boardBody = Kit.window(root, "🏆 Лидерборды", 0.8, Color3.fromHex("#F29A00"))
 function M.boards()
 	local _, b = State.act("boards")
 	b = b or State.boards
@@ -276,7 +465,7 @@ function M.boards()
 end
 
 -- ── Квесты и серия ──────────────────────────────────────────
-local questWin, questBody = Kit.window(root, "📜 Ежедневные квесты", 0.7)
+local questWin, questBody = Kit.window(root, "📜 Ежедневные квесты", 0.7, Color3.fromHex("#22B455"))
 function M.quests()
 	local s = scrollBody(questBody)
 	local q = State.s.quests or { list = {} }
@@ -313,7 +502,7 @@ function M.quests()
 end
 
 -- ── Верстак ─────────────────────────────────────────────────
-local benchWin, benchBody = Kit.window(root, "🔨 Верстак", 0.8)
+local benchWin, benchBody = Kit.window(root, "🔨 Верстак", 0.8, Color3.fromHex("#C9853B"))
 local TRAP_ICON = { mine = "💣", slow = "🌀", decoy = "🎭" }
 function M.bench()
 	local s = scrollBody(benchBody)
@@ -425,7 +614,7 @@ function M.pedestal(slot: number)
 end
 
 -- ── Ребёрс ──────────────────────────────────────────────────
-local rebWin, rebBody = Kit.window(root, "🌀 Ребёрс", 0.6)
+local rebWin, rebBody = Kit.window(root, "🌀 Ребёрс", 0.6, Color3.fromHex("#2EB8F0"))
 function M.rebirth()
 	local s = scrollBody(rebBody)
 	local r = State.s.rebirths
@@ -452,7 +641,7 @@ function M.rebirth()
 end
 
 -- ── Трейд ───────────────────────────────────────────────────
-local tradeWin, tradeBody = Kit.window(root, "🤝 Обмен", 0.85)
+local tradeWin, tradeBody = Kit.window(root, "🤝 Обмен", 0.85, Color3.fromHex("#FF7A45"))
 local tradeView = nil
 local myGive: { number } = {}
 
@@ -583,7 +772,7 @@ function M.tradeNearest()
 end
 
 -- ── Кланы ───────────────────────────────────────────────────
-local clanWin, clanBody = Kit.window(root, "🛡️ Клан", 0.7)
+local clanWin, clanBody = Kit.window(root, "🛡️ Клан", 0.7, Color3.fromHex("#7B5CFF"))
 function M.clan()
 	local s = scrollBody(clanBody)
 	local c = State.s.clan
@@ -617,7 +806,7 @@ function M.clan()
 end
 
 -- ── Тест-панель владельца ───────────────────────────────────
-local testWin, testBody = Kit.window(root, "🧪 Тест (видишь только ты)", 0.75)
+local testWin, testBody = Kit.window(root, "🧪 Тест (видишь только ты)", 0.75, Color3.fromHex("#6E6688"))
 M.testBuy = false
 function M.test()
 	local s = scrollBody(testBody)
@@ -654,7 +843,7 @@ function M.test()
 end
 
 -- ── Меню ────────────────────────────────────────────────────
-local menuWin, menuBody = Kit.window(root, "Меню", 0.6)
+local menuWin, menuBody = Kit.window(root, "Меню", 0.6, Color3.fromHex("#231A3B"))
 function M.menu()
 	Kit.clear(menuBody)
 	local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 22, Parent = menuBody }, { Kit.grid(Vector2.new(112, 112), 10) })

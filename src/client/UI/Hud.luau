@@ -46,10 +46,12 @@ local function cap(l: TextLabel): TextLabel
 end
 
 local function pill(icon: string, color: Color3, pos: UDim2, anchor: Vector2?): TextLabel
-	local f = Kit.frame({ Position = pos, AnchorPoint = anchor or Vector2.zero, Size = UDim2.fromOffset(140, 40), BackgroundColor3 = C.bg, Parent = root }, { Kit.corner(20), Kit.stroke(C.line, 3) })
-	Kit.frame({ Size = UDim2.fromOffset(40, 40), BackgroundColor3 = color, Parent = f }, { Kit.corner(20), Kit.stroke(C.line, 3) })
-	Kit.label({ Text = icon, TextScaled = true, Size = UDim2.fromOffset(28, 28), Position = UDim2.fromOffset(6, 6), ZIndex = 2, Parent = f })
-	return Kit.label({ Text = "0", Font = Kit.BLACK, TextSize = 21, TextColor3 = C.text, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.new(1, -52, 1, 0), Parent = f })
+	-- белая «таблетка» с цветным кружком-иконкой и мягкой тенью
+	local f = Kit.frame({ Position = pos, AnchorPoint = anchor or Vector2.zero, Size = UDim2.fromOffset(150, 42), BackgroundColor3 = C.bg, ZIndex = 2, Parent = root }, { Kit.corner(21) })
+	Kit.shadow(f, 21, 0.82)
+	Kit.frame({ Position = UDim2.fromOffset(3, 3), Size = UDim2.fromOffset(36, 36), BackgroundColor3 = color, ZIndex = 2, Parent = f }, { Kit.corner(18), Kit.new("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(205, 205, 205)) }) })
+	Kit.label({ Text = icon, TextScaled = true, Size = UDim2.fromOffset(24, 24), Position = UDim2.fromOffset(9, 9), ZIndex = 3, Parent = f })
+	return Kit.label({ Text = "0", Font = Kit.BLACK, TextSize = 22, TextColor3 = C.text, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.new(1, -54, 1, 0), ZIndex = 3, Parent = f })
 end
 
 -- деньги и алмазы по центру сверху: слева угол занят кнопкой меню Roblox, её скрыть нельзя
@@ -101,8 +103,77 @@ local menuB = Kit.iconButton("📋", C.panel2, 54, { AnchorPoint = Vector2.new(1
 		M.onMenu()
 	end
 end)
-local _ = shopB
-local _m = menuB
+M.onPass = nil :: (() -> ())?
+local passB = Kit.iconButton("⭐", Color3.fromHex("#7B5CFF"), 54, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -136, 0, 58), Parent = root }, function()
+	if M.onPass then
+		M.onPass()
+	end
+end)
+-- точка «есть что забрать» на кнопке пропуска
+local passDot = Kit.frame({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 2, 0, -2), Size = UDim2.fromOffset(18, 18), BackgroundColor3 = C.alarm, Visible = false, ZIndex = 5, Parent = passB }, { Kit.corner(9), Kit.new("UIStroke", { Color = C.white, Thickness = 2 }) })
+State.on("pass", function(p)
+	if type(p) ~= "table" then
+		return
+	end
+	local lvl = math.floor((p.xp or 0) / Game.PASS_XP)
+	local any = false
+	for l = 1, math.min(lvl, Game.PASS_LEVELS) do
+		if not (p.cf or {})[tostring(l)] or (p.prem and not (p.cp or {})[tostring(l)]) then
+			any = true
+			break
+		end
+	end
+	passDot.Visible = any
+	Kit.pulse(passB, any)
+end)
+for _, b in { shopB, menuB, passB } do
+	local cap2 = Kit.label({ Text = ({ [shopB] = "Магазин", [menuB] = "Меню", [passB] = "Пропуск" })[b], Font = Kit.BLACK, TextSize = 13, TextColor3 = C.white, Position = UDim2.new(0, -12, 1, 2), Size = UDim2.new(1, 24, 0, 16), ZIndex = 3, Parent = b })
+	cap2.TextStrokeColor3 = C.line
+	cap2.TextStrokeTransparency = 0.2
+end
+
+-- ── Своя кнопка дубинки вместо рюкзака Roblox ───────────────
+local Players = game:GetService("Players")
+local batB = Kit.iconButton("🏏", Color3.fromHex("#FF9F43"), 62, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Visible = false, Parent = root })
+local batL = Kit.label({ Text = "Дубинка", Font = Kit.BLACK, TextSize = 13, TextColor3 = C.white, Position = UDim2.new(0, -14, 0, -18), Size = UDim2.new(1, 28, 0, 16), ZIndex = 3, Parent = batB })
+batL.TextStrokeColor3 = C.line
+batL.TextStrokeTransparency = 0.2
+local function batTool(): (Tool?, boolean)
+	local pl = Players.LocalPlayer
+	local ch = pl.Character
+	local t = ch and ch:FindFirstChildOfClass("Tool")
+	if t then
+		return t, true
+	end
+	local bp = pl:FindFirstChildOfClass("Backpack")
+	return bp and bp:FindFirstChildOfClass("Tool"), false
+end
+batB.Activated:Connect(function()
+	Kit.click(batB)
+	local t, equipped = batTool()
+	local hum = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+	if not t or not hum then
+		return
+	end
+	if equipped then
+		hum:UnequipTools()
+	else
+		hum:EquipTool(t)
+	end
+end)
+task.spawn(function()
+	while true do
+		local t, equipped = batTool()
+		batB.Visible = t ~= nil
+		local stroke = batB:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Color = if equipped then Color3.fromHex("#FFE066") else C.white
+			stroke.Thickness = if equipped then 5 else 3
+		end
+		batL.Text = if equipped then "Убрать" else "Дубинка"
+		task.wait(0.25)
+	end
+end)
 
 -- ── Низ: Сканер / Ребёрс / Действие ─────────────────────────
 -- подняты над стиком и прыжком Roblox
@@ -195,8 +266,10 @@ local toastHolder = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector
 local TOAST = { good = C.ok, bad = C.alarm, gold = C.gold, info = C.text }
 function M.toast(text: string, kind: string?)
 	local col = TOAST[kind or "info"] or C.chrono
-	local f = Kit.frame({ Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = C.bg, Parent = toastHolder }, { Kit.corner(14), Kit.stroke(C.line, 3) })
-	Kit.label({ Text = text, TextSize = 18, TextColor3 = col, Size = UDim2.fromScale(1, 1), Parent = f })
+	-- тёмный тост с цветной точкой-статусом
+	local f = Kit.frame({ Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromHex("#231A3B"), BackgroundTransparency = 0.08, Parent = toastHolder }, { Kit.corner(20) })
+	Kit.frame({ AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.fromOffset(10, 10), BackgroundColor3 = if kind == "info" or kind == nil then Color3.fromHex("#2EB8F0") else col, Parent = f }, { Kit.corner(5) })
+	Kit.label({ Text = text, TextSize = 17, TextColor3 = C.white, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(34, 0), Size = UDim2.new(1, -46, 1, 0), Parent = f })
 	Kit.pop(f)
 	task.delay(2.6, function()
 		f:Destroy()

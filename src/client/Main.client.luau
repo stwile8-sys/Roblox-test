@@ -26,7 +26,7 @@ pcall(function()
 end)
 
 pcall(function()
-	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) -- своя кнопка дубинки (Hud)
 end)
 
 local State = require(script.Parent.State)
@@ -46,6 +46,7 @@ Hud.onShop = function()
 	Windows.shop()
 end
 Hud.onMenu = Windows.menu
+Hud.onPass = Windows.pass
 Hud.onRebirth = Windows.rebirth
 
 local function myBase(): Model?

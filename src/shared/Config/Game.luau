@@ -281,7 +281,7 @@ M.PASSES = {
 	VIP = { price = 99, name = { ru = "VIP навсегда", en = "VIP forever" }, desc = { ru = "+10% офлайн-дохода, золотой ник, +5 осколков в день", en = "+10% offline income, golden name, +5 shards daily" } },
 	AutoCollect = { price = 199, name = { ru = "Авто-сборщик", en = "Auto-collector" }, desc = { ru = "Доход собирается сам", en = "Income collects itself" } },
 	ScannerPlus = { price = 299, name = { ru = "Сканер+", en = "Scanner+" }, desc = { ru = "5 баз вместо 3 и скрытая личность вора", en = "5 bases instead of 3, hidden thief identity" } },
-	SecondFloor = { price = 499, name = { ru = "Второй этаж", en = "Second floor" }, desc = { ru = "+10 пьедесталов и второй конвейер", en = "+10 pedestals and a second belt" } },
+	SecondFloor = { price = 499, name = { ru = "Второй этаж", en = "Second floor" }, desc = { ru = "+10 пьедесталов на втором этаже", en = "+10 pedestals on a second floor" } },
 } :: { [string]: any }
 M.PRODUCTS = {
 	Starter = { price = 49, once = true, name = { ru = "Стартовый набор", en = "Starter pack" }, desc = { ru = "500 Cash + редкий артефакт + скин", en = "500 Cash + rare artifact + skin" } },
