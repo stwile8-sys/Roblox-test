@@ -52,10 +52,11 @@ local function pill(icon: string, color: Color3, pos: UDim2, anchor: Vector2?): 
 	return Kit.label({ Text = "0", Font = Kit.BLACK, TextSize = 21, TextColor3 = C.text, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.new(1, -52, 1, 0), Parent = f })
 end
 
-local cashL = pill("💰", Color3.fromHex("#FFC93C"), UDim2.fromOffset(12, 56))
-local shardL = pill("💎", Color3.fromHex("#8FF0FF"), UDim2.fromOffset(160, 56))
+-- деньги и алмазы по центру сверху: слева угол занят кнопкой меню Roblox, её скрыть нельзя
+local cashL = pill("💰", Color3.fromHex("#FFC93C"), UDim2.new(0.5, -6, 0, 10), Vector2.new(1, 0))
+local shardL = pill("💎", Color3.fromHex("#8FF0FF"), UDim2.new(0.5, 6, 0, 10))
 local energyL = pill("⚡", Color3.fromHex("#FFE066"), UDim2.new(1, -12, 0, 10), Vector2.new(1, 0))
-local incomeL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 100), Size = UDim2.fromOffset(240, 20), Parent = root }))
+local incomeL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 54), Size = UDim2.fromOffset(240, 20), Parent = root }))
 
 State.on("cash", function(v)
 	cashL.Text = L.money(v)
@@ -166,7 +167,7 @@ function M.setAction(kind: string, cd: number?)
 end
 
 -- таймер рейда (несёшь добычу)
-local raidBar = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12), Size = UDim2.fromOffset(280, 46), BackgroundColor3 = Color3.fromHex("#8B5CF6"), Visible = false, Parent = root }, { Kit.corner(16), Kit.stroke(C.line, 3) })
+local raidBar = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 80), Size = UDim2.fromOffset(280, 46), BackgroundColor3 = Color3.fromHex("#8B5CF6"), Visible = false, Parent = root }, { Kit.corner(16), Kit.stroke(C.line, 3) })
 local raidL = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 22, Size = UDim2.fromScale(1, 1), Parent = raidBar })
 task.spawn(function()
 	while true do
@@ -190,7 +191,7 @@ State.on("pending", function(v)
 end)
 
 -- ── Тосты ───────────────────────────────────────────────────
-local toastHolder = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 64), Size = UDim2.fromOffset(380, 160), Parent = root }, { Kit.list(nil, 6) })
+local toastHolder = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 82), Size = UDim2.fromOffset(380, 160), Parent = root }, { Kit.list(nil, 6) })
 local TOAST = { good = C.ok, bad = C.alarm, gold = C.gold, info = C.text }
 function M.toast(text: string, kind: string?)
 	local col = TOAST[kind or "info"] or C.chrono
@@ -374,7 +375,7 @@ arrow.TextureSpeed = 2
 arrow.Texture = "rbxasset://textures/ui/ArrowRightThin.png"
 arrow.Enabled = false
 arrow.Parent = workspace.Terrain
-local hint = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 34, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 62), Size = UDim2.fromOffset(300, 44), Visible = false, Parent = root }))
+local hint = cap(Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 34, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 132), Size = UDim2.fromOffset(300, 44), Visible = false, Parent = root }))
 
 M.onTutorial = function(d)
 	local step = d.step
