@@ -1,4 +1,234 @@
 {
+ "art_c_bubble": {
+  "assetId": 131258961930420,
+  "moderation": "Approved",
+  "sha256": "be5e2ec74c615f33edd9fcd8c79aa4f7ee2495d53e68f5c3075bf8cd95ef5eed"
+ },
+ "art_c_drop": {
+  "assetId": 108609001700585,
+  "moderation": "Approved",
+  "sha256": "5bba706d002c2d55f2ced7165ed05393f3977197a90c39bedecf33372afd3c52"
+ },
+ "art_c_feather": {
+  "assetId": 76836779814460,
+  "moderation": "Approved",
+  "sha256": "0ea39a807bbef3dad6ea4c1c3b7c0d485173138f8822660d7f5d62c0b2135ee9"
+ },
+ "art_c_jelly": {
+  "assetId": 101536942072959,
+  "moderation": "Approved",
+  "sha256": "4b10ad03a72480d2e644d85867835a3ad647661484eea3f8a95f417301bb5654"
+ },
+ "art_c_moss": {
+  "assetId": 139050618723191,
+  "moderation": "Approved",
+  "sha256": "1b7df7516185454b5fb759194a82056fc028749e8c5a49234789c32a79b3d70c"
+ },
+ "art_c_pebble": {
+  "assetId": 140053251461518,
+  "moderation": "Approved",
+  "sha256": "4980a849822f9a716b21c94f597eba5bd43780fbe4ba8e4af313e0526ef95aae"
+ },
+ "art_c_shroom": {
+  "assetId": 93961279830347,
+  "moderation": "Approved",
+  "sha256": "782a7b180cef2aecd6e2d986c7bc64aa6115cf6f25654141a6755835de50d5e4"
+ },
+ "art_c_snail": {
+  "assetId": 108045130899380,
+  "moderation": "Approved",
+  "sha256": "a199e931689ae05d5f46e29fcfd0f067776870774a1ce8afaed7c20a0d57d814"
+ },
+ "art_c_spark": {
+  "assetId": 112845035267746,
+  "moderation": "Approved",
+  "sha256": "d57629e4bf9926e2e095b8c2a16069fad796e03920d754107d714fc926ecdc37"
+ },
+ "art_c_tick": {
+  "assetId": 90283876729593,
+  "moderation": "Approved",
+  "sha256": "d74cf0fe774610826199417483cc9b2f1f67aa8da6f337ad7335e514b0f27638"
+ },
+ "art_e_dragon": {
+  "assetId": 90276180994038,
+  "moderation": "Approved",
+  "sha256": "671a00c2463852c1341c22d0d29781ef2b64899bdfa7dddb49ad9dc9fb47c2de"
+ },
+ "art_e_golem": {
+  "assetId": 83479602016946,
+  "moderation": "Approved",
+  "sha256": "6456396d6ce7b7c485aa878afd4568ee197d2f7485535dace181c28ae1dc55b7"
+ },
+ "art_e_hourglass": {
+  "assetId": 105711306980043,
+  "moderation": "Approved",
+  "sha256": "ca9642b6a4b11bd5990158de334d82a04671c48210b92f0fca07db962faadf9c"
+ },
+ "art_e_knight": {
+  "assetId": 111000760056405,
+  "moderation": "Approved",
+  "sha256": "d6e878ba82f4438d5cb1717eece2045c37bf449a06d759fa001d0fcdee22c0cc"
+ },
+ "art_e_lynx": {
+  "assetId": 71982563395073,
+  "moderation": "Approved",
+  "sha256": "753223d7d7eedc6732997764fb8c7979acfe8c608fd17a80eedcece6cf83bfdb"
+ },
+ "art_e_phoenix": {
+  "assetId": 114600302974137,
+  "moderation": "Approved",
+  "sha256": "d1d6c8404941d2bc96837999876de76db743de1fb610562a28a41a4f4ab1ef9e"
+ },
+ "art_e_serpent": {
+  "assetId": 89524978911719,
+  "moderation": "Approved",
+  "sha256": "90da616f863e7469d62d8d0d3090a45014a375c9d1302b445414008cd623b27e"
+ },
+ "art_e_turtle": {
+  "assetId": 99668381978547,
+  "moderation": "Approved",
+  "sha256": "39d64d2282ea671f96d169f092b7fe054943ed64aceaa4a4f657b8dc0172b54a"
+ },
+ "art_l_colossus": {
+  "assetId": 104313655601512,
+  "moderation": "Approved",
+  "sha256": "c87810bd161ea655b82581973fd30bfbfc4f9074bc1a19193e0de97bbd3b35ef"
+ },
+ "art_l_eater": {
+  "assetId": 122334532983319,
+  "moderation": "Approved",
+  "sha256": "a8b5db5a0fbf833fa55198d1b1ed552400e706d8d37e2655b007fd1410fdd518"
+ },
+ "art_l_kraken": {
+  "assetId": 137628824827998,
+  "moderation": "Approved",
+  "sha256": "45ab371eec551fa79f9f469310962adcb4a837e9511e5b3a1bf26b3de9587e9d"
+ },
+ "art_l_owlking": {
+  "assetId": 109679655178021,
+  "moderation": "Approved",
+  "sha256": "18cdf60a0f31dc5b801abd2df543f512eff3a610a6e99a125871a1996f44cf28"
+ },
+ "art_l_titan": {
+  "assetId": 74037272275370,
+  "moderation": "Approved",
+  "sha256": "e4fe639610794846568ef85673c57f6e8c849876e39a918addfa5791a9b9c499"
+ },
+ "art_l_whale": {
+  "assetId": 117561398936365,
+  "moderation": "Approved",
+  "sha256": "ad874e801be2a9ae5d3874e2c2f7487188dd881f3d87f3852212eb6c988f112a"
+ },
+ "art_r_bat": {
+  "assetId": 107760986924492,
+  "moderation": "Approved",
+  "sha256": "0551a5fd3884acb9363ae985e13df763d51e0dd7780a98383658ab1c62d68c82"
+ },
+ "art_r_beetle": {
+  "assetId": 95015092964915,
+  "moderation": "Approved",
+  "sha256": "f2aa7578e6dde38def38093e007e19c00337d095c8a3c0ce2f563c003a6dc3e1"
+ },
+ "art_r_crab": {
+  "assetId": 108526523604958,
+  "moderation": "Approved",
+  "sha256": "60c453ab16dbf3d75a494bde83f415289c6ece015cca6525e94d4c25c85fc7e9"
+ },
+ "art_r_fox": {
+  "assetId": 123765946237110,
+  "moderation": "Approved",
+  "sha256": "6822d97c353ddb60435b576138474e4b700a6624fbb4ec4b70b065c80a2a01c3"
+ },
+ "art_r_frog": {
+  "assetId": 97850351569100,
+  "moderation": "Approved",
+  "sha256": "d3521114cf039e5ed6ad2e2001ac6ab137ec31f873b308957162744edad02ed0"
+ },
+ "art_r_golem": {
+  "assetId": 108142082779497,
+  "moderation": "Approved",
+  "sha256": "57d0376ee3ecbb40615ee33133e00779318dbafb7df8d57b6ca81fdbb6a824db"
+ },
+ "art_r_mole": {
+  "assetId": 103182085093576,
+  "moderation": "Approved",
+  "sha256": "7eab7f5a7d0474f173751872a16751497fec67071212e52a88d64f33cd7f2bb2"
+ },
+ "art_r_moth": {
+  "assetId": 120168818484016,
+  "moderation": "Approved",
+  "sha256": "3df4d26c7597aa00b5b98284d780a83f03070e4a08bedb04e74c4e43e33f6365"
+ },
+ "art_r_owl": {
+  "assetId": 94569259686743,
+  "moderation": "Approved",
+  "sha256": "7b359adf8aa11e6036397b4c538640aab7906380cd44cc09c0a93c0e173bd1ae"
+ },
+ "art_r_whisper": {
+  "assetId": 128677805201590,
+  "moderation": "Approved",
+  "sha256": "2840d886fa2312b2c239219cab2c3cfd237f4528ef1cb7e03a9860d0c64419b3"
+ },
+ "art_s1": {
+  "assetId": 71971245663511,
+  "moderation": "Approved",
+  "sha256": "0c45145537dba83338696f5f1bc549846a04c48bde92d0e27f2cced678f5096b"
+ },
+ "art_s2": {
+  "assetId": 79961728912276,
+  "moderation": "Approved",
+  "sha256": "c294aa0d9bc9bd04bc44ed61291348d527ed8c653d90213ae510d6baefede402"
+ },
+ "art_s3": {
+  "assetId": 102585553521739,
+  "moderation": "Approved",
+  "sha256": "526113a17331aac50a6ee414e50a8827f9fdd07ac4ff1bc6f157491018a832a4"
+ },
+ "art_s4": {
+  "assetId": 128362598099137,
+  "moderation": "Approved",
+  "sha256": "6f6369741906429550dc0d813d91d1694575d10f94061ef58ca5f40856e76ab1"
+ },
+ "art_s5": {
+  "assetId": 80714348020212,
+  "moderation": "Approved",
+  "sha256": "502ca0c9ff224d886285e844a45bebf8e6a6ca0665f528092d45c58af995b24a"
+ },
+ "art_s6": {
+  "assetId": 70739244108037,
+  "moderation": "Approved",
+  "sha256": "ff28597156a235d27eba18fc70a26ba5138dcff73ff8ffc2953294628a322acc"
+ },
+ "art_x_aegis": {
+  "assetId": 85768043623432,
+  "moderation": "Approved",
+  "sha256": "ce422f110071f7119b66b64e199e4a1e7ed4ec26adee44fdd9d83aee168a410f"
+ },
+ "art_x_echo": {
+  "assetId": 131420174490883,
+  "moderation": "Approved",
+  "sha256": "f9dda753ee93b8e6c043e26f4f522fa8301001e932289302da34f5c2b78e9848"
+ },
+ "art_x_loop": {
+  "assetId": 121675033190917,
+  "moderation": "Approved",
+  "sha256": "d5c94c740a7cb6488798b5ff7ec27368b8c6db69c023456e2effbe2741091261"
+ },
+ "art_x_paradox": {
+  "assetId": 126457367829223,
+  "moderation": "Approved",
+  "sha256": "dfd7a7da94080d80d2037f7f8ec43e7e067f4624cb30c18eac39a1df07772f92"
+ },
+ "art_x_rift": {
+  "assetId": 76722147752821,
+  "moderation": "Approved",
+  "sha256": "2018cfee0b5dba7a1f34085b92dbfe36213a5710c91a3c2639a08104bf1d5f37"
+ },
+ "art_x_zero": {
+  "assetId": 117250549678175,
+  "moderation": "Approved",
+  "sha256": "c49c0d9df8f80b70c2774d23b19ccc34b0fe8cf33c97a899e530635aecde4a9d"
+ },
  "beacon": {
   "assetId": 121131910221547,
   "moderation": "Approved",
