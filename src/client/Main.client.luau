@@ -226,8 +226,8 @@ launchBtn = Ui.button(root, {
 	end
 	task.spawn(call, "launch")
 end)
-launchBtn:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(1, 0)
-launchBtn:FindFirstChildOfClass("UIStroke").Thickness = 5
+(launchBtn:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
+(launchBtn:FindFirstChildOfClass("UIStroke") :: UIStroke).Thickness = 5
 Ui.label(launchBtn, "🚀", 44, { Position = UDim2.new(0, 0, 0, 22), Size = UDim2.new(1, 0, 0, 50) })
 local launchTxt = Ui.label(launchBtn, "LAUNCH", 32, { Position = UDim2.new(0, 0, 0, 78), Size = UDim2.new(1, 0, 0, 36) })
 Ui.textStroke(3).Parent = launchTxt
@@ -257,7 +257,7 @@ local autoBtn = Ui.button(root, {
 		end
 	end
 end)
-autoBtn:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(1, 0)
+(autoBtn:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
 
 -- подсказки обучения
 local hint = Ui.label(root, "", 24, {
@@ -391,7 +391,7 @@ local function window(name: string, title: string): (Frame, ScrollingFrame)
 	}, function()
 		openWindow("")
 	end)
-	close:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(1, 0)
+	(close:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
 	local list = new("ScrollingFrame", {
 		Position = UDim2.new(0, 14, 0, 60),
 		Size = UDim2.new(1, -28, 1, -74),
@@ -554,7 +554,7 @@ do
 				Ui.sfx("buy", 0.7)
 			end
 		end)
-		cell:FindFirstChildOfClass("UIStroke").Thickness = 2.5
+		(cell:FindFirstChildOfClass("UIStroke") :: UIStroke).Thickness = 2.5
 		Ui.label(cell, icons[g.kind] or "🎁", 30, { Position = UDim2.new(0, 0, 0, 6), Size = UDim2.new(1, 0, 0, 34), ZIndex = 14 })
 		local what = if g.kind == "boost" then "2x " .. g.amount .. " min" elseif g.kind == "power" then "Power" else "Coins"
 		Ui.label(cell, what, 16, { Position = UDim2.new(0, 0, 0, 40), Size = UDim2.new(1, 0, 0, 20), TextColor3 = C.ink, ZIndex = 14 })

@@ -257,7 +257,7 @@ local function pickLane(): number
 	return lane
 end
 
-local finish: (Player, number, number, string) -> ()
+local finish: (Player, number, number, string, number?) -> ()
 
 function M.launch(player: Player, free: boolean?): (boolean, string?)
 	local d = Data.get(player)

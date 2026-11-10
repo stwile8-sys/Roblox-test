@@ -29,7 +29,7 @@ local landEv = Net.event("Land")
 local controls: any = nil
 task.spawn(function()
 	local ok, pm = pcall(function()
-		return require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
+		return (require :: any)(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 	end)
 	if ok and pm then
 		controls = pm:GetControls()
