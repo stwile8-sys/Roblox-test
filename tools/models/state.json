@@ -59,6 +59,11 @@
   "moderation": "Approved",
   "sha256": "7e24d1655e2c9f9612aa8ec385d0b371e7cf468fe307991041dabcfea5853601"
  },
+ "collectPlate": {
+  "assetId": 98429585613264,
+  "moderation": "Approved",
+  "sha256": "4790730eefea816432292e59436a7f4e7432c4eb81934832e28777d82b3c9cdd"
+ },
  "conveyor": {
   "assetId": 121339009893891,
   "moderation": "Approved",
@@ -147,7 +152,7 @@
  "lockButton": {
   "assetId": 91122333231110,
   "moderation": "Approved",
-  "sha256": "dbd39ced77c32dd43a46f331f60b29eb2275884cbd66d7d295a13aa83b510aa0"
+  "sha256": "f2c1cee6cba3858c02669db062e734c9a9587312db581d5c831674fa3b3592cf"
  },
  "mine": {
   "assetId": 77104400219122,

@@ -1,6 +1,6 @@
 # Отчёт загрузки моделей
 
-Загружено: 63 из 63.
+Загружено: 64 из 64.
 
 - `pedestal` = 106378969035144 (модерация: Approved)
 - `pedestalRich` = 114288154664877 (модерация: Approved)
@@ -47,6 +47,7 @@
 - `statuePedestal` = 79535248734362 (модерация: Approved)
 - `seasonPortal` = 130412848465396 (модерация: Approved)
 - `lockButton` = 91122333231110 (модерация: Approved)
+- `collectPlate` = 98429585613264 (модерация: Approved)
 - `collectPad` = 134329353314468 (модерация: Approved)
 - `floor2` = 92277536569010 (модерация: Approved)
 - `stairs` = 96874622247553 (модерация: Approved)
