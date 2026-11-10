@@ -16,6 +16,15 @@ local api = Ctx.api
 
 local M: any = {}
 
+-- шаг обучения → шаг воронки аналитики (4 и 8 пишутся отдельно: донёс добычу / закончил)
+local FUNNEL_OF_STEP = { [1] = 1, [2] = 2, [3] = 3, [4] = 5, [5] = 6, [6] = 7 }
+
+local function funnel(S: any, n: number?)
+	if n and api.funnel then
+		api.funnel(S, n)
+	end
+end
+
 local function step(S: any, n: number, extra: { [string]: any }?)
 	S.data.ftue = n
 	local data = { step = n }
@@ -26,6 +35,7 @@ local function step(S: any, n: number, extra: { [string]: any }?)
 	end
 	Ctx.popup(S, "tutorial", data)
 	Ctx.mark(S, "ftue")
+	funnel(S, FUNNEL_OF_STEP[n])
 end
 
 local function finish(S: any)
@@ -116,6 +126,7 @@ function M.start(S: any)
 				lvl = 1,
 				kind = "den",
 				onDeliver = function()
+					funnel(S, 4)
 					Ctx.track(S, "ftue_first_steal", math.floor(os.clock() - (S.tut and S.tut.t0 or os.clock())))
 					task.delay(30, function()
 						if S.tut then
@@ -189,6 +200,7 @@ function M.event(S: any, name: string)
 		local B = S.B
 		step(S, 6, { target = B and (B.cf * CFrame.new(0, 2, -20)).Position })
 	elseif name == "delivered" and S.data.ftue == 6 then
+		funnel(S, 8)
 		finish(S)
 	end
 end

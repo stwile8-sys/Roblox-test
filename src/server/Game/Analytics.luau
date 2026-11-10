@@ -33,6 +33,34 @@ function M.track(S: any, event: string, value: number?, extra: { [string]: any }
 	end
 end
 
+-- Воронка обучения (Creator Hub → Analytics → Funnels → Onboarding): видно, на каком шаге бросают.
+-- Шаги идут строго по порядку 1..8, каждый шаг у игрока пишется один раз.
+local FUNNEL = {
+	"1_start", -- получил первое существо
+	"2_thief_came", -- вор унёс существо, стрелка ведёт в логово
+	"3_stole_from_den", -- забрал Хроно-Жука из логова
+	"4_first_steal_home", -- донёс добычу домой (первая кража)
+	"5_raid_defend", -- рейдер у ворот, подсказка про замок
+	"6_go_buy", -- подсказка купить существо на конвейере
+	"7_bought", -- купил существо
+	"8_done", -- донёс покупку, обучение пройдено
+}
+
+function M.funnel(S: any, stepIndex: number)
+	if not S or not S.player or S.isBot or not FUNNEL[stepIndex] then
+		return
+	end
+	S.funnelSeen = S.funnelSeen or {}
+	if S.funnelSeen[stepIndex] then
+		return
+	end
+	S.funnelSeen[stepIndex] = true
+	pcall(function()
+		AnalyticsService:LogOnboardingFunnelStepEvent(S.player, stepIndex, FUNNEL[stepIndex])
+	end)
+end
+
 Ctx.api.track = M.track
+Ctx.api.funnel = M.funnel
 
 return M
