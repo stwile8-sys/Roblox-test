@@ -224,6 +224,7 @@ end)
 -- ===== LAUNCH =====
 
 local launchBtn: TextButton
+local raceCard: Frame
 launchBtn = Ui.button(root, {
 	AnchorPoint = Vector2.new(1, 1),
 	Position = UDim2.new(1, -28, 1, -24),
@@ -340,7 +341,7 @@ end)
 local _ = askBtn
 
 -- гонка
-local raceCard = new("Frame", {
+raceCard = new("Frame", {
 	AnchorPoint = Vector2.new(0.5, 0),
 	Position = UDim2.new(0.5, 0, 0, 108),
 	Size = UDim2.new(0, 360, 0, 64),
