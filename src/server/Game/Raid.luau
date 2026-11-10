@@ -1125,7 +1125,29 @@ function M.giveBat(S: any)
 		return
 	end
 	local tool = M.makeBat()
+	-- замах: дубинка наклоняется из «вверх» вперёд перед собой и возвращается (Grip реплицируется всем)
+	local baseGrip = tool.Grip
+	local swinging = false
+	local function swing()
+		if swinging then
+			return
+		end
+		swinging = true
+		local fwd = baseGrip * CFrame.Angles(math.rad(95), 0, 0)
+		for i = 1, 4 do
+			tool.Grip = baseGrip:Lerp(fwd, i / 4)
+			task.wait(0.03)
+		end
+		task.wait(0.12)
+		for i = 1, 6 do
+			tool.Grip = fwd:Lerp(baseGrip, i / 6)
+			task.wait(0.03)
+		end
+		tool.Grip = baseGrip
+		swinging = false
+	end
 	tool.Activated:Connect(function()
+		task.spawn(swing)
 		local s = Ctx.session(player)
 		if s and s.ready then
 			M.bat(s, nil)
