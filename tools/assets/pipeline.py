@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Пайплайн ассетов Chrono Heist Tycoon через Roblox Open Cloud (только stdlib).
+"""Пайплайн ассетов «Ragdoll Launch +1» через Roblox Open Cloud (только stdlib).
 
 Запускается в GitHub Actions (.github/workflows/assets.yml). Идемпотентен:
   * состояние — tools/assets/state.json (workflow коммитит его обратно в ветку assets);
@@ -40,25 +40,31 @@ API = "https://apis.roblox.com"
 KEY = os.environ.get("ROBLOX_API_KEY", "").strip()
 UNIVERSE = os.environ.get("UNIVERSE_ID", "1195242587")
 PLACE = os.environ.get("PLACE_ID", "3327609598")
-SERVER_SIZE = int(os.environ.get("SERVER_SIZE", "8"))
+SERVER_SIZE = int(os.environ.get("SERVER_SIZE", "12"))
 
 GAME_PASSES = [
-    ("VIP", "VIP", 99, "VIP навсегда: +10% офлайн-дохода, золотой ник, ежедневный бонус"),
-    ("AutoCollect", "Авто-сборщик", 199, "Авто-сборщик: доход собирается сам"),
-    ("ScannerPlus", "Сканер+", 299, "Сканер+: 5 баз вместо 3 и скрытая личность вора"),
-    ("SecondFloor", "Второй этаж", 499, "Второй этаж базы: +10 пьедесталов и второй конвейер"),
+    ("VIP", "VIP", 149, "+25% power and coins, +1 bounce, gold VIP tag and Royal trail"),
+    ("Power2x", "2x Power", 199, "Double power gain forever"),
+    ("Coins2x", "2x Coins", 149, "Double coins from every launch forever"),
+    ("AutoLaunch", "Auto Launch", 99, "Relaunch automatically after every landing"),
 ]
 
 PRODUCTS = [
-    ("Starter", "Стартовый набор", 49, "Стартовый набор: 500 Cash + редкий артефакт + скин"),
-    ("Titan", "Титан-набор", 1999, "Титан-набор: скин ловушки «Чёрная дыра» + скин «Титан»"),
-    ("Shards100", "100 Хроно-осколков", 49, "100 Хроно-осколков"),
-    ("Shards550", "550 Хроно-осколков", 199, "550 Хроно-осколков"),
-    ("Shards1500", "1500 Хроно-осколков", 449, "1500 Хроно-осколков"),
-    ("Energy5", "Энергетик", 25, "Энергетик: +5 энергии"),
-    ("BoostX2", "Доход x2 (15 мин)", 59, "x2 доход на 15 минут"),
-    ("SeasonPass", "Хроно-пропуск", 999, "Хроно-пропуск сезона"),
+    ("PowerS", "Power Pack", 25, "+10 minutes of power instantly"),
+    ("PowerM", "Big Power Pack", 79, "+45 minutes of power instantly"),
+    ("PowerL", "Huge Power Pack", 199, "+3 hours of power instantly"),
+    ("Boost15", "2x Power (15 min)", 49, "Double power gain for 15 minutes"),
+    ("Coins", "Coin Bag", 49, "Coins for 15 launches at your best distance"),
+    ("LaunchAll", "Launch Everyone!", 25, "Blast every player in the server into the sky"),
 ]
+
+# Товары прошлой игры (Chrono Heist): при DISABLE_OLD=1 снимаются с продажи
+OLD_NAMES = {
+    "VIP навсегда", "Авто-сборщик", "Сканер+", "Второй этаж", "Стартовый набор", "Титан-набор",
+    "100 Хроно-осколков", "550 Хроно-осколков", "1500 Хроно-осколков", "Энергетик", "Доход x2 (15 мин)",
+    "Хроно-пропуск", "Авто-сборщик", "Second Floor",
+}
+DISABLE_OLD = os.environ.get("DISABLE_OLD", "0") == "1"
 
 # Порядок загрузки звуков: самые важные первыми (у аккаунта без верификации квота — 10 аудио в месяц).
 SFX_ORDER = [
@@ -83,7 +89,7 @@ def err(where, code, body):
 
 # ---------- HTTP ----------
 def http(method, url, body=None, ctype=None, retries=4):
-    headers = {"x-api-key": KEY, "Accept": "application/json", "User-Agent": "chrono-heist-assets/1.0"}
+    headers = {"x-api-key": KEY, "Accept": "application/json", "User-Agent": "ragdoll-launch-assets/1.0"}
     if ctype:
         headers["Content-Type"] = ctype
     delay = 2.0
@@ -127,7 +133,7 @@ def multipart(fields, files=()):
 
 
 # иконки, которые надо перезалить у уже созданных товаров (один раз; отметка в state["iconsRefreshed"])
-REFRESH_ICONS = {"BoostX2": "v2-moneybag"}
+REFRESH_ICONS = {}
 
 
 def icon_file(key):
@@ -211,6 +217,14 @@ def sync_catalog(state, kind):
         log(f"    {e.get(id_key)} {e.get('name')!r} price={price_of(e)} forSale={e.get('isForSale')} "
             f"icon={e.get('iconAssetId') or e.get('iconImageAssetId')}")
     by_name = {e.get("name"): e for e in existing}
+    new_names = {n for _, n, _, _ in items}
+    if DISABLE_OLD:
+        for e in existing:
+            nm = e.get("name")
+            if nm not in new_names and e.get("isForSale"):
+                body, ct = multipart([("isForSale", "false")])
+                c, t, _ = http("PATCH", f"{base}/{e.get(id_key)}", body, ct)
+                log(f"  снят с продажи {nm!r}: HTTP {c}" + ("" if c in (200, 204) else f" {t[:200]}"))
     by_id = {str(e.get(id_key)): e for e in existing}
 
     for key, name, price, desc in items:
