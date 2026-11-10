@@ -513,6 +513,9 @@ function M.setSecondFloor(base: any, on: boolean)
 		local z = if i <= 15 then 30 else 46
 		pedestal(f2, "P" .. i, cf * CFrame.new(x, y, z), true)
 	end
+	if M.dress and M.dress.floor2 then
+		pcall(M.dress.floor2, f2, cf)
+	end
 end
 
 -- ── Ловушки ─────────────────────────────────────────────────

@@ -311,7 +311,6 @@ function M.world()
 end
 
 
--- ── Хаб: сундук, кольцевой конвейер, порталы, подиумы, доски, алтарь, статуи ──
 -- список старых деталей снимаем ДО того, как положить модель внутрь
 local function snapshot(root: Instance): { BasePart }
 	local out = {}
@@ -336,6 +335,25 @@ local function flatLook(pos: Vector3, target: Vector3): CFrame
 	return CFrame.lookAt(pos, t)
 end
 
+-- ── Второй этаж: настил с колоннами и лестница (коллизии — старые детали) ──
+function M.floor2(f2: Instance, cf: CFrame)
+	if f2:FindFirstChild("FloorSkin") or not ModelLib.has("floor2") then
+		return
+	end
+	local old = {}
+	for _, p in f2:GetChildren() do
+		if p:IsA("BasePart") then
+			table.insert(old, p)
+		end
+	end
+	if place("floor2", f2, cf * CFrame.new(0, 0, 33), nil, "FloorSkin") then
+		place("stairs", f2, cf * CFrame.new(51, 0, -13), nil, "StairsSkin")
+		hideList(old)
+	end
+	dressPedestals(f2, true)
+end
+
+-- ── Хаб: сундук, кольцевой конвейер, порталы, подиумы, доски, алтарь, статуи ──
 function M.hub(hub: Instance)
 	-- сундук на пьедестале, крышка приоткрыта на петлях
 	local chest = hub:FindFirstChild("Chest")
@@ -582,6 +600,10 @@ function M.start()
 			for _, b in workspace.Bases:GetChildren() do
 				local f2 = b:FindFirstChild("Floor2")
 				if f2 and #f2:GetChildren() > 0 then
+					local idx = b:GetAttribute("Index")
+					if idx and not f2:FindFirstChild("FloorSkin") then
+						pcall(M.floor2, f2, BaseBuilder.baseCFrame(idx))
+					end
 					pcall(dressPedestals, f2, true)
 				end
 			end
