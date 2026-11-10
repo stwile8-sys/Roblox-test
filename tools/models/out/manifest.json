@@ -732,19 +732,35 @@
  },
  "lockButton": {
   "file": "lockButton.glb",
-  "sha256": "dbd39ced77c32dd43a46f331f60b29eb2275884cbd66d7d295a13aa83b510aa0",
-  "tris": 1576,
+  "sha256": "f2c1cee6cba3858c02669db062e734c9a9587312db581d5c831674fa3b3592cf",
+  "tris": 1766,
   "budget": 2000,
   "size": [
    8.86,
-   3.6,
+   2.75,
    8.86
   ],
   "nodes": [
    "Body",
-   "Glow_FF2E63"
+   "Button"
   ],
-  "desc": "Кнопка замка: тумба с большой кнопкой"
+  "desc": "Кнопка замка: тумба ~9, кнопка — узел Button (перекрашивается), замочек"
+ },
+ "collectPlate": {
+  "file": "collectPlate.glb",
+  "sha256": "4790730eefea816432292e59436a7f4e7432c4eb81934832e28777d82b3c9cdd",
+  "tris": 1812,
+  "budget": 2000,
+  "size": [
+   10.04,
+   0.71,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Плита сбора дохода 10×10, золотая, с монетой"
  },
  "collectPad": {
   "file": "collectPad.glb",

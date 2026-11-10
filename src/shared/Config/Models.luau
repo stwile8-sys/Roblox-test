@@ -47,6 +47,7 @@ return {
 	statuePedestal = 79535248734362,
 	seasonPortal = 130412848465396,
 	lockButton = 91122333231110,
+	collectPlate = 0,
 	collectPad = 134329353314468,
 	floor2 = 92277536569010,
 	stairs = 96874622247553,

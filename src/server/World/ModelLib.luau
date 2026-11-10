@@ -7,6 +7,7 @@
 --   * масштаб — по Shared.Config.ModelSizes (импорт glTF может прийти в других единицах);
 --   * точка опоры — низ по центру габарита (исключения — Shared.Config.ModelPivots), перед на −Z (см. docs/MODELS.md);
 --   * детали Anchored, без коллизий (модель — только вид); цвета вершин не затемняются (Color = белый);
+--   * деталь Button (кнопка замка) перекрашивается через Part.Color (по умолчанию красная);
 --   * детали с именем Glow_RRGGBB[_Tnn] — Neon нужного цвета, Tnn — прозрачность в процентах.
 
 local InsertService = game:GetService("InsertService")
@@ -19,6 +20,11 @@ local Sizes = require(Shared.Config.ModelSizes) :: { [string]: Vector3 }
 local Pivots = require(Shared.Config.ModelPivots) :: { [string]: Vector3 }
 
 local M = {}
+
+-- Перекрашиваемые детали: вершины у них белые, цвет задаёт Part.Color (здесь — цвет по умолчанию).
+local TINTS: { [string]: Color3 } = {
+	Button = Color3.fromHex("#FF2E63"),
+}
 
 local LOAD_TRIES = 3
 local PARALLEL = 6 -- сколько LoadAsset одновременно
@@ -59,7 +65,7 @@ local function prepare(name: string, asset: Instance): Model?
 				d:SetAttribute("Glow", true)
 			else
 				d.Material = Enum.Material.SmoothPlastic
-				d.Color = Color3.new(1, 1, 1)
+				d.Color = TINTS[d.Name] or Color3.new(1, 1, 1)
 			end
 			d.Parent = model
 			count += 1

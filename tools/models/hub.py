@@ -185,14 +185,38 @@ def season_portal():
 
 # ================= БАЗЫ =================
 def lock_button():
+    """Кнопка замка у ворот: тумба ~9, высота ~2.5. Кнопка — узел Button (белые вершины: цвет задаёт Part.Color,
+    ModelLib ставит красный по умолчанию), на ней рельефный замочек (узел Body, не перекрашивается)."""
     m = Model()
-    m.add(cyl(4.5, 1.0, 0.3, 20, "dark", r2=4.2)).grad("dark", "steelDark")
-    m.add(cyl(3.9, 1.5, 0.3, 20, "steel", r2=3.6).move(0, 0.8, 0)).grad("steelDark", "metal")
-    m.add(torus(3.45, 0.3, 20, 6, "gold").move(0, 2.3, 0))
-    dome = fillet([(0, 2.2), (3.1, 2.2), (3.0, 2.9), (1.6, 3.5), (0, 3.6)], [0, 0.2, 0.5, 0.8, 0], 3)
-    m.add(lathe(dome, 20, crease=75), glow="red")
-    for x, y, z in ring_pos(6, 4.0, 1.0):
-        m.add(sphere(0.3, 6, 4, "gold").move(x, y, z))
+    m.add(cyl(4.5, 0.8, 0.28, 20, "dark", r2=4.25)).grad("dark", "steelDark")
+    m.add(cyl(4.0, 1.0, 0.28, 20, "steel", r2=3.8).move(0, 0.65, 0)).grad("steelDark", "metal")
+    m.add(torus(3.6, 0.28, 20, 6, "gold").move(0, 1.65, 0))
+    for x, y, z in ring_pos(6, 4.05, 0.8):
+        m.add(sphere(0.28, 6, 4, "gold").move(x, y, z))
+    dome = fillet([(0, 1.5), (3.25, 1.5), (3.15, 2.0), (2.2, 2.33), (0, 2.38)], [0, 0.15, 0.4, 0.5, 0], 3)
+    m.add(lathe(dome, 20, crease=75, color="white"), node="Button")
+    # замочек: корпус + дужка
+    m.add(rbox(2.5, 1.9, 0.36, 0.4, 1, "cream").rot("x", 90).move(0, 2.44, -0.75))
+    m.add(tube([(0.8 * math.cos(math.radians(a)), 2.42, 0.2 + 1.1 * math.sin(math.radians(a))) for a in (0, 30, 60, 90, 120, 150, 180)], 0.22, 5, color="cream"))
+    m.add(sphere(0.3, 6, 4, "dark").scale(1, 0.5, 1).move(0, 2.6, -0.75))
+    return m
+
+
+def collect_plate():
+    """Плита сбора дохода 10×10×~0.6: золотая, толстая рамка, большая монета в центре, монетки по углам."""
+    m = Model()
+    m.add(rbox(9.7, 0.5, 9.7, 0.18, 1, "gold").move(0, 0.25, 0)).grad("dark", "gold", power=0.4)
+    for sx, sz, w, d in ((0, -4.4, 10.0, 1.2), (0, 4.4, 10.0, 1.2), (-4.4, 0, 1.2, 10.0), (4.4, 0, 1.2, 10.0)):
+        m.add(rbox(w, 0.6, d, 0.25, 1, "orange").move(sx, 0.3, sz))
+    for sx, sz, w, d in ((0, -3.55, 6.6, 0.22), (0, 3.55, 6.6, 0.22), (-3.55, 0, 0.22, 6.6), (3.55, 0, 0.22, 6.6)):
+        m.add(rbox(w, 0.12, d, 0.05, 1).move(sx, 0.52, sz), glow="gold")
+    # большая монета: диск, ободок, внутренний круг
+    m.add(cyl(2.5, 0.16, 0.06, 20, "gold", steps=1).move(0, 0.46, 0))
+    m.add(torus(2.3, 0.2, 20, 5).scale(1, 0.6, 1).move(0, 0.6, 0), glow="gold")
+    m.add(cyl(1.3, 0.1, 0.04, 20, "cream", steps=1).move(0, 0.56, 0))
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            m.add(cyl(0.62, 0.14, 0.05, 10, "gold", steps=1).move(sx * 4.4, 0.56, sz * 4.4))
     return m
 
 
@@ -477,8 +501,9 @@ MODELS = {
     "rebirthAltar": (rebirth_altar, 5000, "Алтарь ребёрса, 5 ступеней, верх светится"),
     "statuePedestal": (statue_pedestal, 2000, "Пьедестал под статую-маскота"),
     "seasonPortal": (season_portal, 2000, "Сезонный портал-арка ~12"),
-    "lockButton": (lock_button, 2000, "Кнопка замка: тумба с большой кнопкой"),
-    "collectPad": (collect_pad, 2000, "Плита сбора дохода 10×10"),
+    "lockButton": (lock_button, 2000, "Кнопка замка: тумба ~9, кнопка — узел Button (перекрашивается), замочек"),
+    "collectPlate": (collect_plate, 2000, "Плита сбора дохода 10×10, золотая, с монетой"),
+    "collectPad": (collect_pad, 2000, "Плита сбора дохода 10×10 (старый вариант, см. collectPlate)"),
     "floor2": (floor2, 5000, "Секция пола второго этажа 20×20 с перилами (верх на 2.0)"),
     "stairs": (stairs, 5000, "Лестница на второй этаж: подъём 22, ширина 8, вверх к −Z"),
     "titanAltar": (titan_altar, 2000, "Алтарь сезонного Титана 10×10"),
