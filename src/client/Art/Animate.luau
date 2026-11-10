@@ -292,7 +292,10 @@ local function step(v: any, now: number, dt: number, myPos: Vector3?, allParts: 
 		local pos = off.Position * scale
 		local local_ = CFrame.new(pos) * off.Rotation
 		local role = info.role
-		if FACE[role] then
+		-- у 3D-моделей голова не отделена от тела: поворачивается всё существо целиком
+		if v.mesh then
+			local_ = faceRot * local_
+		elseif FACE[role] then
 			local_ = faceRot * local_
 			if role == "lid" and blink > 0 then
 				local_ = local_ * CFrame.new(0, -blink * info.y * 1.2, 0)
