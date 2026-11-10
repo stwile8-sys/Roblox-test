@@ -184,7 +184,9 @@ def icon_c():
     for (x, y, r) in ((0.78, 0.22, 0.09), (0.86, 0.5, 0.07), (0.25, 0.3, 0.06)):
         ring(d, S * x, S * y, S * r, 7 * SK)
     ragdoll(d, S * 0.55, S * 0.42, S * 0.3, -0.35, ow)
-    return round_icon(finish(im, (512, 512)))
+    final = finish(im, (512, 512))
+    final.save(os.path.join(OUT, "icon_C_square.png"))  # для загрузки в Roblox: углы скругляет сам Roblox
+    return round_icon(final)
 
 
 def thumb(variant):
