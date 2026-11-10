@@ -1132,6 +1132,25 @@ function M.giveBat(S: any)
 		end
 	end)
 	tool.Parent = bp
+	-- модель дубинки ещё грузится: когда загрузится — заменить дубинку на 3D-версию
+	if not ModelLib.has("club") then
+		task.spawn(function()
+			ModelLib.wait(180)
+			if not ModelLib.has("club") or not tool.Parent then
+				return
+			end
+			local equipped = tool.Parent == player.Character
+			tool:Destroy()
+			M.giveBat(S)
+			if equipped then
+				local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+				local nt = bp:FindFirstChild("Дубинка")
+				if hum and nt then
+					hum:EquipTool(nt)
+				end
+			end
+		end)
+	end
 end
 
 -- ── Главный цикл рейдов ─────────────────────────────────────
