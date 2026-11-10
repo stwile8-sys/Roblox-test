@@ -25,7 +25,6 @@ local Analytics = require(G.Analytics)
 local Bots = require(G.Bots)
 local Tutorial = require(G.Tutorial)
 local OfflineBases = require(G.OfflineBases)
-local Cave = require(G.Cave)
 
 local _ = Analytics
 local api = Ctx.api
@@ -45,7 +44,6 @@ Anticheat.init()
 Bots.init()
 Social.init()
 OfflineBases.init()
-Cave.init()
 Profiles.startAutosave()
 
 -- ── Виды состояния для клиента ──────────────────────────────

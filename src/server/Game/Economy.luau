@@ -205,7 +205,61 @@ local function beltEnds(B: any, which: string): (Vector3?, Vector3?)
 	return s.Position, e.Position
 end
 
+-- точка на кольце хаба: доля t от 0 до 1
+local function ringPoint(hub: Instance, t: number, up: number): (Vector3, Vector3)
+	local R = hub:GetAttribute("RingR") :: number
+	local a = (hub:GetAttribute("RingA0") :: number) + (hub:GetAttribute("RingSpan") :: number) * t
+	local y = (hub:GetAttribute("RingY") :: number) + up
+	local p = Vector3.new(math.cos(a) * R, y, math.sin(a) * R)
+	-- направление движения — касательная по возрастанию угла
+	local dir = Vector3.new(-math.sin(a), 0, math.cos(a))
+	return p, dir
+end
+M.ringPoint = ringPoint
+
 local function spawnBelt(B: any, which: string)
+	local hub = B.model
+	if B == HUB and hub and hub:GetAttribute("RingR") then
+		local count = #B.belt
+		if count >= Game.BELT_MAX then
+			return
+		end
+		local id = M.randomOf(rollRarity())
+		local d = Defs.BY_ID[id]
+		local size = Defs.RARITY[d.rarity].size
+		local up = size / 2 + 0.2
+		local price = Ctx.price(id, 1)
+		local p, dir = ringPoint(hub, 0, up)
+		local anchor = Bases.makeAnchor(id, CFrame.lookAt(p, p + dir), {
+			Kind = "belt",
+			Path = "ring",
+			Owner = 0,
+			Base = 0,
+			Price = price,
+			Up = up,
+			T0 = Ctx.now(),
+			Dur = Game.BELT_DUR,
+		})
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "Buy"
+		prompt:SetAttribute("Role", "buy")
+		prompt.ActionText = "Купить $" .. tostring(price)
+		prompt.ObjectText = d.name.ru .. " · " .. Defs.RARITY[d.rarity].name.ru
+		prompt.HoldDuration = 0
+		prompt.MaxActivationDistance = 14
+		prompt.RequiresLineOfSight = false
+		prompt.KeyboardKeyCode = Enum.KeyCode.E
+		prompt.Parent = anchor
+		local item = { anchor = anchor, id = id, price = price, t0 = Ctx.now(), ring = true, up = up, which = which }
+		table.insert(B.belt, item)
+		prompt.Triggered:Connect(function(player)
+			local S = Ctx.session(player)
+			if S and S.ready then
+				M.buyFromBelt(S, B, item)
+			end
+		end)
+		return
+	end
 	local from, to = beltEnds(B, which)
 	if not from then
 		return
@@ -283,8 +337,9 @@ function M.buyFromBelt(S: any, B: any, item: any)
 	table.remove(B.belt, table.find(B.belt, item))
 	local pos = item.anchor.Position
 	item.anchor:Destroy()
-	M.give(S, item.id, 1)
+	local _, where = M.give(S, item.id, 1)
 	Ctx.fx("buy", pos, { id = item.id }, nil)
+	Ctx.notify(S, if where == "inv" then "msg.boughtInv" else "msg.bought", { name = Defs.BY_ID[item.id].name.ru }, "good")
 	if api.quest then
 		api.quest(S, "buy", 1)
 	end
@@ -304,6 +359,9 @@ local function moveBelt(B: any)
 				item.anchor:Destroy()
 			end
 			table.remove(B.belt, i)
+		elseif item.ring then
+			local p, dir = ringPoint(B.model, t, item.up)
+			item.anchor.CFrame = CFrame.lookAt(p, p + dir)
 		else
 			local p = item.from:Lerp(item.to, t)
 			item.anchor.CFrame = CFrame.lookAt(p, item.to)
@@ -709,7 +767,7 @@ function M.init()
 			moveBelt(HUB)
 			if acc >= Game.BELT_EVERY then
 				acc = 0
-				if next(Ctx.sessions) and HUB.model and HUB.model:FindFirstChild("Belt") then
+				if next(Ctx.sessions) and HUB.model and HUB.model:GetAttribute("RingR") then
 					spawnBelt(HUB, "Belt")
 				end
 			end

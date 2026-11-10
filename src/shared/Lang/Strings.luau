@@ -71,5 +71,7 @@ local S: { [string]: { [string]: string } } = {
 	["alarm.steal"] = { ru = "У тебя крадут!", en = "You're being robbed!" },
 	["msg.caveNoCash"] = { ru = "Прыжок в пещеру стоит ${cost}", en = "Cave jump costs ${cost}" },
 	["msg.lockCdS"] = { ru = "Замок перезарядится через {s} сек", en = "Lock recharges in {s}s" },
+	["msg.bought"] = { ru = "Куплено: {name} — уже на твоей базе!", en = "Bought {name} — it's on your base!" },
+	["msg.boughtInv"] = { ru = "Куплено: {name} — в хранилище (пьедесталы заняты)", en = "Bought {name} — in storage (pedestals full)" },
 }
 return S

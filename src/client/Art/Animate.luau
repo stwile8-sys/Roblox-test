@@ -116,6 +116,19 @@ end
 local function baseCF(v: any, now: number): CFrame
 	local a = v.anchor
 	local kind = a:GetAttribute("Kind")
+	if kind == "belt" and a:GetAttribute("Path") == "ring" then
+		local hub = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Hub")
+		local t0, dur = a:GetAttribute("T0"), a:GetAttribute("Dur")
+		if hub and t0 and dur and hub:GetAttribute("RingR") then
+			local t = math.clamp((workspace:GetServerTimeNow() - t0) / dur, 0, 1)
+			local R = hub:GetAttribute("RingR")
+			local ang = hub:GetAttribute("RingA0") + hub:GetAttribute("RingSpan") * t
+			local p = Vector3.new(math.cos(ang) * R, hub:GetAttribute("RingY") + (a:GetAttribute("Up") or 1), math.sin(ang) * R)
+			local dir = Vector3.new(-math.sin(ang), 0, math.cos(ang))
+			local wob = math.sin(now * 8 + v.phase) * 0.12
+			return CFrame.lookAt(p, p + dir) * CFrame.Angles(0, 0, wob) * CFrame.new(0, math.abs(math.sin(now * 8 + v.phase)) * 0.15 * v.k, 0)
+		end
+	end
 	if kind == "belt" then
 		local from, to = a:GetAttribute("From"), a:GetAttribute("To")
 		local t0, dur = a:GetAttribute("T0"), a:GetAttribute("Dur")
@@ -379,6 +392,8 @@ local function cull()
 				if ok and nv then
 					visuals[anchor] = nv
 					built += 1
+				else
+					warn("[Art] не удалось построить", anchor:GetAttribute("Id"), nv)
 				end
 			elseif dist > RANGE + 30 and v then
 				destroy(v)

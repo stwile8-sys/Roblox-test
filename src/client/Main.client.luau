@@ -314,29 +314,6 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- ── Пещера удачи: табличка с ценой ──────────────────────────
-task.spawn(function()
-	local map = workspace:WaitForChild("Map", 30)
-	local hub = map and map:WaitForChild("Hub", 30)
-	local cave = hub and hub:WaitForChild("Cave", 30)
-	local sparks = cave and cave:WaitForChild("Sparks", 30)
-	if not sparks then
-		return
-	end
-	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(260, 90)
-	bb.StudsOffset = Vector3.new(0, 7, 0)
-	bb.MaxDistance = 160
-	bb.AlwaysOnTop = false
-	bb.Parent = sparks
-	local frame = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.bg, Parent = bb }, { Kit.corner(18), Kit.stroke(Kit.C.line, 4) })
-	Kit.label({ Text = "✨ Пещера удачи", Font = Kit.BLACK, TextSize = 26, Size = UDim2.new(1, 0, 0.5, 0), Parent = frame })
-	local price = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 28, TextColor3 = Kit.C.ok, Position = UDim2.fromScale(0, 0.48), Size = UDim2.new(1, 0, 0.5, 0), Parent = frame })
-	State.on("caveCost", function(v)
-		price.Text = "Прыгни! " .. L.money(v)
-	end)
-end)
-
 -- ── Атмосфера, музыка, декор ────────────────────────────────
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "MoodCC"

@@ -137,93 +137,132 @@ local function bridge(parent: Instance, a: Vector3, b: Vector3, width: number)
 	end
 end
 
--- ── Пещера удачи ────────────────────────────────────────────
--- Холм в центре хаба: ступени-кольца, 4 пандуса, тёмный вход на вершине (CaveTrigger над ним).
--- Подземная комната под островом: CaveRoom/CaveSpawn, светящиеся кристаллы, поток воздуха.
-local CAVE_TOP = 8
-function M.buildCave(hub: Instance)
-	local cave = Instance.new("Folder")
-	cave.Name = "Cave"
-	cave.Parent = hub
-	local cols = { "#CDB8F5", "#BBA3EE", "#A98FE6" }
-	for i, r in { 18, 14, 10 } do
-		solid(cave, {
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(CAVE_TOP * i / 3, r * 2, r * 2),
-			CFrame = CFrame.new(0, CAVE_TOP * i / 6, 0) * CFrame.Angles(0, 0, math.pi / 2),
-			Color = Color3.fromHex(cols[i]),
-			Material = Enum.Material.SmoothPlastic,
-		})
+-- ── Золотой сундук в центре хаба ─────────────────────────────
+local INK = Color3.fromHex("#2A2140")
+local GOLD = Color3.fromHex("#FFC93C")
+local GOLD_D = Color3.fromHex("#E09A00")
+
+function M.buildChest(hub: Instance)
+	local f = Instance.new("Model")
+	f.Name = "Chest"
+	f.Parent = hub
+	-- пьедестал: три яруса с тёмными ободками
+	local y = 0
+	for i, t in { { 20, 1.6, "#FFF4DE" }, { 16, 1.6, "#F6D7A7" }, { 13, 1.4, "#FFE9A8" } } do
+		local d, h = t[1], t[2]
+		solid(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(h, d, d), CFrame = CFrame.new(0, y + h / 2, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex(t[3]), Material = Enum.Material.SmoothPlastic })
+		mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.35, d + 0.5, d + 0.5), CFrame = CFrame.new(0, y + h - 0.1, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = INK, Material = Enum.Material.SmoothPlastic })
+		y += h
+		local _ = i
 	end
-	-- пандусы на вершину
-	for k = 0, 3 do
-		local a = k * math.pi / 2 + math.pi / 4
-		local w = Instance.new("WedgePart")
-		w.Anchored = true
-		w.Size = Vector3.new(6, CAVE_TOP, 14)
-		w.CFrame = CFrame.new(math.cos(a) * 21, CAVE_TOP / 2, math.sin(a) * 21) * CFrame.Angles(0, -a - math.pi / 2, 0)
-		w.Color = Color3.fromHex("#FFF4DE")
-		w.Material = Enum.Material.SmoothPlastic
-		w.TopSurface = Enum.SurfaceType.Smooth
-		w.Parent = cave
+	-- корпус сундука
+	local base = CFrame.new(0, y, 0)
+	local W, H, D = 10, 5.5, 7
+	solid(f, { Name = "Body", Size = Vector3.new(W, H, D), CFrame = base * CFrame.new(0, H / 2, 0), Color = GOLD, Material = Enum.Material.SmoothPlastic })
+	-- тёмные рёбра по углам и полосы
+	for _, sx in { -1, 1 } do
+		for _, sz in { -1, 1 } do
+			mk(f, { Size = Vector3.new(0.7, H + 0.2, 0.7), CFrame = base * CFrame.new(sx * W / 2, H / 2, sz * D / 2), Color = INK, Material = Enum.Material.SmoothPlastic })
+		end
 	end
-	-- вход: тёмный колодец с обводкой и мерцающими искрами
-	mk(cave, { Name = "Mouth", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.4, 9, 9), CFrame = CFrame.new(0, CAVE_TOP + 0.15, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#14102A"), Material = Enum.Material.SmoothPlastic })
-	mk(cave, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.6, 10.6, 10.6), CFrame = CFrame.new(0, CAVE_TOP + 0.05, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
-	for k = 1, 8 do
-		local a = k / 8 * math.pi * 2
-		local c = mk(cave, { Size = Vector3.new(1.4, 3, 1.4), CFrame = CFrame.new(math.cos(a) * 6.6, CAVE_TOP + 1.4, math.sin(a) * 6.6) * CFrame.Angles(0.25, a, 0.25), Color = if k % 2 == 0 then Palette.chrono else Color3.fromHex("#C9B3FF"), Material = Enum.Material.Neon })
-		CollectionService:AddTag(c, "Pulse")
+	for _, sx in { -0.28, 0.28 } do
+		mk(f, { Size = Vector3.new(1.1, H + 0.1, D + 0.15), CFrame = base * CFrame.new(sx * W, H / 2, 0), Color = GOLD_D, Material = Enum.Material.SmoothPlastic })
 	end
-	local glow = Instance.new("ParticleEmitter")
-	glow.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	glow.Color = ColorSequence.new(Palette.chrono)
-	glow.LightEmission = 1
-	glow.Rate = 10
-	glow.Lifetime = NumberRange.new(1, 2)
-	glow.Speed = NumberRange.new(4, 8)
-	glow.EmissionDirection = Enum.NormalId.Top
-	glow.Size = NumberSequence.new(0.6, 0)
-	local holder = mk(cave, { Name = "Sparks", Size = Vector3.new(6, 0.2, 6), CFrame = CFrame.new(0, CAVE_TOP + 0.4, 0), Transparency = 1 })
-	glow.Parent = holder
-	local trig = mk(cave, { Name = "CaveTrigger", Size = Vector3.new(7, 3, 7), CFrame = CFrame.new(0, CAVE_TOP + 1.8, 0), Transparency = 1 })
-	trig.CanTouch = true
-	-- подземная комната
-	local room = Instance.new("Folder")
-	room.Name = "CaveRoom"
-	room.Parent = hub
-	local rc = Vector3.new(0, -110, 0)
-	solid(room, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 40, 40), CFrame = CFrame.new(rc) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#3A2F6B"), Material = Enum.Material.SmoothPlastic })
-	for k = 1, 16 do
-		local a = k / 16 * math.pi * 2
-		solid(room, { Size = Vector3.new(8.5, 30, 2), CFrame = CFrame.new(rc + Vector3.new(math.cos(a) * 19, 15, math.sin(a) * 19)) * CFrame.Angles(0, -a + math.pi / 2, 0), Color = Color3.fromHex("#4B3F8F"), Material = Enum.Material.SmoothPlastic })
+	mk(f, { Size = Vector3.new(W + 0.3, 0.6, D + 0.3), CFrame = base * CFrame.new(0, 0.3, 0), Color = INK, Material = Enum.Material.SmoothPlastic })
+	-- замок спереди (−Z смотрит на мост к базе 5)
+	mk(f, { Size = Vector3.new(2.2, 2.6, 0.5), CFrame = base * CFrame.new(0, H - 1.3, -D / 2 - 0.2), Color = INK, Material = Enum.Material.SmoothPlastic })
+	local gem = mk(f, { Shape = Enum.PartType.Ball, Size = Vector3.new(1.2, 1.2, 1.2), CFrame = base * CFrame.new(0, H - 1.3, -D / 2 - 0.45), Color = Palette.chrono, Material = Enum.Material.Neon })
+	CollectionService:AddTag(gem, "Pulse")
+	-- крышка приоткрыта: полуцилиндр, повернутый на заднем шарнире
+	local hinge = base * CFrame.new(0, H, D / 2) * CFrame.Angles(math.rad(-28), 0, 0)
+	local lidCF = hinge * CFrame.new(0, 0, -D / 2)
+	local lid = mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(W, D, D), CFrame = lidCF * CFrame.Angles(0, 0, 0), Color = GOLD, Material = Enum.Material.SmoothPlastic })
+	lid.Size = Vector3.new(W, D, D)
+	-- нижнюю половину крышки прячет «срез» — тёмная пластина
+	mk(f, { Size = Vector3.new(W + 0.2, 0.4, D + 0.2), CFrame = lidCF * CFrame.new(0, -0.1, 0), Color = INK, Material = Enum.Material.SmoothPlastic })
+	for _, sx in { -0.28, 0.28 } do
+		mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.1, D + 0.15, D + 0.15), CFrame = lidCF * CFrame.new(sx * W, 0, 0), Color = GOLD_D, Material = Enum.Material.SmoothPlastic })
 	end
-	solid(room, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 40, 40), CFrame = CFrame.new(rc + Vector3.new(0, 31, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
-	for k = 1, 10 do
-		local a = k / 10 * math.pi * 2
-		local c = mk(room, { Size = Vector3.new(2, 5 + (k % 3) * 2, 2), CFrame = CFrame.new(rc + Vector3.new(math.cos(a) * 16, 3, math.sin(a) * 16)) * CFrame.Angles(0.3, a, 0.2), Color = if k % 2 == 0 then Palette.chrono else Color3.fromHex("#FF9FD2"), Material = Enum.Material.Neon })
-		CollectionService:AddTag(c, "Pulse")
+	-- сокровища внутри: монеты и свечение
+	local glow = mk(f, { Size = Vector3.new(W - 1, 0.3, D - 1), CFrame = base * CFrame.new(0, H + 0.1, 0), Color = Color3.fromHex("#FFF1A8"), Material = Enum.Material.Neon })
+	CollectionService:AddTag(glow, "Pulse")
+	local rng = Random.new(42)
+	for _ = 1, 14 do
+		mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, 1.4, 1.4), CFrame = base * CFrame.new(rng:NextNumber(-3.8, 3.8), H + rng:NextNumber(0.2, 1.4), rng:NextNumber(-2.4, 2.4)) * CFrame.Angles(rng:NextNumber(-0.8, 0.8), rng:NextNumber(0, 3), math.pi / 2 + rng:NextNumber(-0.6, 0.6)), Color = GOLD, Material = Enum.Material.Metal })
 	end
-	local spot = mk(room, { Name = "CaveSpawn", Size = Vector3.new(4, 1, 4), CFrame = CFrame.new(rc + Vector3.new(0, 1.5, 0)), Color = Palette.chrono, Material = Enum.Material.Neon, Transparency = 0.3 })
+	for _, info in { { -2.5, Color3.fromHex("#FF5C7A") }, { 1.2, Palette.chrono }, { 3, Color3.fromHex("#B47CFF") } } do
+		local g = mk(f, { Size = Vector3.new(1, 1.4, 1), CFrame = base * CFrame.new(info[1], H + 1.2, 0.8) * CFrame.Angles(0.4, info[1], 0.3), Color = info[2], Material = Enum.Material.Neon })
+		CollectionService:AddTag(g, "Pulse")
+	end
 	local light = Instance.new("PointLight")
-	light.Color = Color3.fromHex("#C9B3FF")
-	light.Range = 40
-	light.Brightness = 3
-	light.Parent = spot
-	-- поток воздуха (включает сервер на время выброса)
-	local wind = Instance.new("ParticleEmitter")
-	wind.Name = "Wind"
-	wind.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	wind.Color = ColorSequence.new(Color3.new(1, 1, 1))
-	wind.Rate = 0
-	wind.Lifetime = NumberRange.new(0.8, 1.2)
-	wind.Speed = NumberRange.new(40, 60)
-	wind.EmissionDirection = Enum.NormalId.Top
-	wind.SpreadAngle = Vector2.new(10, 10)
-	wind.Size = NumberSequence.new(1.2, 0)
-	wind.Parent = spot
-	local wind2 = wind:Clone()
-	wind2.Parent = holder
+	light.Color = Color3.fromHex("#FFD36B")
+	light.Range = 30
+	light.Brightness = 2.5
+	light.Parent = glow
+	local sp = Instance.new("ParticleEmitter")
+	sp.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	sp.Color = ColorSequence.new(GOLD)
+	sp.LightEmission = 1
+	sp.Rate = 10
+	sp.Lifetime = NumberRange.new(1.5, 2.5)
+	sp.Speed = NumberRange.new(3, 6)
+	sp.EmissionDirection = Enum.NormalId.Top
+	sp.SpreadAngle = Vector2.new(30, 30)
+	sp.Size = NumberSequence.new(0.6, 0)
+	sp.Parent = glow
+	-- монеты, парящие вокруг сундука
+	for i = 1, 8 do
+		local a = i / 8 * math.pi * 2
+		local c = mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.5, 2.2, 2.2), CFrame = CFrame.new(math.cos(a) * 9, y + 9 + (i % 2) * 1.5, math.sin(a) * 9) * CFrame.Angles(0, a, 0), Color = GOLD, Material = Enum.Material.Metal })
+		CollectionService:AddTag(c, "Float")
+	end
+end
+
+-- ── Кольцевой конвейер вокруг сундука ───────────────────────
+-- Едет по дуге от портала-начала до портала-конца; между порталами небольшой зазор.
+local RING_R = 27
+local RING_W = 7
+local RING_A0 = math.rad(-70)
+local RING_GAP = math.rad(26)
+
+function M.buildRing(hub: Instance)
+	local f = Instance.new("Model")
+	f.Name = "Ring"
+	f.Parent = hub
+	local span = math.pi * 2 - RING_GAP
+	local N = 44
+	local d = span / N
+	for i = 0, N - 1 do
+		local a = RING_A0 + d * (i + 0.5)
+		local cf = CFrame.new(math.cos(a) * RING_R, 0, math.sin(a) * RING_R) * CFrame.Angles(0, -a, 0)
+		local seg = RING_R * d * 1.08
+		solid(f, { Size = Vector3.new(RING_W, 1.2, seg), CFrame = cf * CFrame.new(0, 0.6, 0), Color = if i % 2 == 0 then Color3.fromHex("#EFE4FF") else Color3.fromHex("#E4D6FB"), Material = Enum.Material.SmoothPlastic })
+		for _, side in { -1, 1 } do
+			local r2 = RING_R + side * (RING_W / 2 + 0.4)
+			local cf2 = CFrame.new(math.cos(a) * r2, 0, math.sin(a) * r2) * CFrame.Angles(0, -a, 0)
+			solid(f, { Size = Vector3.new(0.8, 2, r2 * d * 1.1), CFrame = cf2 * CFrame.new(0, 1, 0), Color = Color3.fromHex("#FFE3B0"), Material = Enum.Material.SmoothPlastic })
+			mk(f, { Size = Vector3.new(0.9, 0.25, r2 * d * 1.1), CFrame = cf2 * CFrame.new(0, 2.05, 0), Color = INK, Material = Enum.Material.SmoothPlastic })
+		end
+	end
+	-- порталы начала и конца, развёрнуты поперёк ленты
+	local function portal(a: number, color: Color3, name: string)
+		local p = CFrame.new(math.cos(a) * RING_R, 0, math.sin(a) * RING_R) * CFrame.Angles(0, -a, 0)
+		local holder = mk(f, { Name = name, Size = Vector3.new(1, 1, 1), CFrame = p * CFrame.new(0, 4, 0), Transparency = 1 })
+		for k = 1, 12 do
+			local t = k / 12 * math.pi * 2
+			mk(f, { Size = Vector3.new(1.4, 1.4, 1.1), CFrame = p * CFrame.new(math.cos(t) * 4.6, 4.6 + math.sin(t) * 4.6, 0) * CFrame.Angles(0, 0, t), Color = INK, Material = Enum.Material.SmoothPlastic })
+			mk(f, { Size = Vector3.new(1, 1, 1.3), CFrame = p * CFrame.new(math.cos(t) * 4.6, 4.6 + math.sin(t) * 4.6, 0) * CFrame.Angles(0, 0, t), Color = color, Material = Enum.Material.Neon })
+		end
+		local disc = mk(f, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, 8.4, 8.4), CFrame = p * CFrame.new(0, 4.6, 0) * CFrame.Angles(0, math.pi / 2, 0), Color = color, Material = Enum.Material.Neon, Transparency = 0.45 })
+		CollectionService:AddTag(disc, "Pulse")
+		return holder
+	end
+	portal(RING_A0, Palette.chrono, "PortalIn")
+	portal(RING_A0 + span, Palette.thief, "PortalOut")
+	hub:SetAttribute("RingR", RING_R)
+	hub:SetAttribute("RingA0", RING_A0)
+	hub:SetAttribute("RingSpan", span)
+	hub:SetAttribute("RingY", 1.2)
 end
 
 function M.build()
@@ -242,40 +281,9 @@ function M.build()
 
 	-- общий конвейер артефактов на центральном острове
 
-	-- кристалл в центре
-	M.buildCave(hub)
-	local crystal = Instance.new("Model")
-	crystal.Name = "Crystal"
-	crystal.Parent = hub
-	local ccf = CFrame.new(0, 26, 0)
-	for i = 1, 4 do
-		local p = mk(crystal, { Size = Vector3.new(5, 14, 5), CFrame = ccf * CFrame.Angles(0, i * math.pi / 4, 0), Color = Palette.chrono, Material = Enum.Material.Glass, Transparency = 0.15 })
-		CollectionService:AddTag(p, "Spin")
-		p:SetAttribute("Speed", 25)
-		p:SetAttribute("Center", ccf.Position)
-	end
-	local core = mk(crystal, { Shape = Enum.PartType.Ball, Size = Vector3.new(6, 6, 6), CFrame = ccf, Color = Color3.fromHex("#E0FBFF"), Material = Enum.Material.Neon })
-	CollectionService:AddTag(core, "Pulse")
-	local cl = Instance.new("PointLight")
-	cl.Color = Palette.chrono
-	cl.Range = 45
-	cl.Brightness = 2.5
-	cl.Parent = core
-	local sparks = Instance.new("ParticleEmitter")
-	sparks.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	sparks.Color = ColorSequence.new(Palette.chrono)
-	sparks.LightEmission = 1
-	sparks.Rate = 12
-	sparks.Lifetime = NumberRange.new(3, 5)
-	sparks.Speed = NumberRange.new(3, 7)
-	sparks.SpreadAngle = Vector2.new(180, 180)
-	sparks.Size = NumberSequence.new(0.6, 0)
-	sparks.Parent = core
-	for i = 1, 6 do
-		local a = i / 6 * math.pi * 2
-		local f = mk(crystal, { Size = Vector3.new(1.5, 3.5, 1.5), CFrame = CFrame.new(math.cos(a) * 11, 27 + math.sin(a * 2) * 2, math.sin(a) * 11) * CFrame.Angles(0.3, a, 0.3), Color = Palette.chrono, Material = Enum.Material.Neon })
-		CollectionService:AddTag(f, "Float")
-	end
+	-- в центре: пьедестал с золотым сундуком, вокруг него кольцевой конвейер с монстрами
+	M.buildChest(hub)
+	M.buildRing(hub)
 
 	-- всё, что стоит между мостами (мосты на углах 0,45,…): подиумы, доски, алтарь, портал, статуи
 	for i = 1, 4 do
