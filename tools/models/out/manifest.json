@@ -453,19 +453,19 @@
  },
  "beacon": {
   "file": "beacon.glb",
-  "sha256": "a0e04793da551e6cced73e3a4f42d14625b4e2e975f618ecbc5dfdb8aeb126fb",
-  "tris": 1664,
+  "sha256": "9d924e7f897a04cce7b0e8afb685bc8b5296130cda213f0ca1ec5838e153083a",
+  "tris": 1832,
   "budget": 2000,
   "size": [
-   3.26,
-   10.05,
-   3.18
+   4.81,
+   25.9,
+   4.69
   ],
   "nodes": [
    "Body",
    "Glow_FFE066"
   ],
-  "desc": "Маяк базы"
+  "desc": "Маяк базы, столб ~26"
  },
  "mine": {
   "file": "mine.glb",
@@ -485,20 +485,21 @@
  },
  "slowField": {
   "file": "slowField.glb",
-  "sha256": "83c29dddc5be999bb4a0aee186bce42b8f3b37ce2ef4dcdd01f95752efef477e",
-  "tris": 1536,
+  "sha256": "16dcacb3d19561cc28bb58cffaf0833b44b76abf50cbfd27615637485313fc43",
+  "tris": 1696,
   "budget": 2000,
   "size": [
    5.93,
-   1.36,
+   2.6,
    5.93
   ],
   "nodes": [
    "Body",
    "Glow_00E5FF",
-   "Glow_7B2FF7"
+   "Glow_7B2FF7",
+   "Glow_7B2FF7_T75"
   ],
-  "desc": "Ловушка: замедляющее поле"
+  "desc": "Ловушка: замедляющее поле (купол)"
  },
  "decoyPedestal": {
   "file": "decoyPedestal.glb",
@@ -532,5 +533,508 @@
    "Glow_FFB347"
   ],
   "desc": "Скин ловушки «Чёрная дыра»"
+ },
+ "chest": {
+  "file": "chest.glb",
+  "sha256": "00a77555b17ee57b3b61f87a3644dfd680e060966c4ce208228f6eb924811def",
+  "tris": 2428,
+  "budget": 5000,
+  "size": [
+   10.35,
+   5.54,
+   7.72
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7",
+   "Glow_FF2E63"
+  ],
+  "desc": "Золотой сундук — корпус с монетами и самоцветами (10×~5×7)"
+ },
+ "chestLid": {
+  "file": "chestLid.glb",
+  "sha256": "893f0460bd79edd45c1c863a2cc963d961fb1ec4cc68b0a4f09f22dd75cda769",
+  "tris": 392,
+  "budget": 2000,
+  "size": [
+   10.0,
+   3.6,
+   7.43
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Крышка сундука; опора — ось петель (ставить в (0, 3.5, +3.5) от опоры сундука, открывать вокруг X)",
+  "pivot": [
+   0.0,
+   0.0,
+   3.635
+  ]
+ },
+ "chestPedestal": {
+  "file": "chestPedestal.glb",
+  "sha256": "c9f67a13a74e52847153675e2ed69c401ec610ed6aa7e0c3ad22690df26e6769",
+  "tris": 2152,
+  "budget": 5000,
+  "size": [
+   20.1,
+   4.75,
+   20.1
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFE066"
+  ],
+  "desc": "Пьедестал под сундук, 3 яруса"
+ },
+ "beltArc": {
+  "file": "beltArc.glb",
+  "sha256": "4654e9b0121389e9397b4e11811f557d9d3c52f6ff4b525bccb6de45ce8e22e6",
+  "tris": 400,
+  "budget": 2000,
+  "size": [
+   4.38,
+   1.85,
+   7.06
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сегмент кольцевого конвейера 1/44 (R=27, ширина 7); опора — центр кольца",
+  "pivot": [
+   0.0,
+   0.0,
+   26.969
+  ]
+ },
+ "portalStart": {
+  "file": "portalStart.glb",
+  "sha256": "5641f9db7297f1c3f299fb14509e01544dfa13dc93cc11908e5ff5c9eb1ec00b",
+  "tris": 1432,
+  "budget": 2000,
+  "size": [
+   7.51,
+   9.24,
+   2.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_00E5FF_T35",
+   "Glow_FFE066"
+  ],
+  "desc": "Портал начала конвейера (бирюзовый)"
+ },
+ "portalEnd": {
+  "file": "portalEnd.glb",
+  "sha256": "b6ef6eabcd92cc394679b0fa107f0523d577e0922837aad3c4b2552755804820",
+  "tris": 1432,
+  "budget": 2000,
+  "size": [
+   7.51,
+   9.24,
+   2.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_7B2FF7",
+   "Glow_7B2FF7_T35",
+   "Glow_FFE066"
+  ],
+  "desc": "Портал конца конвейера (фиолетовый)"
+ },
+ "skinPodium": {
+  "file": "skinPodium.glb",
+  "sha256": "319b8a1a5711266b775976686e4404770cd4baa57b895b2e39d61d13a2ba1946",
+  "tris": 1888,
+  "budget": 2000,
+  "size": [
+   7.88,
+   8.52,
+   7.88
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Подиум с манекеном для скинов"
+ },
+ "leaderboard": {
+  "file": "leaderboard.glb",
+  "sha256": "d55947e8d0d9b7434134b85ada75046cc0be08a73d43c5555be35f13e85f4d53",
+  "tris": 1252,
+  "budget": 2000,
+  "size": [
+   16.28,
+   14.7,
+   2.4
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Доска лидерборда 16×14 на ножках"
+ },
+ "rebirthAltar": {
+  "file": "rebirthAltar.glb",
+  "sha256": "ed0323a217cf394203e13ca5c4ce701aab0b0ff3598a97e0b58c49e21392c966",
+  "tris": 2168,
+  "budget": 5000,
+  "size": [
+   14.0,
+   4.8,
+   14.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Алтарь ребёрса, 5 ступеней, верх светится"
+ },
+ "statuePedestal": {
+  "file": "statuePedestal.glb",
+  "sha256": "43f6f2b669543d0414610dac62170a1fc91036214fa7e230262e22d1152c0c45",
+  "tris": 1764,
+  "budget": 2000,
+  "size": [
+   7.88,
+   4.11,
+   7.88
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Пьедестал под статую-маскота"
+ },
+ "seasonPortal": {
+  "file": "seasonPortal.glb",
+  "sha256": "b184371c2b4f93d469e3f80d7025d48a139ec96432e108f914f71ab51711d5fd",
+  "tris": 1684,
+  "budget": 2000,
+  "size": [
+   10.91,
+   12.0,
+   3.69
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFB347",
+   "Glow_FFE066",
+   "Glow_FFE066_T35"
+  ],
+  "desc": "Сезонный портал-арка ~12"
+ },
+ "lockButton": {
+  "file": "lockButton.glb",
+  "sha256": "dbd39ced77c32dd43a46f331f60b29eb2275884cbd66d7d295a13aa83b510aa0",
+  "tris": 1576,
+  "budget": 2000,
+  "size": [
+   8.86,
+   3.6,
+   8.86
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FF2E63"
+  ],
+  "desc": "Кнопка замка: тумба с большой кнопкой"
+ },
+ "collectPad": {
+  "file": "collectPad.glb",
+  "sha256": "7e24d1655e2c9f9612aa8ec385d0b371e7cf468fe307991041dabcfea5853601",
+  "tris": 1088,
+  "budget": 2000,
+  "size": [
+   10.0,
+   0.81,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Плита сбора дохода 10×10"
+ },
+ "floor2": {
+  "file": "floor2.glb",
+  "sha256": "903b9cd3dd870a4bd0b4c50dd06535ab665a698bc2ff797f3fe86d1dfce7a127",
+  "tris": 1600,
+  "budget": 5000,
+  "size": [
+   20.0,
+   6.32,
+   20.0
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Секция пола второго этажа 20×20 с перилами (верх на 2.0)"
+ },
+ "stairs": {
+  "file": "stairs.glb",
+  "sha256": "a19eaf3c3bc69848deb379b7764bd281ad5b67746292cb81878e884ddd160272",
+  "tris": 3840,
+  "budget": 5000,
+  "size": [
+   8.64,
+   26.66,
+   33.52
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Лестница на второй этаж: подъём 22, ширина 8, вверх к −Z"
+ },
+ "titanAltar": {
+  "file": "titanAltar.glb",
+  "sha256": "a49c0387172a5aae7561bc51007d8b09d0a903d0488ba988e5af0183e53b0942",
+  "tris": 1868,
+  "budget": 2000,
+  "size": [
+   10.0,
+   3.8,
+   10.0
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFB347"
+  ],
+  "desc": "Алтарь сезонного Титана 10×10"
+ },
+ "cage": {
+  "file": "cage.glb",
+  "sha256": "723629cd83e81f116d78051790df3c5a513fd5b3f8e8510da41501594b6102e1",
+  "tris": 1544,
+  "budget": 5000,
+  "size": [
+   11.0,
+   12.13,
+   11.0
+  ],
+  "nodes": [
+   "Bar1",
+   "Bar2",
+   "Bar3",
+   "Bar4",
+   "Bar5",
+   "Bar6",
+   "Bar7",
+   "Bar8",
+   "Base",
+   "Glow_00E5FF",
+   "Top"
+  ],
+  "desc": "Клетка алтаря: прутья Bar1…Bar8 отдельными деталями"
+ },
+ "s1Pumpkin": {
+  "file": "s1Pumpkin.glb",
+  "sha256": "61bb62983c6b5a6b6f27f73895419bd1409a932a373360ba311e0da71be97e8d",
+  "tris": 582,
+  "budget": 2000,
+  "size": [
+   3.85,
+   3.41,
+   3.85
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 1 (Хэллоуин): тыква"
+ },
+ "s1Torch": {
+  "file": "s1Torch.glb",
+  "sha256": "3d352f968ca25a5203dfae28fc603ad71122ece2f7a6e73c058474bb31201992",
+  "tris": 708,
+  "budget": 2000,
+  "size": [
+   1.45,
+   6.3,
+   1.45
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFB347",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 1 (Хэллоуин): факел"
+ },
+ "s2Tree": {
+  "file": "s2Tree.glb",
+  "sha256": "92fed342061302b337efc90dd59f78cab64ae08dc9a5faf3ad8d92714ddc4134",
+  "tris": 1692,
+  "budget": 2000,
+  "size": [
+   6.12,
+   8.9,
+   5.98
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 2 (Новый год): ёлка"
+ },
+ "s2Snowman": {
+  "file": "s2Snowman.glb",
+  "sha256": "a16c552dd480738c18267f8d6d4c8615da8fd8758d0233a9b7e32c5c19801cd9",
+  "tris": 1404,
+  "budget": 2000,
+  "size": [
+   5.14,
+   6.92,
+   3.26
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 2 (Новый год): снеговик"
+ },
+ "s3Palm": {
+  "file": "s3Palm.glb",
+  "sha256": "fcb9072a78498dd5932cb31b31d279ce9133261be9457cc1165b77968ad7cf84",
+  "tris": 964,
+  "budget": 2000,
+  "size": [
+   7.99,
+   8.69,
+   7.02
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 3 (Лето): пальма"
+ },
+ "s3Shells": {
+  "file": "s3Shells.glb",
+  "sha256": "d0873382c3ee2003ed2bf15a8e4c3b066b6da7fa3edd910b1758a97e30a27506",
+  "tris": 932,
+  "budget": 2000,
+  "size": [
+   4.42,
+   1.86,
+   3.54
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 3 (Лето): ракушки"
+ },
+ "s4Sakura": {
+  "file": "s4Sakura.glb",
+  "sha256": "9fd77a6b78aac600f96fbc580774980f90f3d1c773d6cb577e0286374653fab2",
+  "tris": 1296,
+  "budget": 2000,
+  "size": [
+   8.46,
+   11.71,
+   7.4
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 4 (Весна): сакура"
+ },
+ "s4Flowers": {
+  "file": "s4Flowers.glb",
+  "sha256": "452c59d14d656e90dc33f165f99bdf4ff2aacb89b19036cb6613dbb4e7bca615",
+  "tris": 1208,
+  "budget": 2000,
+  "size": [
+   3.53,
+   3.37,
+   2.84
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 4 (Весна): цветы"
+ },
+ "s5Planet": {
+  "file": "s5Planet.glb",
+  "sha256": "b71dc2bc649ad67e907d33f3ce075e1559c02238d31479936099730833419b03",
+  "tris": 980,
+  "budget": 2000,
+  "size": [
+   6.41,
+   6.35,
+   6.54
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 5 (Космос): планета"
+ },
+ "s5Meteor": {
+  "file": "s5Meteor.glb",
+  "sha256": "1bb912cdb363c5e26c807a81f70904e8f395a9694860fe915ed7e121d50482db",
+  "tris": 464,
+  "budget": 2000,
+  "size": [
+   5.24,
+   3.59,
+   4.43
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFB347",
+   "Glow_FFE066"
+  ],
+  "desc": "Сезон 5 (Космос): метеорит"
+ },
+ "s6Coral": {
+  "file": "s6Coral.glb",
+  "sha256": "08d4cf5403b27c5d3fad3aa37d04763c6ecc95cacef860902147d5f5d4d3f2ca",
+  "tris": 708,
+  "budget": 2000,
+  "size": [
+   3.89,
+   4.75,
+   3.27
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Сезон 6 (Глубина): кораллы"
+ },
+ "s6Bubbles": {
+  "file": "s6Bubbles.glb",
+  "sha256": "12fefa686d8d4869c5bede3c8d0781099688ba1fc7c8e64741f0e0faa5e4ad11",
+  "tris": 1224,
+  "budget": 2000,
+  "size": [
+   3.16,
+   7.29,
+   2.53
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF_T60"
+  ],
+  "desc": "Сезон 6 (Глубина): пузыри"
+ },
+ "club": {
+  "file": "club.glb",
+  "sha256": "2bc297efd7dbc3defd9c1a73bcbb21dd6c6dbbe3065d83d805bf3cdfea6a28be",
+  "tris": 904,
+  "budget": 2000,
+  "size": [
+   1.92,
+   4.0,
+   1.66
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Дубинка в руку, длина ~4"
  }
 }

@@ -17,6 +17,8 @@ sys.path.insert(0, HERE)
 from meshlib import write_glb  # noqa: E402
 import props  # noqa: E402
 
+import hub  # noqa: E402
+
 try:
     import creatures  # noqa: E402
 except ImportError:  # существа — необязательная часть
@@ -27,23 +29,28 @@ OUT = os.path.join(HERE, "out")
 
 def registry():
     reg = dict(props.MODELS)
+    reg.update(hub.MODELS)
     if creatures:
         reg.update(creatures.MODELS)
     return reg
 
 
 def make(name, entry):
-    fn, budget, desc = entry
+    fn, budget, desc = entry[:3]
+    pivot = entry[3] if len(entry) > 3 else None
     nodes = fn().nodes()
     lo = np.min([m.V.min(axis=0) for m in nodes.values()], axis=0)
     hi = np.max([m.V.max(axis=0) for m in nodes.values()], axis=0)
     # точка опоры — низ по центру габарита
-    shift = -np.array([(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2])
+    bottom = np.array([(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2])
+    # своя точка опоры (в координатах генератора) — храним её смещение от «низа по центру»
+    off = (np.array(pivot, float) - bottom) if pivot is not None else np.zeros(3)
+    shift = -(bottom + off)
     for m in nodes.values():
         m.move(*shift)
     tris = sum(m.tris for m in nodes.values())
     size = hi - lo
-    return nodes, tris, size, budget, desc
+    return nodes, tris, size, budget, desc, off
 
 
 def main():
@@ -59,7 +66,7 @@ def main():
     built = {}
     bad = 0
     for name in names:
-        nodes, tris, size, budget, desc = make(name, reg[name])
+        nodes, tris, size, budget, desc, off = make(name, reg[name])
         path = os.path.join(OUT, name + ".glb")
         write_glb(path, nodes)
         data = open(path, "rb").read()
@@ -67,6 +74,8 @@ def main():
             "file": name + ".glb", "sha256": hashlib.sha256(data).hexdigest(), "tris": tris, "budget": budget,
             "size": [round(float(x), 2) for x in size], "nodes": sorted(nodes), "desc": desc,
         }
+        if np.abs(off).max() > 1e-6:
+            manifest[name]["pivot"] = [round(float(x), 3) for x in off]
         flag = "" if tris <= budget else "  <-- ПРЕВЫШЕН БЮДЖЕТ"
         bad += tris > budget
         print(f"{name:16s} {tris:5d}/{budget} тр.  {size[0]:6.1f} × {size[1]:5.1f} × {size[2]:6.1f}  {len(data) // 1024:4d} КБ{flag}")

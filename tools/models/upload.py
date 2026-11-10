@@ -33,6 +33,7 @@ STATE_PATH = os.path.join(HERE, "state.json")
 REPORT_PATH = os.path.join(HERE, "report.md")
 LUAU_IDS = os.path.join(ROOT, "src", "shared", "Config", "Models.luau")
 LUAU_SIZES = os.path.join(ROOT, "src", "shared", "Config", "ModelSizes.luau")
+LUAU_PIVOTS = os.path.join(ROOT, "src", "shared", "Config", "ModelPivots.luau")
 DOC_PATH = os.path.join(ROOT, "docs", "MODELS.md")
 
 API = "https://apis.roblox.com"
@@ -226,18 +227,28 @@ def write_outputs(state, manifest):
     with open(LUAU_SIZES, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
+    lines = ["--!strict", "-- Смещение точки опоры от «низа по центру габарита» для моделей со своей опорой (стады).",
+             "-- Пишет tools/models/upload.py — руками не править.", "return {"]
+    lines += [f"\t{luau_key(n)} = Vector3.new({m['pivot'][0]}, {m['pivot'][1]}, {m['pivot'][2]})," for n, m in manifest.items() if m.get("pivot")]
+    lines += ["} :: { [string]: Vector3 }", ""]
+    with open(LUAU_PIVOTS, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
     doc = [
         "# 3D-модели (ветка `models`)", "",
         "Модели генерируются кодом (`tools/models/*.py` → `tools/models/out/*.glb`) и загружаются в Roblox через Open Cloud",
         "(`.github/workflows/models.yml`, без Studio). Таблицу ниже переписывает `tools/models/upload.py`.", "",
         "- **Точка опоры** — низ по центру габарита: `model:PivotTo(cf)` ставит модель «на пол» в точке `cf`.",
+        "  Исключения (своя опора, `Config/ModelPivots.luau`): `chestLid` — ось петель, `beltArc` — центр кольца.",
         "- **Ориентация** — перед смотрит на −Z (у ворот — ручки, у ящика — замок, у портала — проём). Y вверх.",
         "- **Размер** — X × Y × Z в стадах. `ModelLib` сам приводит масштаб к этим числам (`Config/ModelSizes.luau`).",
         "- **Узлы**: `Body` — цвета в вершинах; `Glow_RRGGBB[_Tnn]` — светящиеся части (ModelLib делает их Neon нужного цвета,",
         "  `Tnn` — прозрачность в %). Свет можно перекрасить: найти детали с именем `Glow_…` и сменить `Color`.",
         "- **Коллизии** выключены (`CanCollide/CanQuery/CanTouch = false`): модель — только вид, логика остаётся на старых невидимых деталях.",
         "- Острова: верх травы = точка опоры + высота Y. Конвейер: лента едет вдоль +X, верх ленты на 1.2 от опоры.",
-        "  Мост — вдоль Z. Стены и ворота — вдоль X, толщина по Z.", "",
+        "  Мост — вдоль Z. Стены и ворота — вдоль X, толщина по Z.",
+        "- Кольцевой конвейер: `beltArc` × 44, сегмент i — `PivotTo(center * CFrame.Angles(0, i * 2π/44, 0))`.",
+        "- Клетка `cage`: прутья — детали `Bar1`…`Bar8` (у каждого прута две детали с одним именем: стержень и шар), `Base`, `Top`.", "",
         "```lua", "local ModelLib = require(script.Parent.World.ModelLib)",
         "local m = ModelLib.get(\"pedestal\") -- копия Model или nil (тогда строим старый вариант из деталей)",
         "if m then m:PivotTo(cf); m.Parent = parent end", "```", "",
