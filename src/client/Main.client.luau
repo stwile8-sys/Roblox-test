@@ -55,16 +55,18 @@ local gui = new("ScreenGui", {
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	Parent = player:WaitForChild("PlayerGui"),
 })
-local scale = new("UIScale", { Parent = gui })
+-- корневая рамка в «дизайн-пикселях»: UIScale растягивает и её размер, поэтому делим его на масштаб,
+-- чтобы после масштабирования она ровно совпадала с экраном
+local root = new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = gui })
+local scale = new("UIScale", { Parent = root })
 local function rescale()
 	local v = workspace.CurrentCamera.ViewportSize
-	scale.Scale = math.clamp(math.min(v.X / 900, v.Y / 430), 0.62, 1.5)
+	local k = math.clamp(math.min(v.X / 900, v.Y / 430), 0.62, 1.5)
+	scale.Scale = k
+	root.Size = UDim2.fromScale(1 / k, 1 / k)
 end
 rescale()
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
-
--- корневая рамка в «дизайн-пикселях»: делим реальный размер на масштаб
-local root = new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = gui })
 
 local toastHolder
 
@@ -365,7 +367,7 @@ local dim = new("TextButton", {
 	Size = UDim2.fromScale(1, 1),
 	Visible = false,
 	ZIndex = 10,
-	Parent = gui,
+	Parent = root,
 })
 
 local function window(name: string, title: string): (Frame, ScrollingFrame)

@@ -1,144 +1,126 @@
 #!/usr/bin/env python3
-"""Простые иконки 512×512 для геймпассов и товаров (Pillow). Без текста: цветной круг + глиф.
+"""Иконки геймпассов и товаров «+1 Launch Power» (512×512 PNG). Только Pillow.
 
-Запуск: python3 tools/assets/make_icons.py  -> tools/assets/icons/<key>.png
+Запуск: python3 tools/assets/make_icons.py  → tools/assets/icons/<id>.png
+Стиль: яркий фон, толстая тёмная обводка, крупный белый текст с обводкой, простой значок.
+Никаких рун и молний парой (у аккаунта было предупреждение) — молния одна.
 """
 import math
 import os
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
+INK = (43, 35, 80)
+FONT_PATHS = [
+    "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+]
 S = 512
-C = S // 2
-
-GOLD = (255, 205, 60)
-WHITE = (255, 255, 255)
-DARK = (30, 25, 50)
 
 
-def star(d, cx, cy, r, fill, points=5, inner=0.45):
-    pts = []
-    for i in range(points * 2):
-        a = -math.pi / 2 + i * math.pi / points
-        rr = r if i % 2 == 0 else r * inner
-        pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
-    d.polygon(pts, fill=fill)
+def font(size):
+    for p in FONT_PATHS:
+        if os.path.isfile(p):
+            return ImageFont.truetype(p, size)
+    return ImageFont.load_default()
 
 
-def gem(d, cx, cy, r, fill):
-    d.polygon([(cx, cy - r), (cx + r * 0.8, cy - r * 0.2), (cx, cy + r), (cx - r * 0.8, cy - r * 0.2)], fill=fill)
-    d.polygon([(cx, cy - r), (cx + r * 0.3, cy - r * 0.2), (cx, cy + r), (cx - r * 0.3, cy - r * 0.2)], fill=tuple(min(255, c + 70) for c in fill[:3]))
+def base(bg, bg2):
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    # лёгкий вертикальный перелив фона
+    for y in range(S):
+        k = y / S
+        c = tuple(int(bg[i] * (1 - k) + bg2[i] * k) for i in range(3))
+        d.line([(0, y), (S, y)], fill=c + (255,))
+    mask = Image.new("L", (S, S), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, S - 1, S - 1], radius=110, fill=255)
+    im.putalpha(mask)
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([10, 10, S - 11, S - 11], radius=104, outline=INK, width=20)
+    return im, d
 
 
-def bolt(d, cx, cy, r, fill):
-    d.polygon([(cx + r * 0.2, cy - r), (cx - r * 0.55, cy + r * 0.1), (cx - r * 0.05, cy + r * 0.1),
-               (cx - r * 0.25, cy + r), (cx + r * 0.55, cy - r * 0.15), (cx + r * 0.05, cy - r * 0.15)], fill=fill)
+def text(d, xy, s, size, fill=(255, 255, 255)):
+    f = font(size)
+    d.text(xy, s, font=f, fill=fill, anchor="mm", stroke_width=max(6, size // 10), stroke_fill=INK)
 
 
-def magnet(d, cx, cy, r, fill):
-    w = r * 0.38
-    d.arc([cx - r, cy - r, cx + r, cy + r], 0, 180, fill=fill, width=int(w))
-    d.rectangle([cx - r, cy - r * 0.6, cx - r + w, cy], fill=fill)
-    d.rectangle([cx + r - w, cy - r * 0.6, cx + r, cy], fill=fill)
-    d.rectangle([cx - r, cy - r * 0.85, cx - r + w, cy - r * 0.6], fill=WHITE)
-    d.rectangle([cx + r - w, cy - r * 0.85, cx + r, cy - r * 0.6], fill=WHITE)
+def bolt(d, cx, cy, k=1.0, fill=(255, 214, 70)):
+    pts = [(-30, -120), (55, -120), (15, -25), (70, -25), (-40, 125), (-10, 15), (-60, 15)]
+    pts = [(cx + x * k, cy + y * k) for x, y in pts]
+    d.polygon(pts, fill=fill, outline=INK, width=int(12 * k))
 
 
-def eye(d, cx, cy, r, fill):
-    d.ellipse([cx - r, cy - r * 0.55, cx + r, cy + r * 0.55], fill=WHITE)
-    d.ellipse([cx - r * 0.42, cy - r * 0.42, cx + r * 0.42, cy + r * 0.42], fill=fill)
-    d.ellipse([cx - r * 0.18, cy - r * 0.18, cx + r * 0.18, cy + r * 0.18], fill=DARK)
+def coin(d, cx, cy, r):
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 201, 60), outline=INK, width=14)
+    d.ellipse([cx - r * 0.62, cy - r * 0.62, cx + r * 0.62, cy + r * 0.62], outline=(214, 150, 0), width=10)
 
 
-def floors(d, cx, cy, r, fill):
-    for i, y in enumerate((cy - r * 0.55, cy + r * 0.25)):
-        d.rectangle([cx - r * 0.8, y - r * 0.3, cx + r * 0.8, y + r * 0.3], fill=fill)
-        for k in range(-2, 3):
-            d.rectangle([cx + k * r * 0.3 - r * 0.08, y - r * 0.12, cx + k * r * 0.3 + r * 0.08, y + r * 0.12], fill=DARK)
-    d.polygon([(cx - r, cy - r * 0.85), (cx, cy - r * 1.25), (cx + r, cy - r * 0.85)], fill=fill)
+def rocket(d, cx, cy, k=1.0):
+    body = [(0, -150), (55, -60), (55, 70), (-55, 70), (-55, -60)]
+    d.polygon([(cx + x * k, cy + y * k) for x, y in body], fill=(255, 255, 255), outline=INK, width=int(12 * k))
+    for sx in (-1, 1):
+        fin = [(55 * sx, 10), (100 * sx, 90), (55 * sx, 70)]
+        d.polygon([(cx + x * k, cy + y * k) for x, y in fin], fill=(255, 107, 61), outline=INK, width=int(10 * k))
+    d.ellipse([cx - 26 * k, cy - 60 * k, cx + 26 * k, cy - 8 * k], fill=(120, 220, 255), outline=INK, width=int(10 * k))
+    flame = [(-35, 70), (35, 70), (0, 150)]
+    d.polygon([(cx + x * k, cy + y * k) for x, y in flame], fill=(255, 201, 60), outline=INK, width=int(10 * k))
 
 
-def box(d, cx, cy, r, fill):
-    d.rectangle([cx - r * 0.8, cy - r * 0.3, cx + r * 0.8, cy + r * 0.8], fill=fill)
-    d.rectangle([cx - r * 0.9, cy - r * 0.6, cx + r * 0.9, cy - r * 0.25], fill=fill)
-    d.rectangle([cx - r * 0.12, cy - r * 0.6, cx + r * 0.12, cy + r * 0.8], fill=WHITE)
+def crown(d, cx, cy):
+    pts = [(-150, 70), (-150, -60), (-75, 0), (0, -100), (75, 0), (150, -60), (150, 70)]
+    d.polygon([(cx + x, cy + y) for x, y in pts], fill=(255, 214, 70), outline=INK, width=16)
 
 
-def crown(d, cx, cy, r, fill):
-    d.polygon([(cx - r, cy + r * 0.5), (cx - r, cy - r * 0.5), (cx - r * 0.5, cy), (cx, cy - r * 0.8),
-               (cx + r * 0.5, cy), (cx + r, cy - r * 0.5), (cx + r, cy + r * 0.5)], fill=fill)
-    for x in (-r, 0, r):
-        d.ellipse([cx + x - r * 0.13, cy - r * 0.95 + (0 if x == 0 else r * 0.3) - r * 0.13 + (0 if x == 0 else 0),
-                   cx + x + r * 0.13, cy - r * 0.95 + (0 if x == 0 else r * 0.3) + r * 0.13], fill=fill)
+def make(key):
+    if key == "VIP":
+        im, d = base((176, 120, 255), (120, 80, 220))
+        crown(d, 256, 200)
+        text(d, (256, 380), "VIP", 150)
+    elif key == "Power2x":
+        im, d = base((90, 200, 255), (40, 140, 230))
+        bolt(d, 170, 250, 1.3)
+        text(d, (340, 260), "2x", 170)
+    elif key == "Coins2x":
+        im, d = base((255, 214, 90), (255, 160, 40))
+        coin(d, 165, 255, 105)
+        text(d, (345, 260), "2x", 170)
+    elif key == "AutoLaunch":
+        im, d = base((60, 196, 106), (30, 150, 80))
+        rocket(d, 256, 205, 1.0)
+        text(d, (256, 410), "AUTO", 110)
+    elif key in ("PowerS", "PowerM", "PowerL"):
+        n = {"PowerS": 1, "PowerM": 2, "PowerL": 3}[key]
+        im, d = base((90, 200, 255), (40, 140, 230))
+        coin_bg = [(None), (255, 255, 255), (255, 240, 170), (255, 214, 70)][n]
+        d.ellipse([256 - 120, 215 - 120, 256 + 120, 215 + 120], fill=coin_bg, outline=INK, width=14)
+        bolt(d, 256, 215, 0.75 + 0.1 * n)
+        text(d, (256, 410), {1: "+10 MIN", 2: "+45 MIN", 3: "+3 HRS"}[n], 84)
+    elif key == "Boost15":
+        im, d = base((255, 107, 61), (230, 70, 40))
+        bolt(d, 256, 200, 1.2)
+        text(d, (256, 400), "2x 15m", 100)
+    elif key == "Coins":
+        im, d = base((255, 214, 90), (255, 160, 40))
+        for x, y, r in ((190, 250, 90), (320, 230, 90), (255, 160, 80)):
+            coin(d, x, y, r)
+        text(d, (256, 410), "COINS", 110)
+    elif key == "LaunchAll":
+        im, d = base((255, 107, 61), (200, 60, 120))
+        for i, off in enumerate((-120, 0, 120)):
+            rocket(d, 256 + off, 210 - (40 if i == 1 else 0), 0.62)
+        text(d, (256, 410), "EVERYONE", 82)
+    else:
+        raise KeyError(key)
+    return im
 
 
-def hourglass(d, cx, cy, r, fill):
-    d.polygon([(cx - r * 0.7, cy - r), (cx + r * 0.7, cy - r), (cx, cy), (cx + r * 0.7, cy + r), (cx - r * 0.7, cy + r), (cx, cy)], fill=fill)
-    d.rectangle([cx - r * 0.85, cy - r * 1.1, cx + r * 0.85, cy - r * 0.92], fill=WHITE)
-    d.rectangle([cx - r * 0.85, cy + r * 0.92, cx + r * 0.85, cy + r * 1.1], fill=WHITE)
-
-
-def x2(d, cx, cy, r, fill):
-    # мешок с монетами (парные молнии запрещены — их путают с запрещённым символом)
-    d.ellipse([cx - r * 0.75, cy - r * 0.35, cx + r * 0.75, cy + r * 0.95], fill=fill)
-    d.polygon([(cx - r * 0.3, cy - r * 0.3), (cx + r * 0.3, cy - r * 0.3), (cx + r * 0.45, cy - r * 0.75), (cx - r * 0.45, cy - r * 0.75)], fill=fill)
-    d.rectangle([cx - r * 0.35, cy - r * 0.42, cx + r * 0.35, cy - r * 0.3], fill=(140, 90, 30))
-    d.ellipse([cx - r * 0.28, cy + r * 0.05, cx + r * 0.28, cy + r * 0.61], fill=(255, 235, 140))
-    d.ellipse([cx - r * 0.17, cy + r * 0.16, cx + r * 0.17, cy + r * 0.5], fill=fill)
-    for dx, dy in ((r * 0.75, -r * 0.55), (r * 0.95, -r * 0.1)):
-        d.ellipse([cx + dx - r * 0.18, cy + dy - r * 0.18, cx + dx + r * 0.18, cy + dy + r * 0.18], fill=(255, 235, 140))
-
-
-def blackhole(d, cx, cy, r, fill):
-    for i in range(6, 0, -1):
-        rr = r * i / 6
-        c = tuple(int(fill[k] * (i / 6) + DARK[k] * (1 - i / 6)) for k in range(3))
-        d.ellipse([cx - rr, cy - rr * 0.45, cx + rr, cy + rr * 0.45], fill=c)
-    d.ellipse([cx - r * 0.35, cy - r * 0.35, cx + r * 0.35, cy + r * 0.35], fill=(0, 0, 0))
-
-
-ICONS = {
-    # key: (цвет круга, глиф, цвет глифа)
-    "VIP": ((150, 60, 220), crown, GOLD),
-    "AutoCollect": ((40, 170, 110), magnet, (230, 60, 60)),
-    "ScannerPlus": ((30, 120, 220), eye, (60, 200, 255)),
-    "SecondFloor": ((230, 120, 30), floors, WHITE),
-    "Starter": ((60, 180, 230), box, GOLD),
-    "Titan": ((60, 40, 110), blackhole, (190, 120, 255)),
-    "Shards100": ((70, 90, 200), gem, (120, 230, 255)),
-    "Shards550": ((90, 70, 210), gem, (160, 200, 255)),
-    "Shards1500": ((120, 50, 220), gem, (220, 170, 255)),
-    "Energy5": ((240, 180, 20), bolt, WHITE),
-    # BoostX2: раньше были две молнии — модерация приняла их за запрещённый символ. Теперь мешок с монетами. Парные молнии не рисовать!
-    "BoostX2": ((40, 170, 110), x2, GOLD),
-    "SeasonPass": ((20, 150, 160), hourglass, GOLD),
-}
-
-
-def make(key, bg, glyph, fg):
-    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img, "RGBA")
-    d.ellipse([16, 16, S - 16, S - 16], fill=tuple(max(0, c - 50) for c in bg))
-    d.ellipse([36, 36, S - 36, S - 36], fill=bg)
-    hl = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    ImageDraw.Draw(hl).ellipse([110, 70, S - 180, 190], fill=(255, 255, 255, 45))  # блик
-    img = Image.alpha_composite(img, hl)
-    d = ImageDraw.Draw(img)
-    glyph(d, C, C + 10, 150, fg)
-    if key in ("Shards550", "Shards1500"):
-        star(d, C + 140, C - 140, 40, GOLD)
-    if key == "Shards1500":
-        star(d, C - 140, C - 140, 40, GOLD)
-    img.save(os.path.join(OUT, key + ".png"), optimize=True)
-
-
-def main():
-    os.makedirs(OUT, exist_ok=True)
-    for k, (bg, g, fg) in ICONS.items():
-        make(k, bg, g, fg)
-        print("icon", k)
-
+KEYS = ["VIP", "Power2x", "Coins2x", "AutoLaunch", "PowerS", "PowerM", "PowerL", "Boost15", "Coins", "LaunchAll"]
 
 if __name__ == "__main__":
-    main()
+    os.makedirs(OUT, exist_ok=True)
+    for k in KEYS:
+        make(k).save(os.path.join(OUT, k + ".png"))
+        print("ok", k)
