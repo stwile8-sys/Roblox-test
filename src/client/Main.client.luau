@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local SoundService = game:GetService("SoundService")
+local SocialService = game:GetService("SocialService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -43,6 +44,12 @@ local S: any = {
 	bounces = 0,
 	launches = 0,
 	flying = false,
+	trails = { basic = true },
+	trail = "basic",
+	todayBest = 0,
+	mod = { zone = 2, kind = "coins" },
+	raceIn = 0,
+	raceJoined = false,
 }
 local stateAt = os.clock()
 local loaded = false
@@ -158,13 +165,15 @@ local coinPill = new("Frame", {
 local coinLbl = Ui.label(coinPill, "🪙 0", 24, { Size = UDim2.fromScale(1, 1), TextColor3 = C.ink })
 local bestLbl = Ui.label(root, "🏁 Best 0m", 18, { Position = UDim2.new(0, 14, 0, 56), Size = UDim2.new(0, 220, 0, 22), TextXAlignment = Enum.TextXAlignment.Left })
 Ui.textStroke(2).Parent = bestLbl
+local modLbl = Ui.label(root, "", 16, { Position = UDim2.new(0, 14, 0, 78), Size = UDim2.new(0, 300, 0, 20), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = C.gold })
+Ui.textStroke(2).Parent = modLbl
 
 -- ===== слева: меню =====
 
 local menu = new("Frame", {
 	AnchorPoint = Vector2.new(0, 0.5),
 	Position = UDim2.new(0, 12, 0.55, 0),
-	Size = UDim2.new(0, 76, 0, 320),
+	Size = UDim2.new(0, 76, 0, 330),
 	BackgroundTransparency = 1,
 	Parent = root,
 }, { new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Center }) })
@@ -174,12 +183,12 @@ local openWindow: (string) -> ()
 
 local function menuButton(order: number, icon: string, text: string, onClick: () -> ()): (TextButton, TextLabel)
 	local b = Ui.button(menu, {
-		Size = UDim2.new(0, 72, 0, 66),
+		Size = UDim2.new(0, 72, 0, 58),
 		BackgroundColor3 = C.panel,
 		Text = "",
 		LayoutOrder = order,
 	}, onClick)
-	Ui.label(b, icon, 30, { Position = UDim2.new(0, 0, 0, 4), Size = UDim2.new(1, 0, 0, 34) })
+	Ui.label(b, icon, 26, { Position = UDim2.new(0, 0, 0, 3), Size = UDim2.new(1, 0, 0, 30) })
 	Ui.label(b, text, 14, { Position = UDim2.new(0, 0, 1, -22), Size = UDim2.new(1, 0, 0, 18), TextColor3 = C.ink })
 	local badge = Ui.label(b, "", 14, {
 		AnchorPoint = Vector2.new(1, 0),
@@ -208,6 +217,9 @@ end)
 local _shopBtn = menuButton(4, "🛒", "Shop", function()
 	openWindow("shop")
 end)
+local _trailBtn = menuButton(5, "🌈", "Trails", function()
+	openWindow("trails")
+end)
 
 -- ===== LAUNCH =====
 
@@ -220,6 +232,10 @@ launchBtn = Ui.button(root, {
 	Text = "",
 }, function()
 	if Flight.active or S.flying then
+		return
+	end
+	if S.raceJoined and raceCard.Visible then
+		toast("Wait for the race start! 🏁")
 		return
 	end
 	if S.ftue < 1 then
@@ -260,6 +276,94 @@ local autoBtn = Ui.button(root, {
 	end
 end)
 ;(autoBtn:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
+
+local nearest: Player? = nil
+local tandemBtn = Ui.button(root, {
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -196, 1, -82),
+	Size = UDim2.new(0, 120, 0, 44),
+	BackgroundColor3 = Color3.fromRGB(120, 200, 255),
+	TextSize = 18,
+	Text = "🤝 TANDEM",
+	Visible = false,
+}, function()
+	local target = nearest
+	if target then
+		call("tandemAsk", target.UserId)
+	end
+end)
+;(tandemBtn:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
+
+local inviteBtn = Ui.button(root, {
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -28, 1, -192),
+	Size = UDim2.new(0, 156, 0, 44),
+	BackgroundColor3 = C.panel,
+	TextColor3 = C.ink,
+	TextSize = 18,
+	Text = "👥 Invite: 2x",
+}, function()
+	task.spawn(call, "invite")
+	pcall(function()
+		local opts = Instance.new("ExperienceInviteOptions")
+		opts.PromptMessage = "Invite a friend: you both get 2x Power!"
+		SocialService:PromptGameInvite(player, opts)
+	end)
+end)
+;(inviteBtn:FindFirstChildOfClass("UICorner") :: UICorner).CornerRadius = UDim.new(1, 0)
+
+-- приглашение в тандем
+local askCard = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -24),
+	Size = UDim2.new(0, 380, 0, 70),
+	BackgroundColor3 = C.panel,
+	Visible = false,
+	ZIndex = 8,
+	Parent = root,
+}, { Ui.corner(UDim.new(0, 18)), Ui.stroke(3) })
+local askLbl = Ui.label(askCard, "", 19, { Position = UDim2.new(0, 14, 0, 0), Size = UDim2.new(1, -150, 1, 0), TextColor3 = C.ink, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 9 })
+local askFrom = 0
+local askToken = 0
+local askBtn = Ui.button(askCard, {
+	AnchorPoint = Vector2.new(1, 0.5),
+	Position = UDim2.new(1, -10, 0.5, 0),
+	Size = UDim2.new(0, 120, 0, 50),
+	BackgroundColor3 = C.good,
+	Text = "FLY! 🤝",
+	TextSize = 20,
+	ZIndex = 9,
+}, function()
+	askCard.Visible = false
+	call("tandemAccept", askFrom)
+end)
+local _ = askBtn
+
+-- гонка
+local raceCard = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 108),
+	Size = UDim2.new(0, 360, 0, 64),
+	BackgroundColor3 = C.ink,
+	Visible = false,
+	ZIndex = 8,
+	Parent = root,
+}, { Ui.corner(UDim.new(0, 18)), Ui.stroke(3, C.gold) })
+local raceLbl = Ui.label(raceCard, "", 20, { Position = UDim2.new(0, 14, 0, 0), Size = UDim2.new(1, -150, 1, 0), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true, ZIndex = 9 })
+local raceEnd = 0
+local raceBtn = Ui.button(raceCard, {
+	AnchorPoint = Vector2.new(1, 0.5),
+	Position = UDim2.new(1, -8, 0.5, 0),
+	Size = UDim2.new(0, 120, 0, 48),
+	BackgroundColor3 = C.good,
+	Text = "JOIN 🏁",
+	TextSize = 20,
+	ZIndex = 9,
+}, function()
+	if call("race") then
+		S.raceJoined = true
+	end
+end)
 
 -- подсказки обучения
 local hint = Ui.label(root, "", 24, {
@@ -637,6 +741,57 @@ do
 	end
 end
 
+-- Следы полёта
+do
+	local _, list = window("trails", "Trails")
+	local grid = new("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		ZIndex = 12,
+		Parent = list,
+	}, { new("UIGridLayout", { CellSize = UDim2.new(0, 152, 0, 104), CellPadding = UDim2.new(0, 10, 0, 10), SortOrder = Enum.SortOrder.LayoutOrder }) })
+	local cells = {}
+	for i, t in Config.TRAILS do
+		local cell = Ui.button(grid, { BackgroundColor3 = C.white, Text = "", LayoutOrder = i, ZIndex = 13 }, function()
+			if S.trails[t.id] then
+				call("trail", t.id)
+				S.trail = t.id
+			else
+				toast(t.how)
+			end
+		end)
+		local sw = new("Frame", {
+			Position = UDim2.new(0.5, -50, 0, 10),
+			Size = UDim2.new(0, 100, 0, 22),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			ZIndex = 14,
+			Parent = cell,
+		}, { Ui.corner(UDim.new(1, 0)), Ui.stroke(2), new("UIGradient", { Color = ColorSequence.new(t.a, t.b) }) })
+		local _ = sw
+		Ui.label(cell, t.name, 17, { Position = UDim2.new(0, 0, 0, 38), Size = UDim2.new(1, 0, 0, 22), TextColor3 = C.ink, ZIndex = 14 })
+		local state = Ui.label(cell, "", 14, { Position = UDim2.new(0, 6, 0, 62), Size = UDim2.new(1, -12, 0, 36), TextColor3 = C.muted, TextWrapped = true, ZIndex = 14 })
+		cells[t.id] = { cell = cell, state = state, t = t }
+	end
+	refreshers.trails = function()
+		for id, c in cells do
+			if S.trail == id then
+				c.state.Text = "✓ equipped"
+				c.state.TextColor3 = C.good
+				c.cell.BackgroundColor3 = Color3.fromRGB(230, 255, 236)
+			elseif S.trails[id] then
+				c.state.Text = "Tap to equip"
+				c.state.TextColor3 = C.ink
+				c.cell.BackgroundColor3 = C.white
+			else
+				c.state.Text = "🔒 " .. c.t.how
+				c.state.TextColor3 = C.muted
+				c.cell.BackgroundColor3 = C.panel2
+			end
+		end
+	end
+end
+
 -- ===== обновление HUD =====
 
 local function nextGift(): (number?, number)
@@ -666,9 +821,40 @@ local function refreshHud()
 	launchBtn.Visible = not flying
 	autoBtn.Visible = not flying
 	menu.Visible = not flying
+	inviteBtn.Visible = not flying
+	-- ближайший игрок для тандема
+	nearest = nil
+	local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if myRoot and not flying then
+		local bestD = Config.TANDEM_RANGE
+		for _, o in Players:GetPlayers() do
+			local r = o ~= player and o.Character and o.Character:FindFirstChild("HumanoidRootPart")
+			if r and r:IsA("BasePart") then
+				local dd = (r.Position - (myRoot :: BasePart).Position).Magnitude
+				if dd < bestD then
+					bestD = dd
+					nearest = o
+				end
+			end
+		end
+	end
+	tandemBtn.Visible = nearest ~= nil
+	local mz = Config.ZONES[S.mod.zone]
+	modLbl.Text = if mz then (if S.mod.kind == "coins" then "🌟 Today: x2 coins in " else "🌟 Today: double rings in ") .. mz.name else ""
+	if raceCard.Visible and raceEnd > 0 then
+		local left = math.max(0, raceEnd - os.clock())
+		raceLbl.Text = if S.raceJoined then string.format("🏁 You're in! Race in %ds", math.ceil(left)) else string.format("🏁 RACE in %ds — most rings wins!", math.ceil(left))
+		raceBtn.Visible = not S.raceJoined
+	end
 	powerLbl.Text = "⚡ " .. Fmt.num(power())
 	gainLbl.Text = "+" .. Fmt.num(S.gain) .. " power / sec"
 	local extras = {}
+	if S.raceIn > 0 then
+		local left = S.raceIn - (os.clock() - stateAt)
+		if left > 0 and left < 120 then
+			table.insert(extras, "🏁 race " .. Fmt.time(left))
+		end
+	end
 	if S.boostLeft > 0 then
 		table.insert(extras, "2x ⏱ " .. Fmt.time(S.boostLeft - (os.clock() - stateAt)))
 	end
@@ -782,6 +968,21 @@ Net.event("State").OnClientEvent:Connect(function(st)
 	end
 	if not loaded then
 		loaded = true
+		-- самый первый вход: летим сами через 2 секунды, без единого нажатия
+		if S.launches == 0 then
+			task.spawn(function()
+				task.wait(2)
+				for _ = 1, 8 do
+					if S.launches > 0 or Flight.active or S.flying then
+						break
+					end
+					if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+						call("launch")
+					end
+					task.wait(1.5)
+				end
+			end)
+		end
 		if S.dailyReady then
 			task.delay(2, function()
 				if S.dailyReady and S.launches > 0 then
@@ -791,6 +992,43 @@ Net.event("State").OnClientEvent:Connect(function(st)
 		end
 	end
 	lastPowerInt = math.floor(S.power)
+end)
+
+Net.event("Ask").OnClientEvent:Connect(function(from: Player)
+	if not from or Flight.active then
+		return
+	end
+	askFrom = from.UserId
+	askLbl.Text = from.DisplayName .. " wants to fly together! x" .. Config.TANDEM_MULT .. " distance"
+	askCard.Visible = true
+	Ui.pop(askCard, 0.7)
+	Ui.sfx("pop", 0.7)
+	askToken += 1
+	local my = askToken
+	task.delay(Config.TANDEM_ASK_TTL, function()
+		if askToken == my then
+			askCard.Visible = false
+		end
+	end)
+end)
+
+Net.event("Race").OnClientEvent:Connect(function(kind, arg)
+	if kind == "open" then
+		raceEnd = os.clock() + (tonumber(arg) or 20)
+		S.raceJoined = false
+		raceCard.Visible = true
+		Ui.pop(raceCard, 0.7)
+		Ui.sfx("zone", 0.6)
+	elseif kind == "go" or kind == "none" then
+		raceCard.Visible = false
+		S.raceJoined = false
+	elseif kind == "result" and type(arg) == "table" then
+		if #arg.winners > 0 then
+			showBanner("🏆 " .. table.concat(arg.winners, ", ") .. " WON!", arg.rings .. " rings · next race in 10 min", 3)
+		else
+			showBanner("RACE OVER", "Nobody caught a ring!", 2)
+		end
+	end
 end)
 
 Net.event("Notify").OnClientEvent:Connect(function(text, kind)
@@ -846,6 +1084,12 @@ Net.event("Result").OnClientEvent:Connect(function(r)
 	end
 	if r.newZone then
 		table.insert(notes, "Unlocked " .. Config.ZONES[r.newZone].name .. "!")
+	end
+	if r.todayBest then
+		table.insert(notes, "Best today!")
+	end
+	if r.race then
+		table.insert(notes, "Race: " .. r.rings .. " rings")
 	end
 	if #notes == 0 then
 		table.insert(notes, "Power grows +" .. Fmt.num(S.gain) .. " every second")

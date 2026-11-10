@@ -122,6 +122,7 @@ M.CODES = {
 	LAUNCH = { kind = "power", amount = 120 },
 	RAGDOLL = { kind = "coins", amount = 5 },
 	FLY = { kind = "boost", amount = 15 },
+	FRIENDS = { kind = "power", amount = 300 },
 } :: { [string]: Reward }
 
 -- Геймпассы и товары. ID подставляются из Assets.luau (заполняет конвейер Open Cloud).
@@ -142,5 +143,50 @@ M.PRODUCTS = {
 }
 
 M.VIP_MULT = 1.25
+
+-- ===== с друзьями =====
+
+M.TANDEM_MULT = 1.5 -- тандем: дальность сильнейшего из двоих x1.5
+M.TANDEM_RANGE = 22 -- как близко должен стоять второй игрок
+M.TANDEM_ASK_TTL = 12 -- секунд на ответ
+M.INVITE_BOOST = 10 -- минут x2 силы обоим, когда друг пришёл по приглашению
+M.INVITE_REWARDS_PER_DAY = 5
+
+-- ===== гонка на сервере =====
+
+M.RACE_EVERY = 600 -- секунд между гонками
+M.RACE_WARN = 20 -- за сколько секунд объявлять
+M.RACE_DIST = 2600 -- у всех одинаковая дальность: побеждают кольца, а не сила
+M.RACE_RING_EVERY = 0.9
+
+-- ===== модификатор дня =====
+
+export type Modifier = { zone: number, kind: string }
+M.MOD_KINDS = { "coins", "rings" } -- x2 монет в зоне / кольца дают вдвое больше
+
+function M.modifier(day: number): Modifier
+	local zone = 2 + (day * 7) % (#M.ZONES - 1)
+	local kind = M.MOD_KINDS[(day % #M.MOD_KINDS) + 1]
+	return { zone = zone, kind = kind }
+end
+
+-- ===== следы полёта =====
+
+export type TrailDef = { id: string, name: string, how: string, a: Color3, b: Color3 }
+M.TRAILS = {
+	{ id = "basic", name = "Sunset", how = "Starter trail", a = Color3.fromRGB(255, 120, 90), b = Color3.fromRGB(120, 220, 255) },
+} :: { TrailDef }
+for i, z in M.ZONES do
+	if i > 1 then
+		table.insert(M.TRAILS, { id = "zone" .. i, name = z.name, how = "Land in " .. z.name, a = z.ground, b = z.sky })
+	end
+end
+table.insert(M.TRAILS, { id = "rings5", name = "Golden", how = "Catch 5 rings in one flight", a = Color3.fromRGB(255, 214, 70), b = Color3.fromRGB(255, 160, 40) })
+table.insert(M.TRAILS, { id = "rings12", name = "Sunbeam", how = "Catch 12 rings in one flight", a = Color3.fromRGB(255, 255, 200), b = Color3.fromRGB(255, 200, 60) })
+table.insert(M.TRAILS, { id = "race", name = "Champion", how = "Win a server race", a = Color3.fromRGB(255, 80, 120), b = Color3.fromRGB(255, 214, 70) })
+table.insert(M.TRAILS, { id = "tandem", name = "Buddies", how = "Fly in a tandem", a = Color3.fromRGB(120, 255, 170), b = Color3.fromRGB(120, 180, 255) })
+table.insert(M.TRAILS, { id = "rebirth1", name = "Reborn", how = "Rebirth once", a = Color3.fromRGB(176, 120, 255), b = Color3.fromRGB(255, 255, 255) })
+table.insert(M.TRAILS, { id = "rebirth5", name = "Cosmic", how = "Rebirth 5 times", a = Color3.fromRGB(60, 40, 140), b = Color3.fromRGB(255, 120, 230) })
+table.insert(M.TRAILS, { id = "vip", name = "Royal", how = "VIP pass", a = Color3.fromRGB(255, 214, 70), b = Color3.fromRGB(176, 120, 255) })
 
 return M

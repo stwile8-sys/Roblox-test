@@ -77,7 +77,7 @@ end
 
 -- ===== кольца =====
 
-type Ring = { model: Model, center: Vector3, t: number }
+type Ring = { model: Model, center: Vector3, t: number, id: number? }
 local rings: { Ring } = {}
 
 local function makeRing(center: Vector3, dir: Vector3): Model
@@ -112,38 +112,6 @@ end
 
 -- ===== эффекты =====
 
-local trail: Trail? = nil
-local function addTrail(char: Model)
-	local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
-	if not torso then
-		return
-	end
-	local a0 = Instance.new("Attachment")
-	a0.Name = "TrailA0"
-	a0.Position = Vector3.new(0, 1, 0)
-	a0.Parent = torso
-	local a1 = Instance.new("Attachment")
-	a1.Name = "TrailA1"
-	a1.Position = Vector3.new(0, -1, 0)
-	a1.Parent = torso
-	local t = Instance.new("Trail")
-	t.Attachment0 = a0
-	t.Attachment1 = a1
-	t.Lifetime = 0.5
-	t.MinLength = 0.5
-	t.WidthScale = NumberSequence.new(1, 0)
-	t.LightEmission = 0.5
-	t.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 90)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 220, 90)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 220, 255)),
-	})
-	t.Transparency = NumberSequence.new(0.1, 1)
-	t.FaceCamera = true
-	t.Parent = torso
-	trail = t
-end
-
 local function zoneSky(z: number)
 	local atm = Lighting:FindFirstChildOfClass("Atmosphere")
 	if not atm then
@@ -157,7 +125,7 @@ end
 
 local conn: RBXScriptConnection? = nil
 
-function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, bounces: number, d: number })
+function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, bounces: number, d: number, rings: { Vector3 }?, race: boolean? })
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -185,7 +153,6 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 			part.AssemblyLinearVelocity = vel
 		end
 	end
-	addTrail(char)
 	Ui.sfx("boom", 0.8)
 	Ui.sfx("whoosh", 0.7)
 
@@ -199,13 +166,21 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 	local reported = false
 	local lateral = 0
 	local shake = 0
+	local raceRings = p.rings
+	local caught: { number } = {}
+	if raceRings then
+		-- гонка: все кольца известны заранее и одинаковы для всех
+		for i, c in raceRings do
+			table.insert(rings, { model = makeRing(c, p.vel.Unit), center = c, t = 0, id = i })
+		end
+	end
 
 	local function report(z: number)
 		if reported then
 			return
 		end
 		reported = true
-		landEv:FireServer(p.id, z, M.rings)
+		landEv:FireServer(p.id, z, if raceRings then caught else M.rings)
 		if M.onLand then
 			M.onLand(math.max(0, z - origin.Z))
 		end
@@ -292,7 +267,7 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 			zoneSky(M.dist)
 			-- кольца
 			nextRing -= dt
-			if nextRing <= 0 and not landed then
+			if nextRing <= 0 and not landed and not raceRings then
 				nextRing = Config.RING_EVERY
 				local ahead = 1.1
 				local pred = pos + vel * ahead + Vector3.new(0, -0.5 * g * ahead * ahead, 0)
@@ -308,13 +283,16 @@ function M.start(p: { id: number, origin: Vector3, vel: Vector3, g: number, boun
 				local r = rings[i]
 				if (r.center - hrp.Position).Magnitude < Config.RING_RADIUS + 4 then
 					M.rings += 1
+					if r.id then
+						table.insert(caught, r.id)
+					end
 					r.model:Destroy()
 					table.remove(rings, i)
 					Ui.sfx("coin", 0.8, 1 + M.rings * 0.05)
 					if M.onRing then
 						M.onRing(M.rings)
 					end
-				elseif t - r.t > 3.5 then
+				elseif not raceRings and t - r.t > 3.5 then
 					r.model:Destroy()
 					table.remove(rings, i)
 				end
@@ -346,10 +324,6 @@ function M.stop()
 	end
 	clearRings()
 	M.active = false
-	if trail then
-		trail:Destroy()
-		trail = nil
-	end
 	camera.CameraType = Enum.CameraType.Custom
 	camera.FieldOfView = 70
 	local atm = Lighting:FindFirstChildOfClass("Atmosphere")

@@ -31,6 +31,15 @@ local ACTIONS: { [string]: (Player, any) -> (boolean, string?) } = {
 	code = Game.redeem,
 	auto = Game.setAuto,
 	ftue = Game.ftue,
+	tandemAsk = Game.tandemAsk,
+	tandemAccept = Game.tandemAccept,
+	race = function(p)
+		return Game.raceJoin(p)
+	end,
+	trail = Game.setTrail,
+	invite = function(p)
+		return Game.inviteClicked(p)
+	end,
 }
 
 Net.fn("Act").OnServerInvoke = function(player: Player, action: any, arg: any)

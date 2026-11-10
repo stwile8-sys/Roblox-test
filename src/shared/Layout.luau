@@ -27,4 +27,9 @@ function M.muzzle(lane: number): Vector3
 	return M.pivot(lane) + M.DIR * (M.BARREL_LEN + 3)
 end
 
+-- Гонка: все стартуют из одной точки по центру площадки, чуть выше обычных пушек
+function M.raceMuzzle(): Vector3
+	return Vector3.new(0, 30, 2)
+end
+
 return M

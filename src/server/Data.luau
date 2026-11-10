@@ -28,6 +28,13 @@ export type Data = {
 	receipts: { string },
 	ftue: number,
 	auto: boolean,
+	trails: { [string]: boolean },
+	trail: string,
+	today: { day: number, v: number }, -- лучшая дальность за сегодня (гонка дня)
+	inviteDay: number, -- день, когда получен бонус «пришёл по приглашению»
+	ref: { day: number, n: number }, -- сколько бонусов за приглашения получено сегодня
+	races: number,
+	raceWins: number,
 }
 
 local M = {}
@@ -64,6 +71,13 @@ function M.defaults(): Data
 		receipts = {},
 		ftue = 0,
 		auto = true,
+		trails = { basic = true },
+		trail = "basic",
+		today = { day = 0, v = 0 },
+		inviteDay = 0,
+		ref = { day = 0, n = 0 },
+		races = 0,
+		raceWins = 0,
 	}
 end
 
@@ -100,6 +114,31 @@ function M.reconcile(raw: any): Data
 		d.daily = { day = 0, streak = 0 }
 	else
 		d.daily = { day = num(raw.daily.day, 0), streak = num(raw.daily.streak, 0) }
+	end
+	for _, k in { "today", "ref" } do
+		local t = raw[k]
+		local def = (M.defaults() :: any)[k]
+		if type(t) == "table" then
+			local out = {}
+			for f in def do
+				out[f] = num(t[f], 0)
+			end
+			(d :: any)[k] = out
+		else
+			(d :: any)[k] = def
+		end
+	end
+	local tr = { basic = true }
+	if type(raw.trails) == "table" then
+		for k, v in raw.trails do
+			if type(k) == "string" and v == true and #k < 30 then
+				tr[k] = true
+			end
+		end
+	end
+	d.trails = tr
+	if not tr[d.trail] then
+		d.trail = "basic"
 	end
 	local rec = {}
 	for _, r in d.receipts do

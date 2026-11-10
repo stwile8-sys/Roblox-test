@@ -7,6 +7,8 @@
 --   Result  RemoteEvent    сервер → клиент: итог полёта
 --   Notify  RemoteEvent    сервер → клиент: тост (текст, вид)
 --   Fx      RemoteEvent    сервер → все: эффект (тип, позиция)
+--   Ask     RemoteEvent    сервер → клиент: тебя зовут в тандем (игрок)
+--   Race    RemoteEvent    сервер → все: гонка (open / go / none / result)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -19,6 +21,8 @@ local NAMES: { [string]: string } = {
 	Result = "RemoteEvent",
 	Notify = "RemoteEvent",
 	Fx = "RemoteEvent",
+	Ask = "RemoteEvent",
+	Race = "RemoteEvent",
 }
 
 local M = {}

@@ -339,7 +339,36 @@ local function sign(f: Instance, size: Vector3, cf: CFrame, text: string, bg: Co
 	return p
 end
 
-local boardList: Frame? = nil
+local boardLists: { [string]: Frame } = {}
+local modLabel: TextLabel? = nil
+
+local function makeBoard(f: Instance, cf: CFrame, title: string): Frame
+	local board = part(f, Vector3.new(44, 52, 2), cf, Color3.fromRGB(60, 50, 90))
+	board.Name = "Leaderboard"
+	local g = Instance.new("SurfaceGui")
+	g.Face = Enum.NormalId.Front
+	g.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	g.PixelsPerStud = 14
+	g.LightInfluence = 0
+	g.Parent = board
+	local head = Instance.new("TextLabel")
+	head.BackgroundTransparency = 1
+	head.Size = UDim2.new(1, 0, 0.14, 0)
+	head.Font = FONT
+	head.TextScaled = true
+	head.Text = title
+	head.TextColor3 = Color3.fromRGB(255, 214, 90)
+	head.Parent = g
+	local list = Instance.new("Frame")
+	list.BackgroundTransparency = 1
+	list.Position = UDim2.fromScale(0.04, 0.16)
+	list.Size = UDim2.fromScale(0.92, 0.82)
+	list.Parent = g
+	local lay = Instance.new("UIListLayout")
+	lay.Padding = UDim.new(0.01, 0)
+	lay.Parent = list
+	return list
+end
 
 local function plaza(f: Instance)
 	local z0, z1 = Layout.PLAZA_Z0, Layout.PLAZA_Z1
@@ -376,35 +405,15 @@ local function plaza(f: Instance)
 	for _, sx in { -1, 1 } do
 		part(f, Vector3.new(4, 52, 4), CFrame.new(sx * 58, 26, -40), Color3.fromRGB(255, 214, 90))
 	end
-	-- лидерборд
-	local board = part(f, Vector3.new(44, 52, 2), CFrame.new(-118, 26, -80) * CFrame.Angles(0, math.rad(-60), 0), Color3.fromRGB(60, 50, 90))
-	board.Name = "Leaderboard"
-	local g = Instance.new("SurfaceGui")
-	g.Face = Enum.NormalId.Front
-	g.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	g.PixelsPerStud = 14
-	g.LightInfluence = 0
-	g.Parent = board
-	local head = Instance.new("TextLabel")
-	head.BackgroundTransparency = 1
-	head.Size = UDim2.new(1, 0, 0.14, 0)
-	head.Font = FONT
-	head.TextScaled = true
-	head.Text = "FARTHEST FLIGHTS"
-	head.TextColor3 = Color3.fromRGB(255, 214, 90)
-	head.Parent = g
-	local list = Instance.new("Frame")
-	list.BackgroundTransparency = 1
-	list.Position = UDim2.fromScale(0.04, 0.16)
-	list.Size = UDim2.fromScale(0.92, 0.82)
-	list.Parent = g
-	local lay = Instance.new("UIListLayout")
-	lay.Padding = UDim.new(0.01, 0)
-	lay.Parent = list
-	boardList = list
+	-- лидерборды: за всё время и за сегодня
+	boardLists.all = makeBoard(f, CFrame.new(-118, 26, -80) * CFrame.Angles(0, math.rad(-120), 0), "FARTHEST EVER")
+	boardLists.today = makeBoard(f, CFrame.new(118, 26, -80) * CFrame.Angles(0, math.rad(120), 0), "TODAY'S RACE")
+	-- модификатор дня
+	local modSign = part(f, Vector3.new(70, 10, 1.5), CFrame.new(0, 80, -40), Color3.fromRGB(255, 214, 90))
+	modLabel = label(modSign, Enum.NormalId.Back, "", Color3.fromRGB(255, 255, 255))
+	label(modSign, Enum.NormalId.Front, "", Color3.fromRGB(255, 255, 255))
 	-- подсказка про коды
-	sign(f, Vector3.new(40, 14, 1.5), CFrame.new(118, 18, -80) * CFrame.Angles(0, math.rad(60), 0), "CODES: tap 🎁 in the menu", Color3.fromRGB(110, 200, 255), Color3.fromRGB(255, 255, 255))
-	part(f, Vector3.new(2, 12, 2), CFrame.new(118, 5, -80), Color3.fromRGB(255, 255, 255))
+	sign(f, Vector3.new(36, 7, 1.5), CFrame.new(0, 8, -112), "CODES IN 🎁 GIFTS", Color3.fromRGB(110, 200, 255), Color3.fromRGB(255, 255, 255))
 	-- невидимые стенки по краям площадки сзади и с боков
 	for _, w in {
 		{ Vector3.new(270, 60, 2), Vector3.new(0, 30, z0 - 1) },
@@ -416,8 +425,25 @@ local function plaza(f: Instance)
 	end
 end
 
-function M.setBoard(entries: { { name: string, value: number } })
-	local list = boardList
+function M.setModifier(mod: { zone: number, kind: string })
+	local zone = Config.ZONES[mod.zone]
+	local text = if mod.kind == "coins" then "TODAY: x2 COINS IN " .. string.upper(zone.name) else "TODAY: DOUBLE RINGS IN " .. string.upper(zone.name)
+	if modLabel then
+		modLabel.Text = text
+		local sg = modLabel.Parent and modLabel.Parent.Parent
+		if sg then
+			for _, g in sg:GetChildren() do
+				local t = g:FindFirstChildOfClass("TextLabel")
+				if g:IsA("SurfaceGui") and t then
+					t.Text = text
+				end
+			end
+		end
+	end
+end
+
+function M.setBoard(entries: { { name: string, value: number } }, which: string)
+	local list = boardLists[which]
 	if not list then
 		return
 	end
