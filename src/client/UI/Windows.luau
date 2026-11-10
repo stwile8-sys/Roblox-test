@@ -115,6 +115,7 @@ function M.explain(key: string)
 		return
 	end
 	Kit.clear(sheet)
+	sheet.Size = UDim2.fromOffset(440, 330)
 	local owned = (Game.PASSES[key] and (State.s.passes or {})[key]) or (Game.PRODUCTS[key] and Game.PRODUCTS[key].once and (State.s.once or {})[key])
 	local col = Color3.fromHex(info.color)
 	-- слева крупная иконка на цветной плашке, справа текст
@@ -589,28 +590,86 @@ function M.pedestal(slot: number)
 	if not d then
 		return
 	end
+	local rinfo = Defs.RARITY[d.rarity]
+	local rc = rinfo.color
 	local inc = d.income * (1 + Game.ART_LVL_BONUS * (a.lvl - 1))
+	local nextInc = d.income * (1 + Game.ART_LVL_BONUS * a.lvl)
 	local cost = math.floor(d.income * (Game.PRICE_MULT[d.rarity] or 20) * Game.ART_UPGRADE_MULT * a.lvl)
+	local shards = (Game.SHARDS_FOR[d.rarity] or 1) * a.lvl
 	local perk = d.perk and Defs.PERKS[d.perk]
-	Hud.popup({
-		title = L.name(d.name),
-		color = C.panel2,
-		art = a.id,
-		text = L.name(Defs.RARITY[d.rarity].name) .. " · ур." .. a.lvl .. "\n" .. L.money(inc) .. "/с" .. (if perk then "\n✨ " .. L.name(perk) .. ": " .. L.name(perk.desc) else ""),
-		buttons = {
-			{ if a.lvl < Game.ART_MAX_LVL then "↑ " .. L.money(cost) else "Макс.", "buy", function()
-				if a.lvl < Game.ART_MAX_LVL then
-					State.act("artUpgrade", { slot = slot })
+	local maxed = a.lvl >= Game.ART_MAX_LVL
+
+	Kit.clear(sheet)
+	sheet.Size = UDim2.fromOffset(520, 320)
+	local close = function()
+		sheet.Visible = false
+		sheetBg.Visible = false
+		sheet.Size = UDim2.fromOffset(440, 330)
+	end
+	-- слева: существо на плашке цвета редкости
+	local tile = Kit.frame({ Position = UDim2.fromOffset(18, 18), Size = UDim2.fromOffset(180, 200), BackgroundColor3 = rc, BackgroundTransparency = 0.78, ZIndex = 42, Parent = sheet }, { Kit.corner(22), Kit.new("UIStroke", { Color = rc, Thickness = 2, Transparency = 0.3 }) })
+	Kit.creature(a.id, { Size = UDim2.new(1, -10, 1, -40), Position = UDim2.fromOffset(5, 6), ZIndex = 43, Parent = tile })
+	-- уровень: 5 точек
+	local dots = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.fromOffset(120, 14), ZIndex = 43, Parent = tile }, { Kit.list(Enum.FillDirection.Horizontal, 6) })
+	for i = 1, Game.ART_MAX_LVL do
+		Kit.frame({ Size = UDim2.fromOffset(14, 14), BackgroundColor3 = if i <= a.lvl then rc else C.white, BackgroundTransparency = if i <= a.lvl then 0 else 0.3, LayoutOrder = i, ZIndex = 44, Parent = dots }, { Kit.corner(7) })
+	end
+	-- справа: редкость, имя, доход, перк
+	local pill = Kit.label({ Text = L.name(rinfo.name), Font = Kit.BLACK, TextSize = 14, TextColor3 = C.white, BackgroundColor3 = rc, BackgroundTransparency = 0, AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.fromOffset(216, 20), Size = UDim2.fromOffset(0, 24), ZIndex = 42, Parent = sheet })
+	pill.TextStrokeTransparency = 0.6
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = pill })
+	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = pill })
+	Kit.label({ Text = L.name(d.name), Font = Kit.BLACK, TextSize = 28, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, TextScaled = false, Position = UDim2.fromOffset(216, 48), Size = UDim2.new(1, -234, 0, 34), ZIndex = 42, Parent = sheet })
+	Kit.label({ Text = "Уровень " .. a.lvl .. " из " .. Game.ART_MAX_LVL, TextSize = 15, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(216, 82), Size = UDim2.new(1, -234, 0, 18), ZIndex = 42, Parent = sheet })
+	local incBox = Kit.frame({ Position = UDim2.fromOffset(216, 108), Size = UDim2.new(1, -234, 0, 44), BackgroundColor3 = Color3.fromHex("#FFF6D6"), ZIndex = 42, Parent = sheet }, { Kit.corner(12) })
+	Kit.label({ Text = "💰 " .. L.money(inc) .. "/с", Font = Kit.BLACK, TextSize = 22, TextColor3 = Color3.fromHex("#B36B00"), TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), ZIndex = 43, Parent = incBox })
+	if not maxed then
+		Kit.label({ Text = "→ " .. L.money(nextInc) .. "/с", TextSize = 15, TextColor3 = C.ok, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), ZIndex = 43, Parent = incBox })
+	end
+	if perk then
+		local pb = Kit.frame({ Position = UDim2.fromOffset(216, 160), Size = UDim2.new(1, -234, 0, 58), BackgroundColor3 = C.panel, ZIndex = 42, Parent = sheet }, { Kit.corner(12) })
+		Kit.label({ Text = "✨ " .. L.name(perk), Font = Kit.BLACK, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(10, 6), Size = UDim2.new(1, -20, 0, 18), ZIndex = 43, Parent = pb })
+		Kit.label({ Text = L.name(perk.desc), TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Position = UDim2.fromOffset(10, 26), Size = UDim2.new(1, -20, 0, 30), ZIndex = 43, Parent = pb })
+	end
+	-- кнопки: главная — улучшить; второстепенные — в хранилище и продать
+	local row = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16), Size = UDim2.new(1, -36, 0, 56), ZIndex = 42, Parent = sheet }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+	Kit.button(if maxed then "Макс. уровень" else "Улучшить · " .. L.money(cost), if maxed then "cancel" else "buy", { Size = UDim2.fromOffset(220, 56), TextSize = 19, LayoutOrder = 1, ZIndex = 43, Parent = row }, function()
+		if not maxed and State.act("artUpgrade", { slot = slot }) then
+			task.wait(0.25)
+			M.pedestal(slot)
+		end
+	end)
+	Kit.button("📦 В хранилище", "plain", { Size = UDim2.fromOffset(122, 56), TextSize = 15, LayoutOrder = 2, ZIndex = 43, Parent = row }, function()
+		State.act("artToInv", { slot = slot })
+		close()
+	end)
+	local armed = false
+	local sell
+	sell = Kit.button("Продать +" .. shards .. " 💎", "plain", { Size = UDim2.fromOffset(122, 56), TextSize = 15, TextColor3 = C.alarm, LayoutOrder = 3, ZIndex = 43, Parent = row }, function()
+		-- продажа необратима: первое нажатие спрашивает подтверждение
+		if not armed then
+			armed = true
+			sell.Text = "Точно? Тапни ещё"
+			sell.BackgroundColor3 = Color3.fromHex("#FF4D6D")
+			sell.TextColor3 = C.white
+			task.delay(3, function()
+				if armed and sell.Parent then
+					armed = false
+					sell.Text = "Продать +" .. shards .. " 💎"
+					sell.BackgroundColor3 = Kit.KIND.plain[1]
+					sell.TextColor3 = C.alarm
 				end
-			end },
-			{ "📦", "plain", function()
-				State.act("artToInv", { slot = slot })
-			end },
-			{ "💎", "danger", function()
-				State.act("artSell", { slot = slot })
-			end },
-		},
-	})
+			end)
+			return
+		end
+		State.act("artSell", { slot = slot })
+		close()
+	end)
+	local x = Kit.new("TextButton", { Text = "✕", Font = Kit.BLACK, TextSize = 20, TextColor3 = C.dim, BackgroundColor3 = C.panel, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 12), Size = UDim2.fromOffset(38, 38), ZIndex = 44, Parent = sheet }, { Kit.corner(19) })
+	x.Activated:Connect(close)
+	sheetBg.Visible = true
+	sheet.Visible = true
+	Kit.pop(sheet, 0.9)
 end
 
 -- ── Ребёрс ──────────────────────────────────────────────────
@@ -641,9 +700,35 @@ function M.rebirth()
 end
 
 -- ── Трейд ───────────────────────────────────────────────────
-local tradeWin, tradeBody = Kit.window(root, "🤝 Обмен", 0.85, Color3.fromHex("#FF7A45"))
+local tradeWin, tradeBody = Kit.window(root, "🤝 Обмен", 0.9, Color3.fromHex("#FF7A45"))
 local tradeView = nil
 local myGive: { number } = {}
+
+local function artIncome(it: any): number
+	local d = Defs.BY_ID[it.id]
+	if not d then
+		return 0
+	end
+	return d.income * (1 + Game.ART_LVL_BONUS * ((it.lvl or 1) - 1))
+end
+
+-- плитка существа: цвет редкости, уровень, отметка выбора
+local function artTile(parent: Instance, it: any, size: number, order: number, selected: boolean?, badge: string?): TextButton
+	local d = Defs.BY_ID[it.id]
+	local rc = d and Defs.RARITY[d.rarity].color or C.grey
+	local b = Kit.new("TextButton", { Text = "", AutoButtonColor = true, BackgroundColor3 = rc, BackgroundTransparency = if selected then 0.55 else 0.82, Size = UDim2.fromOffset(size, size), LayoutOrder = order, ZIndex = 23, Parent = parent }, { Kit.corner(14), Kit.new("UIStroke", { Color = if selected then Color3.fromHex("#FFB020") else rc, Thickness = if selected then 3 else 1.5, Transparency = if selected then 0 else 0.4 }) })
+	Kit.creature(it.id, { Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 2), ZIndex = 24, Parent = b })
+	local lv = Kit.label({ Text = "ур." .. (it.lvl or 1), Font = Kit.BLACK, TextSize = 11, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#231A3B"), BackgroundTransparency = 0.35, AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 4, 1, -4), Size = UDim2.fromOffset(0, 16), ZIndex = 25, Parent = b })
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = lv })
+	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5), Parent = lv })
+	if selected then
+		local ck = Kit.label({ Text = "✓", Font = Kit.BLACK, TextSize = 14, TextColor3 = C.white, BackgroundColor3 = Color3.fromHex("#FFB020"), BackgroundTransparency = 0, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(20, 20), ZIndex = 25, Parent = b })
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ck })
+	elseif badge then
+		Kit.label({ Text = badge, TextSize = 14, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 3), Size = UDim2.fromOffset(18, 18), ZIndex = 25, Parent = b })
+	end
+	return b
+end
 
 local function drawTrade()
 	local v = tradeView
@@ -651,31 +736,80 @@ local function drawTrade()
 		Kit.close(tradeWin)
 		return
 	end
-	local s = scrollBody(tradeBody)
-	txt(s, "С: " .. v.name, 20, C.chrono, 28, 0)
-	local function row(title: string, items: { any }, order: number)
-		txt(s, title, 18, C.dim, 24, order)
-		local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 96), LayoutOrder = order + 1, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(80, 90), 6) })
-		for _, it in items do
-			local f = Kit.frame({ BackgroundColor3 = C.panel, ZIndex = 22, Parent = g }, { Kit.corner(12) })
-			Kit.creature(it.id, { Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = f })
-		end
+	Kit.clear(tradeBody)
+	-- ── верх: две стороны обмена ──
+	local giveInc, getInc = 0, 0
+	for _, it in v.mine do
+		giveInc += artIncome(it)
 	end
-	row("Ты отдаёшь" .. (if v.myReady then " ✅" else ""), v.mine, 1)
-	row(v.name .. " отдаёт" .. (if v.theirReady then " ✅" else ""), v.theirs, 3)
-	txt(s, "Хранилище — нажми, чтобы добавить или убрать (до " .. Game.TRADE_MAX_ITEMS .. ")", 16, C.dim, 40, 5)
+	for _, it in v.theirs do
+		getInc += artIncome(it)
+	end
+	local function side(x: number, title: string, items: { any }, ready: boolean, total: number, mine: boolean)
+		local p = Kit.frame({ Position = UDim2.new(x, if x == 0 then 0 else 6, 0, 0), Size = UDim2.new(0.5, -24, 0, 150), BackgroundColor3 = if ready then Color3.fromHex("#E7F8EC") else C.panel, ZIndex = 22, Parent = tradeBody }, { Kit.corner(18) })
+		if ready then
+			Kit.new("UIStroke", { Color = C.ok, Thickness = 2, Parent = p })
+		end
+		Kit.label({ Text = title, Font = Kit.BLACK, TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -110, 0, 22), ZIndex = 23, Parent = p })
+		local st = Kit.label({ Text = if ready then "✓ Готов" else "Выбирает…", Font = Kit.BLACK, TextSize = 12, TextColor3 = if ready then C.white else C.dim, BackgroundColor3 = if ready then C.ok else C.soft, BackgroundTransparency = 0, AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(0, 20), ZIndex = 23, Parent = p })
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = st })
+		Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = st })
+		local grid = Kit.frame({ BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 34), Size = UDim2.new(1, -20, 0, 80), ZIndex = 22, Parent = p }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left) })
+		for i = 1, Game.TRADE_MAX_ITEMS do
+			local it = items[i]
+			if it then
+				local t = artTile(grid, it, 58, i)
+				if mine then
+					t.Activated:Connect(function()
+						local idx = table.find(myGive, it.i)
+						if idx then
+							table.remove(myGive, idx)
+							State.act("tradeSet", { give = myGive })
+						end
+					end)
+				end
+			else
+				local e = Kit.frame({ Size = UDim2.fromOffset(58, 58), BackgroundColor3 = C.bg, LayoutOrder = i, ZIndex = 23, Parent = grid }, { Kit.corner(14), Kit.new("UIStroke", { Color = C.soft, Thickness = 2 }) })
+				Kit.label({ Text = "+", Font = Kit.BLACK, TextSize = 22, TextColor3 = C.soft, Size = UDim2.fromScale(1, 1), ZIndex = 24, Parent = e })
+			end
+		end
+		Kit.label({ Text = "Доход: " .. L.money(total) .. "/с", TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.new(0, 12, 1, -30), Size = UDim2.new(1, -24, 0, 20), ZIndex = 23, Parent = p })
+	end
+	side(0, "Ты отдаёшь", v.mine, v.myReady == true, giveInc, true)
+	side(0.5, v.name .. " отдаёт", v.theirs, v.theirReady == true, getInc, false)
+	-- стрелка обмена между сторонами
+	local sw = Kit.frame({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, -9, 0, 56), Size = UDim2.fromOffset(36, 36), BackgroundColor3 = Color3.fromHex("#FF7A45"), ZIndex = 24, Parent = tradeBody }, { Kit.corner(18), Kit.new("UIStroke", { Color = C.white, Thickness = 3 }) })
+	Kit.label({ Text = "⇄", Font = Kit.BLACK, TextSize = 20, TextColor3 = C.white, Size = UDim2.fromScale(1, 1), ZIndex = 25, Parent = sw })
+	-- ── честность сделки по доходу ──
+	local verdict, vcol
+	if giveInc == 0 and getInc == 0 then
+		verdict, vcol = "Добавь существ в обмен", C.dim
+	elseif getInc >= giveInc * 1.15 then
+		verdict, vcol = "👍 Выгодно тебе: +" .. L.money(getInc - giveInc) .. "/с", C.ok
+	elseif giveInc >= getInc * 1.15 then
+		verdict, vcol = "⚠️ Ты теряешь " .. L.money(giveInc - getInc) .. "/с дохода", C.alarm
+	else
+		verdict, vcol = "⚖️ Честный обмен", Color3.fromHex("#D98A00")
+	end
+	Kit.label({ Text = verdict, Font = Kit.BLACK, TextSize = 15, TextColor3 = vcol, Position = UDim2.fromOffset(0, 156), Size = UDim2.new(1, 0, 0, 20), ZIndex = 22, Parent = tradeBody })
+	-- ── твои существа: хранилище + пьедесталы, горизонтальная лента ──
+	Kit.label({ Text = "Твои существа — нажми, чтобы добавить (до " .. Game.TRADE_MAX_ITEMS .. ")", TextSize = 14, TextColor3 = C.dim, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(2, 180), Size = UDim2.new(1, 0, 0, 18), ZIndex = 22, Parent = tradeBody })
+	local strip = Kit.scroll({ Position = UDim2.fromOffset(0, 200), Size = UDim2.new(1, 0, 0, 76), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollBarThickness = 4, ZIndex = 22, Parent = tradeBody }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left) })
 	local inv = State.s.inv or {}
-	local g = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.max(1, math.ceil(#inv / 4)) * 96), LayoutOrder = 6, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(80, 90), 6) })
+	local n = 0
 	for i, a in inv do
+		n += 1
 		local sel = table.find(myGive, i) ~= nil
-		local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = if sel then C.gold else C.panel, ZIndex = 22, Parent = g }, { Kit.corner(12) })
-		Kit.creature(a.id, { Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = b })
-		b.Activated:Connect(function()
+		local t = artTile(strip, a, 68, n, sel)
+		t.Activated:Connect(function()
 			local idx = table.find(myGive, i)
 			if idx then
 				table.remove(myGive, idx)
 			elseif #myGive < Game.TRADE_MAX_ITEMS then
 				table.insert(myGive, i)
+			else
+				Hud.toast("Максимум " .. Game.TRADE_MAX_ITEMS .. " существа в обмене", "bad")
+				return
 			end
 			State.act("tradeSet", { give = myGive })
 		end)
@@ -685,32 +819,38 @@ local function drawTrade()
 	for k in slots do
 		table.insert(keys, k)
 	end
-	if #keys > 0 then
-		txt(s, "На пьедесталах — нажми, чтобы добавить в обмен", 16, C.dim, 26, 8)
-		local g2 = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, math.ceil(#keys / 5) * 96), LayoutOrder = 9, ZIndex = 22, Parent = s }, { Kit.grid(Vector2.new(80, 90), 6) })
-		for _, k in keys do
-			local a = slots[k]
-			local b = Kit.new("TextButton", { Text = "", BackgroundColor3 = C.panel, ZIndex = 22, Parent = g2 }, { Kit.corner(12), Kit.stroke(C.soft, 3) })
-			Kit.creature(a.id, { Size = UDim2.fromScale(1, 1), ZIndex = 23, Parent = b })
-			b.Activated:Connect(function()
-				-- перенос в хранилище, затем выбрать его в обмен
-				if State.act("artToInv", { slot = tonumber(k) }) then
-					task.wait(0.35)
-					local inv = State.s.inv or {}
-					if #myGive < Game.TRADE_MAX_ITEMS then
-						table.insert(myGive, #inv)
-					end
-					State.act("tradeSet", { give = myGive })
-				end
-			end)
-		end
-	end
-	local btns = Kit.frame({ BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 60), LayoutOrder = 10, ZIndex = 22, Parent = s }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
-	Kit.button("Подтвердить", "buy", { Size = UDim2.fromOffset(170, 56), ZIndex = 23, Parent = btns }, function()
-		State.act("tradeReady")
+	table.sort(keys, function(x, y)
+		return (tonumber(x) or 0) < (tonumber(y) or 0)
 	end)
-	Kit.button("Отмена", "cancel", { Size = UDim2.fromOffset(140, 56), ZIndex = 23, Parent = btns }, function()
+	for _, k in keys do
+		n += 1
+		local a = slots[k]
+		local t = artTile(strip, a, 68, n, false, "🏛️")
+		t.Activated:Connect(function()
+			if #myGive >= Game.TRADE_MAX_ITEMS then
+				Hud.toast("Максимум " .. Game.TRADE_MAX_ITEMS .. " существа в обмене", "bad")
+				return
+			end
+			-- с пьедестала: сначала в хранилище, затем в обмен
+			if State.act("artToInv", { slot = tonumber(k) }) then
+				task.wait(0.35)
+				table.insert(myGive, #(State.s.inv or {}))
+				State.act("tradeSet", { give = myGive })
+			end
+		end)
+	end
+	if n == 0 then
+		Kit.label({ Text = "Пока нечего предложить — купи существо на конвейере", TextSize = 15, TextColor3 = C.dim, Size = UDim2.fromOffset(400, 68), ZIndex = 23, Parent = strip })
+	end
+	-- ── кнопки ──
+	local btns = Kit.frame({ BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.new(1, 0, 0, 52), ZIndex = 22, Parent = tradeBody }, { Kit.list(Enum.FillDirection.Horizontal, 10) })
+	Kit.button("Отмена", "cancel", { Size = UDim2.fromOffset(140, 50), LayoutOrder = 1, ZIndex = 23, Parent = btns }, function()
 		State.act("tradeCancel")
+	end)
+	Kit.button(if v.myReady then "Ждём " .. v.name .. "…" else "✓ Готов к обмену", if v.myReady then "cancel" else "buy", { Size = UDim2.fromOffset(240, 50), LayoutOrder = 2, ZIndex = 23, Parent = btns }, function()
+		if not v.myReady then
+			State.act("tradeReady")
+		end
 	end)
 	Kit.open(tradeWin)
 end
