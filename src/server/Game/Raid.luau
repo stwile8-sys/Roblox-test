@@ -808,6 +808,10 @@ function M.lock(S: any): (boolean, string?)
 			mb.Color = c
 		end
 	end
+	local skinM = lb and lb:FindFirstChild("Skin")
+	if skinM then
+		skinM:SetAttribute("PressedAt", workspace:GetServerTimeNow())
+	end
 	if btn then
 		paint(Color3.fromHex("#9A93AD"))
 		local stamp = S.lockCdUntil

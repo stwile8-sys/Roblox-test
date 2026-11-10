@@ -60,10 +60,58 @@ local shardL = pill("💎", Color3.fromHex("#8FF0FF"), UDim2.new(0.5, 6, 0, 10))
 local energyL = pill("⚡", Color3.fromHex("#FFE066"), UDim2.new(1, -12, 0, 10), Vector2.new(1, 0))
 local incomeL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 54), Size = UDim2.fromOffset(240, 20), Parent = root }))
 
+-- деньги «докручиваются» до нового значения, прибыль всплывает под таблеткой
+local shownCash, cashTarget, cashRolling = 0, 0, false
+local function rollCash()
+	if cashRolling then
+		return
+	end
+	cashRolling = true
+	task.spawn(function()
+		while math.abs(cashTarget - shownCash) >= 1 do
+			shownCash += (cashTarget - shownCash) * 0.25
+			if math.abs(cashTarget - shownCash) < 1 then
+				shownCash = cashTarget
+			end
+			cashL.Text = L.money(math.floor(shownCash))
+			task.wait(1 / 30)
+		end
+		cashL.Text = L.money(cashTarget)
+		cashRolling = false
+	end)
+end
+local function gainText(pill: GuiObject, text: string, color: Color3)
+	local g = Kit.label({ Text = text, Font = Kit.BLACK, TextSize = 20, TextColor3 = color, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 1, 4), Size = UDim2.fromOffset(160, 24), ZIndex = 4, Parent = pill })
+	g.TextStrokeColor3 = Color3.fromHex("#231A3B")
+	g.TextStrokeTransparency = 0.3
+	local TweenService = game:GetService("TweenService")
+	TweenService:Create(g, TweenInfo.new(1.1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = UDim2.new(0.5, 0, 1, 34), TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+	task.delay(1.2, function()
+		g:Destroy()
+	end)
+	Kit.pop(pill, 1.12)
+end
 State.on("cash", function(v)
-	cashL.Text = L.money(v)
+	local first = cashTarget == 0 and shownCash == 0
+	local diff = v - cashTarget
+	cashTarget = v
+	if first then
+		shownCash = v
+		cashL.Text = L.money(v)
+		return
+	end
+	-- заметная прибыль (сбор, продажа, награда) — всплывающая цифра
+	if diff >= math.max(10, (State.s.income and State.s.income.now or 0) * 2.5) then
+		gainText(cashL.Parent, "+" .. L.money(diff), Color3.fromHex("#5BE37D"))
+	end
+	rollCash()
 end)
+local lastShards = nil
 State.on("shards", function(v)
+	if lastShards and v > lastShards then
+		gainText(shardL.Parent, "+" .. L.short(v - lastShards) .. " 💎", Color3.fromHex("#8FF0FF"))
+	end
+	lastShards = v
 	shardL.Text = L.short(v)
 end)
 State.on("income", function(v)

@@ -31,6 +31,21 @@ local function hideTree(root: Instance, keep: { [string]: boolean }?)
 	end
 end
 
+-- какие модели клиент оживляет (Art/World.luau): порталы крутят свечение, деревья качаются, кристаллы парят…
+local ANIM: { [string]: string } = {
+	portalStart = "portal", portalEnd = "portal", seasonPortal = "portal", portal = "portal",
+	chestLid = "lid",
+	crystalHub = "crystal", crystalA = "crystal", crystalB = "crystal", crystalC = "crystal",
+	tree = "sway", bush = "sway", s2Tree = "sway", s3Palm = "sway", s4Sakura = "sway", s4Flowers = "sway", s6Coral = "sway",
+	collectPlate = "glow", rebirthAltar = "glow", titanAltar = "glow", leaderboard = "glow", statuePedestal = "glow",
+	lantern = "glow", beacon = "glow", skinPodium = "glow", chestPedestal = "glow", bench = "glow",
+	s5Planet = "float", s6Bubbles = "float", s5Meteor = "float", s1Torch = "glow",
+	blackHole = "spin", slowField = "spin",
+	lockButton = "button",
+	cage = "cage",
+	chest = "glow",
+}
+
 -- поставить модель name в точку cf (низ по центру), необязательный масштаб
 local function place(name: string, parent: Instance, cf: CFrame, scale: number?, skinName: string?): Model?
 	local m = ModelLib.get(name)
@@ -47,6 +62,11 @@ local function place(name: string, parent: Instance, cf: CFrame, scale: number?,
 		end
 	end
 	m:PivotTo(cf)
+	local kind = ANIM[name]
+	if kind then
+		m:SetAttribute("WAnim", kind)
+		CollectionService:AddTag(m, "WAnim")
+	end
 	m.Parent = parent
 	return m
 end
@@ -408,6 +428,7 @@ function M.hub(hub: Instance)
 			local bsize = if body then body:GetExtentsSize() else Vector3.new(10, 5.5, 7.5)
 			local hinge = CFrame.new(0, py + by, bsize.Z / 2)
 			lid:PivotTo(hinge * CFrame.Angles(math.rad(28), 0, 0) * hinge:Inverse() * lid:GetPivot())
+			lid:SetAttribute("Hinge", hinge)
 		end
 		hideList(old)
 	end

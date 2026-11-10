@@ -37,6 +37,7 @@ local Windows = require(script.Parent.UI.Windows)
 local Animate = require(script.Parent.Art.Animate)
 
 Animate.start()
+require(script.Parent.Art.World).start()
 Kit.onClick = function()
 	Fx.sfx("click", nil, 0.4)
 end
