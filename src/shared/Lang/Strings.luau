@@ -4,6 +4,7 @@ local S: { [string]: { [string]: string } } = {
 	["msg.bad"] = { ru = "Так нельзя", en = "Can't do that" },
 	["msg.badName"] = { ru = "Название не подходит", en = "Name not allowed" },
 	["msg.badTag"] = { ru = "Тег: 2–5 латинских букв или цифр", en = "Tag: 2–5 letters or digits" },
+	["msg.botWantsMore"] = { ru = "Торговец: маловато, добавь ещё!", en = "Trader: not enough, add more!" },
 	["msg.botDeclines"] = { ru = "Бот: слишком редкий, не возьму!", en = "Bot: too rare, no deal!" },
 	["msg.buildStarted"] = { ru = "Стройка началась!", en = "Construction started!" },
 	["msg.building"] = { ru = "Уже строится", en = "Already building" },

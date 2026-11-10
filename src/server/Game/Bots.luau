@@ -322,27 +322,31 @@ local function makeTrader(): any
 		T.trade.t = os.clock()
 	end
 	T.onTradeChange = function(S)
-		local tooRare = false
-		for _, i in S.trade.give do
-			local a = S.data.inv[i]
+		-- бот меняется честно: берёт, если твоё предложение по доходу не меньше 60% его существа
+		local function inc(a: any): number
 			local d = a and Defs.BY_ID[a.id]
-			if d and (d.rarity == "legendary" or d.rarity == "chrono") then
-				tooRare = true
-			end
+			return if d then d.income * (1 + Game.ART_LVL_BONUS * ((a.lvl or 1) - 1)) else 0
+		end
+		local mine, theirs = 0, 0
+		for _, i in S.trade.give do
+			mine += inc(S.data.inv[i])
+		end
+		for _, i in T.trade.give do
+			theirs += inc(T.data.inv[i])
 		end
 		local stamp = S.trade.t
 		task.delay(Game.TRADE_CONFIRM_DELAY + 0.3, function()
 			if not T.trade or T.trade.with ~= S or S.trade == nil or S.trade.t ~= stamp then
 				return
 			end
-			if tooRare then
-				Ctx.notify(S, "msg.botDeclines", nil, "bad")
-				api.tradeClose(T, "declined")
+			if #S.trade.give == 0 then
 				return
 			end
-			if #S.trade.give > 0 then
-				api.tradeReady(T)
+			if mine < theirs * 0.6 then
+				Ctx.notify(S, "msg.botWantsMore", nil, "bad")
+				return
 			end
+			api.tradeReady(T)
 		end)
 	end
 	return T

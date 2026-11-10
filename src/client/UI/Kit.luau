@@ -313,7 +313,7 @@ function M.window(parent: Instance, titleText: string, heightScale: number?, acc
 	local title = M.label({ Text = titleText, Font = M.BLACK, TextSize = 26, TextColor3 = Color3.new(1, 1, 1), Position = UDim2.fromOffset(20, 0), Size = UDim2.new(1, -90, 1, 0), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 22, Parent = head })
 	title.TextStrokeTransparency = 0.7
 	local x = M.new("TextButton", {
-		Text = "✕",
+		Text = "X",
 		Font = M.BLACK,
 		TextSize = 22,
 		TextColor3 = Color3.new(1, 1, 1),
