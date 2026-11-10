@@ -33,19 +33,26 @@ local function hasLoot(d: any): boolean
 end
 
 function M.fill()
-	local empty = {}
+	-- места: пустые острова и острова ботов-соседей (но не меньше 4 ботов, чтобы сервер был живым)
+	local empty, fillers = {}, {}
 	for _, B in Ctx.bases do
-		if B.kind == "empty" and not B.reserved then
-			table.insert(empty, B)
+		if not B.reserved then
+			if B.kind == "empty" then
+				table.insert(empty, B)
+			elseif B.kind == "bot" and B.filler then
+				table.insert(fillers, B)
+			end
 		end
 	end
-	-- оставляем 1 свободное место под новых игроков, если сервер почти полон
-	if #empty <= 1 then
+	for i = 5, #fillers do
+		table.insert(empty, fillers[i])
+	end
+	if #empty == 0 then
 		return
 	end
 	local list = Profiles.recentPlayers(40)
 	for _, entry in list do
-		if #empty <= 1 then
+		if #empty == 0 then
 			break
 		end
 		local id = entry.id
@@ -58,7 +65,10 @@ function M.fill()
 						return Players:GetNameFromUserIdAsync(id)
 					end)
 					local B = table.remove(empty, 1)
-					if B and B.kind == "empty" then
+					if B and (B.kind == "empty" or (B.kind == "bot" and B.filler)) then
+						if B.kind == "bot" then
+							api.onOwnerLeaving(B)
+						end
 						Bases.setOffline(B, id, if ok then name else "?", data)
 					end
 				end

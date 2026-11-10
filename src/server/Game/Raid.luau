@@ -132,7 +132,7 @@ Ctx.actions.scan = function(S)
 		table.insert(out, {
 			index = B.index,
 			name = B.ownerName,
-			kind = B.kind,
+			kind = if B.filler then "online" else B.kind,
 			defense = Bases.defenseLevel(B),
 			loot = Bases.lootValue(B),
 			wall = B.data.wall,
