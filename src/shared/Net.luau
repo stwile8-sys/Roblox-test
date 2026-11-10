@@ -1,26 +1,24 @@
 --!strict
 -- Сетевые каналы. Сервер создаёт их при запуске, клиент ждёт.
---   Act    RemoteFunction  клиент → сервер: действие с ответом (ok, ключ сообщения, данные)
---   Do     RemoteEvent     клиент → сервер: частые действия (взлом, удар)
---   State  RemoteEvent     сервер → клиент: частичный снимок личного состояния
---   Notify RemoteEvent     сервер → клиент: тост (ключ перевода, аргументы, вид)
---   Popup  RemoteEvent     сервер → клиент: большое окно (тип, данные)
---   Fx     RemoteEvent     сервер → клиенты: эффект/звук (тип, позиция, данные)
---   Board  RemoteEvent     сервер → клиент: лидерборды
---   Trade  RemoteEvent     сервер → клиент: окно обмена
+--   Act     RemoteFunction клиент → сервер: действие с ответом (ok, сообщение)
+--   Land    RemoteEvent    клиент → сервер: приземлился (id полёта, z, колец)
+--   State   RemoteEvent    сервер → клиент: снимок личного состояния
+--   Launch  RemoteEvent    сервер → клиент: начать полёт (параметры)
+--   Result  RemoteEvent    сервер → клиент: итог полёта
+--   Notify  RemoteEvent    сервер → клиент: тост (текст, вид)
+--   Fx      RemoteEvent    сервер → все: эффект (тип, позиция)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local NAMES: { [string]: string } = {
 	Act = "RemoteFunction",
-	Do = "RemoteEvent",
+	Land = "RemoteEvent",
 	State = "RemoteEvent",
+	Launch = "RemoteEvent",
+	Result = "RemoteEvent",
 	Notify = "RemoteEvent",
-	Popup = "RemoteEvent",
 	Fx = "RemoteEvent",
-	Board = "RemoteEvent",
-	Trade = "RemoteEvent",
 }
 
 local M = {}
