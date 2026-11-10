@@ -251,6 +251,8 @@ def write_outputs(state, manifest):
         "- `lockButton`: кнопка — деталь `Button`, её цвет меняется через `Color` (по умолчанию красная, на перезарядке — серая).",
         "- Существа `art_<id>` (id из `Art/Defs.luau`; сезонные Титаны — `art_s1`…`art_s6`): детали по ролям `Body`, `Head`, `Eye`, `Mouth`,",
         "  `Limb`, `Prop`, `Glow_…`; рост = размер редкости (1 / 2 / 3 / 5 / 4), лицо на −Z.",
+        "- Второй этаж: `floor2` — настил 112×50 целиком с колоннами и перилами, `PivotTo(baseCF * CFrame.new(0, 0, 33))`, верх на y = 22;",
+        "  `stairs` — 22 ступени вверх к +Z, `PivotTo(baseCF * CFrame.new(51, 0, -13))`.",
         "- Клетка `cage`: прутья — детали `Bar1`…`Bar8` (у каждого прута две детали с одним именем: стержень и шар), `Base`, `Top`.", "",
         "```lua", "local ModelLib = require(script.Parent.World.ModelLib)",
         "local m = ModelLib.get(\"pedestal\") -- копия Model или nil (тогда строим старый вариант из деталей)",

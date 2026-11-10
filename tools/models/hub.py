@@ -233,38 +233,52 @@ def collect_pad():
 
 
 def floor2():
-    """Секция пола второго этажа 20×20, верх на y = 2; перила вдоль передней кромки (−Z)."""
+    """Второй этаж базы целиком: настил 112×50 (верх на y = 22) на четырёх колоннах, перила вдоль передней
+    кромки (−Z) с проёмом под лестницу справа (x от 46 до 56). Ставить: PivotTo(baseCF * CFrame.new(0, 0, 33))."""
     m = Model()
-    for x in (-7.0, 0.0, 7.0):
-        m.add(rbox(1.2, 1.2, 20.0, 0.3, 1, "woodDark").move(x, 0.6, 0))
-    for i in range(5):
+    W, D, Y = 112.0, 50.0, 22.0
+    for i in range(10):
         c = "woodLight" if i % 2 == 0 else "wood"
-        m.add(rbox(20.0, 0.85, 3.9, 0.25, 1, c).move(0, 1.575, -8.0 + 4.0 * i))
-    for x in (-9.4, -3.13, 3.13, 9.4):
-        m.add(rbox(0.8, 3.6, 0.8, 0.28, 1, "woodDark").move(x, 3.8, -9.5))
-        m.add(sphere(0.52, 8, 5, "gold").move(x, 5.8, -9.5))
-    for y, c in ((5.0, "cream"), (3.6, "orange")):
-        m.add(tube([(-9.4, y, -9.5), (9.4, y, -9.5)], 0.24, 6, color=c))
+        m.add(rbox(W, 0.9, D / 10 - 0.12, 0.25, 1, c).move(0, Y - 0.45, -D / 2 + D / 10 * (i + 0.5)))
+    for z in (-D / 2 + 1.0, -8.0, 8.0, D / 2 - 1.0):
+        m.add(rbox(W, 1.3, 1.6, 0.35, 1, "woodDark").move(0, Y - 1.45, z))
+    for x in (-W / 2 + 0.8, W / 2 - 0.8):
+        m.add(rbox(1.6, 1.3, D, 0.35, 1, "woodDark").move(x, Y - 1.45, 0))
+    m.add(rbox(W, 0.5, 0.9, 0.2, 1, "dark").move(0, Y - 0.2, -D / 2 + 0.45))
+    # колонны (в игре: x = ±54, ±18, z = 9 → здесь z = −24)
+    for x in (-54.0, -18.0, 18.0, 54.0):
+        m.add(cyl(1.5, 1.2, 0.3, 10, "dark", r2=1.3, steps=2).move(x, 0, -24.0))
+        m.add(cyl(1.0, Y - 2.2, 0.2, 10, "gold", r2=0.9, steps=2).move(x, 0.9, -24.0)).grad("orange", "gold")
+        m.add(torus(1.05, 0.22, 10, 5, "orange").move(x, Y - 3.2, -24.0))
+    # перила: проём под лестницу x ∈ [46, 56]
+    z = -D / 2 + 0.5
+    posts = [-55.0 + 101.0 * i / 9 for i in range(10)]
+    for x in posts:
+        m.add(rbox(0.9, 3.4, 0.9, 0.3, 1, "woodDark").move(x, Y + 1.7, z))
+        m.add(sphere(0.6, 6, 4, "gold").move(x, Y + 3.6, z))
+    for y, r, c in ((Y + 2.9, 0.28, "cream"), (Y + 1.5, 0.22, "orange")):
+        m.add(tube([(posts[0], y, z), (posts[-1], y, z)], r, 6, color=c))
     return m
 
 
 def stairs():
-    """Лестница на второй этаж: подъём 22, ширина 8, идёт вверх в сторону −Z (22 ступени, вылет 33)."""
+    """Лестница на второй этаж: 22 ступени 8×1×2, подъём 22, вылет 44, идёт вверх в сторону +Z (как в игре:
+    от z = −35 до z = +9 у правой стены). Ставить: PivotTo(baseCF * CFrame.new(51, 0, -13))."""
     m = Model()
-    n, run = 22, 1.5
+    n, run = 22, 2.0
     for i in range(n):
         c = "woodLight" if i % 2 == 0 else "wood"
-        m.add(rbox(8.0, 0.9, run + 0.12, 0.22, 1, c).move(0, i + 0.55, (n / 2 - i - 0.5) * run))
-    ang = math.degrees(math.atan2(n, n * run))
+        m.add(rbox(8.0, 1.0, run + 0.1, 0.22, 1, c).move(0, i + 0.5, (i - n / 2 + 0.5) * run))
+    ang = -math.degrees(math.atan2(n, n * run))
     L = math.hypot(n, n * run)
     for s in (-1, 1):
-        m.add(rbox(0.7, 1.3, L, 0.25, 1, "woodDark").rot("x", ang).move(s * 3.9, n / 2 - 0.5, 0))
+        m.add(rbox(0.7, 1.4, L - 1.0, 0.25, 1, "woodDark").rot("x", ang).move(s * 3.9, n / 2 - 0.7, 0))
         pts = []
         for i in (0, 7, 14, 21):
-            z = (n / 2 - i - 0.5) * run
-            m.add(rbox(0.6, 3.4, 0.6, 0.22, 1, "woodDark").move(s * 3.9, i + 2.4, z))
-            m.add(sphere(0.42, 6, 4, "gold").move(s * 3.9, i + 4.3, z))
-            pts.append((s * 3.9, i + 3.7, z))
+            z = (i - n / 2 + 0.5) * run
+            m.add(rbox(0.6, 3.4, 0.6, 0.22, 1, "woodDark").move(s * 3.9, i + 2.6, z))
+            m.add(sphere(0.42, 6, 4, "gold").move(s * 3.9, i + 4.5, z))
+            pts.append((s * 3.9, i + 3.9, z))
         m.add(tube(pts, 0.22, 6, color="cream"))
     return m
 
@@ -504,8 +518,8 @@ MODELS = {
     "lockButton": (lock_button, 2000, "Кнопка замка: тумба ~9, кнопка — узел Button (перекрашивается), замочек"),
     "collectPlate": (collect_plate, 2000, "Плита сбора дохода 10×10, золотая, с монетой"),
     "collectPad": (collect_pad, 2000, "Плита сбора дохода 10×10 (старый вариант, см. collectPlate)"),
-    "floor2": (floor2, 5000, "Секция пола второго этажа 20×20 с перилами (верх на 2.0)"),
-    "stairs": (stairs, 5000, "Лестница на второй этаж: подъём 22, ширина 8, вверх к −Z"),
+    "floor2": (floor2, 5000, "Второй этаж целиком: настил 112×50 на колоннах, верх на 22; ставить в baseCF * (0, 0, 33)"),
+    "stairs": (stairs, 5000, "Лестница на второй этаж: 22 ступени 8×1×2, вверх к +Z; ставить в baseCF * (51, 0, -13)"),
     "titanAltar": (titan_altar, 2000, "Алтарь сезонного Титана 10×10"),
     "cage": (cage, 5000, "Клетка алтаря: прутья Bar1…Bar8 отдельными деталями"),
     "s1Pumpkin": (pumpkin, 2000, "Сезон 1 (Хэллоуин): тыква"),
