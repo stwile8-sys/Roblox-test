@@ -919,13 +919,31 @@ function Bases.onTrap(B: any, slot: number, kind: string?, t: any)
 		old:Destroy()
 		B.decoys[slot] = nil
 	end
+	-- высота подставки: 3D-модель ложного пьедестала или старый цилиндр
+	local function decoyLift(size: number): Vector3
+		local pad = B.model.Traps:FindFirstChild("T" .. slot)
+		local h = 1
+		local vis = pad and pad:FindFirstChild("Vis")
+		local m = vis and vis:FindFirstChildWhichIsA("Model")
+		if m then
+			h = pad.Size.Y / 2 + m:GetExtentsSize().Y
+		end
+		return Vector3.new(0, h + size / 2 + 0.1, 0)
+	end
+	if kind == "decoy" and old then
+		local pos = trapPos(B, slot)
+		local size = old.Size.Y
+		if pos then
+			old.CFrame = CFrame.new(pos + decoyLift(size))
+		end
+	end
 	if kind == "decoy" and not old then
 		local pos = trapPos(B, slot)
 		if pos then
 			local id = api.randomOf and api.randomOf(if math.random() < 0.5 then "rare" else "epic") or "c_drop"
 			local d = Defs.BY_ID[id]
 			local size = d and Defs.RARITY[d.rarity].size or 2
-			local anchor = Bases.makeAnchor(id, CFrame.new(pos + Vector3.new(0, size / 2 + 0.6, 0)), {
+			local anchor = Bases.makeAnchor(id, CFrame.new(pos + decoyLift(size)), {
 				Kind = "decoy",
 				Owner = B.ownerId,
 				Base = B.index,
