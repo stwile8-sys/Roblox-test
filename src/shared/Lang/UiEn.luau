@@ -258,4 +258,6 @@ return {
 	[" существа в обмене"] = " creatures per trade",
 	["Пока нечего предложить — купи существо на конвейере"] = "Nothing to offer yet — buy a creature on the belt",
 	["Ждём "] = "Waiting for ",
+	["Купить "] = "Buy ",
+	["Купить"] = "Buy",
 } :: { [string]: string }

@@ -149,7 +149,7 @@ local function step()
 				-- лёгкое «дыхание» + раз в 7 с крышка подпрыгивает
 				local cyc = (t + e.ph) % 7
 				local pop = if cyc < 0.5 then math.sin(cyc / 0.5 * math.pi) * 0.22 else 0
-				local a = math.sin(t * 1.3) * 0.05 + pop
+				local a = 0.06 + math.sin(t * 1.3) * 0.04 + pop
 				local rot = hinge * CFrame.Angles(a, 0, 0) * hinge:Inverse()
 				for i, p in e.parts do
 					table.insert(parts, p)

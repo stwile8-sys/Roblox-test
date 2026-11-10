@@ -105,6 +105,19 @@ local function hook(obj: Instance)
 	if hooked[obj] then
 		return
 	end
+	if obj:IsA("Humanoid") then
+		-- имена ботов над головой («Торговец (бот)»)
+		hooked[obj] = true
+		local function ah()
+			local n = M.tr(obj.DisplayName)
+			if n ~= obj.DisplayName then
+				obj.DisplayName = n
+			end
+		end
+		ah()
+		obj:GetPropertyChangedSignal("DisplayName"):Connect(ah)
+		return
+	end
 	if obj:IsA("ProximityPrompt") then
 		hooked[obj] = true
 		local function ap()

@@ -467,8 +467,12 @@ local function findActor(uid: number): any
 end
 
 Ctx.actions.tradeRequest = function(S, args)
-	if not Ctx.isNum(args.target) or S.trade then
+	if not Ctx.isNum(args.target) then
 		return false, "msg.bad"
+	end
+	-- незакрытый прошлый обмен (окно закрыли крестиком) — закрываем и начинаем новый
+	if S.trade then
+		tradeClose(S, "cancel")
 	end
 	local O = findActor(args.target)
 	if not O or O == S or O.trade then

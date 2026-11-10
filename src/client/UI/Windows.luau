@@ -855,6 +855,15 @@ local function drawTrade()
 	Kit.open(tradeWin)
 end
 
+-- закрыли окно обмена крестиком или тапом по фону — отменяем обмен и на сервере
+tradeWin:GetPropertyChangedSignal("Visible"):Connect(function()
+	if not tradeWin.Visible and tradeView then
+		tradeView = nil
+		myGive = {}
+		State.act("tradeCancel")
+	end
+end)
+
 Net.event("Trade").OnClientEvent:Connect(function(view, reason)
 	if not tradeView and view then
 		myGive = {}

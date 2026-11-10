@@ -427,7 +427,7 @@ function M.hub(hub: Instance)
 			lid:PivotTo(lid:GetPivot() + Vector3.new(-cf.Position.X, (py + by) - (cf.Position.Y - size.Y / 2), -cf.Position.Z))
 			local bsize = if body then body:GetExtentsSize() else Vector3.new(10, 5.5, 7.5)
 			local hinge = CFrame.new(0, py + by, bsize.Z / 2)
-			lid:PivotTo(hinge * CFrame.Angles(math.rad(16), 0, 0) * hinge:Inverse() * lid:GetPivot())
+			lid:PivotTo(hinge * CFrame.Angles(math.rad(0), 0, 0) * hinge:Inverse() * lid:GetPivot())
 			lid:SetAttribute("Hinge", hinge)
 		end
 		hideList(old)
