@@ -1,0 +1,536 @@
+{
+ "pedestal": {
+  "file": "pedestal.glb",
+  "sha256": "f5beb4c7f4322384422fd6b04c11d4e3771b491765509cbd9e627c4830f4c20f",
+  "tris": 1760,
+  "budget": 2000,
+  "size": [
+   6.87,
+   3.61,
+   6.87
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Пьедестал артефакта"
+ },
+ "pedestalRich": {
+  "file": "pedestalRich.glb",
+  "sha256": "40dbaa821d43e176a326390ac97eafad73cd3684da2f62969e2c98b63f082494",
+  "tris": 1944,
+  "budget": 2000,
+  "size": [
+   6.87,
+   3.61,
+   6.87
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_FFE066"
+  ],
+  "desc": "Пьедестал «богатый», золотой"
+ },
+ "islandBig": {
+  "file": "islandBig.glb",
+  "sha256": "0d1b6fa7e49eb4ae3c789b5b43a76274a5737d847ff8fc73164e5b6ff2629dff",
+  "tris": 3312,
+  "budget": 5000,
+  "size": [
+   187.44,
+   49.55,
+   185.61
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Парящий остров, большой"
+ },
+ "islandMid": {
+  "file": "islandMid.glb",
+  "sha256": "0c3edd12675c9d3a93150089deccf01105d8802bbe96f113e98551ec82398fe8",
+  "tris": 3264,
+  "budget": 5000,
+  "size": [
+   98.76,
+   26.23,
+   98.77
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Парящий остров, средний"
+ },
+ "wall1": {
+  "file": "wall1.glb",
+  "sha256": "c1b156625976c760b91fe4946626bd03df687c3e0b05e39a253a74916877560a",
+  "tris": 1836,
+  "budget": 5000,
+  "size": [
+   39.0,
+   14.0,
+   2.11
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Стена ур. 1 — дерево"
+ },
+ "wall2": {
+  "file": "wall2.glb",
+  "sha256": "37046a0b93c2aab76c939d4b28ba6425f716ec4a8ba163aa1bf771969876e7a9",
+  "tris": 1920,
+  "budget": 5000,
+  "size": [
+   38.86,
+   14.08,
+   2.02
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Стена ур. 2 — камень"
+ },
+ "wall3": {
+  "file": "wall3.glb",
+  "sha256": "075d2d828dafa6cb8d02e54163de445871e204a81ae4bdfef2491d3c02e4b3aa",
+  "tris": 2292,
+  "budget": 5000,
+  "size": [
+   39.0,
+   14.0,
+   2.0
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Стена ур. 3 — металл"
+ },
+ "wall4": {
+  "file": "wall4.glb",
+  "sha256": "06c34e40b3d025b9c2ca3c92575ed2c16931ae3870c31dd8ec686c9dadd9589b",
+  "tris": 2160,
+  "budget": 5000,
+  "size": [
+   39.4,
+   14.0,
+   2.1
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Стена ур. 4 — укреплённая сталь"
+ },
+ "wall5": {
+  "file": "wall5.glb",
+  "sha256": "ffb47fa9db4acaa74dd285d9e23cf9d0660f5840e6ac05c24054d99bb49dd955",
+  "tris": 1544,
+  "budget": 5000,
+  "size": [
+   39.14,
+   14.0,
+   2.42
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_00E5FF_T45",
+   "Glow_7B2FF7",
+   "Glow_FFE066"
+  ],
+  "desc": "Стена ур. 5 — хроно-барьер"
+ },
+ "gate1": {
+  "file": "gate1.glb",
+  "sha256": "6928b0380f05cb09d478ac54069d2a367caa67c9cd71529a7a2c53cc28a3cb25",
+  "tris": 3244,
+  "budget": 5000,
+  "size": [
+   38.9,
+   14.2,
+   2.31
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Ворота ур. 1"
+ },
+ "gate2": {
+  "file": "gate2.glb",
+  "sha256": "d84cc96946fdb13840ff86aae65511730240cde368d44aff1c08cbba4ab64e07",
+  "tris": 3244,
+  "budget": 5000,
+  "size": [
+   38.9,
+   14.2,
+   2.31
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFB347"
+  ],
+  "desc": "Ворота ур. 2"
+ },
+ "gate3": {
+  "file": "gate3.glb",
+  "sha256": "d1a76eabfcb47cf966442027be0bf21f8084018ac6bd866f4a15160624dde2cc",
+  "tris": 3244,
+  "budget": 5000,
+  "size": [
+   38.9,
+   14.2,
+   2.31
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Ворота ур. 3"
+ },
+ "gate4": {
+  "file": "gate4.glb",
+  "sha256": "a8d86c0369ab57061794a508544f68daee11034e99fb86089fbd5758c9e188ba",
+  "tris": 3244,
+  "budget": 5000,
+  "size": [
+   38.9,
+   14.2,
+   2.31
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Ворота ур. 4"
+ },
+ "gate5": {
+  "file": "gate5.glb",
+  "sha256": "07b3a4de7d669ce332298e33b2c139063b9316e5789ad532f5bee8191810b3fb",
+  "tris": 2444,
+  "budget": 5000,
+  "size": [
+   38.9,
+   14.2,
+   2.31
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_00E5FF_T45",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Ворота ур. 5 (энергетические)"
+ },
+ "bridge": {
+  "file": "bridge.glb",
+  "sha256": "b447b126a553796b71039efaaf53993b6b4ae9563d2a7a2e977151665233fd7a",
+  "tris": 3296,
+  "budget": 5000,
+  "size": [
+   13.68,
+   6.57,
+   30.0
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Секция моста с перилами (вдоль Z)"
+ },
+ "crystalHub": {
+  "file": "crystalHub.glb",
+  "sha256": "fd2250ea649ec8b6182e9ac89349e15a94f29288777a3c0737d2c5d0ec620639",
+  "tris": 1060,
+  "budget": 2000,
+  "size": [
+   10.04,
+   14.9,
+   9.63
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7",
+   "Glow_FFE066"
+  ],
+  "desc": "Центральный кристалл хаба"
+ },
+ "crystalA": {
+  "file": "crystalA.glb",
+  "sha256": "8259dcb02488ee11ec78de192f3c20f03d9206880c72e6a7ba9b5bf93e945294",
+  "tris": 88,
+  "budget": 2000,
+  "size": [
+   2.02,
+   2.91,
+   1.94
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Кристалл-декор, одиночный"
+ },
+ "crystalB": {
+  "file": "crystalB.glb",
+  "sha256": "2260a653331a14f776419906feaeaf26ee32173517fcf96b95b1d6b68aea2521",
+  "tris": 136,
+  "budget": 2000,
+  "size": [
+   2.99,
+   3.32,
+   2.41
+  ],
+  "nodes": [
+   "Body",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Кристалл-декор, тройка"
+ },
+ "crystalC": {
+  "file": "crystalC.glb",
+  "sha256": "218d1d60c059f86989cd58c446b57728b0ef8cd0c4db6d75513f63528b6e057a",
+  "tris": 220,
+  "budget": 2000,
+  "size": [
+   4.27,
+   4.76,
+   3.6
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7",
+   "Glow_FFE066"
+  ],
+  "desc": "Кристалл-декор, друза"
+ },
+ "tree": {
+  "file": "tree.glb",
+  "sha256": "695f3aeaf1cdc4b56e922f20d98f082bfe0711fec271331432c27a1a386e35f7",
+  "tris": 1296,
+  "budget": 2000,
+  "size": [
+   8.46,
+   11.71,
+   7.4
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Дерево"
+ },
+ "bush": {
+  "file": "bush.glb",
+  "sha256": "bdd1c944d49636ae45f91e10046a4be023ac6158b8cf0c0ecc85bf17d93da5fc",
+  "tris": 580,
+  "budget": 2000,
+  "size": [
+   4.53,
+   2.61,
+   3.41
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Куст с ягодами"
+ },
+ "lantern": {
+  "file": "lantern.glb",
+  "sha256": "7be37c7a5eab5bf158d16923b011bc82ac13e759decf942f8bee9244c0d182fa",
+  "tris": 1064,
+  "budget": 2000,
+  "size": [
+   2.19,
+   8.1,
+   2.08
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Фонарь"
+ },
+ "crate": {
+  "file": "crate.glb",
+  "sha256": "813f1d07b2596f27e09b6af8fefbfc416cbf42c096ff51e2efed9d8bcea04781",
+  "tris": 1068,
+  "budget": 2000,
+  "size": [
+   3.21,
+   3.05,
+   3.35
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Ящик"
+ },
+ "rock": {
+  "file": "rock.glb",
+  "sha256": "efd9ce7efe6031bf215b11479055320a41f70b78cefdf3bbb7879594f180c02b",
+  "tris": 364,
+  "budget": 2000,
+  "size": [
+   5.01,
+   2.55,
+   3.54
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Камень"
+ },
+ "mushroom": {
+  "file": "mushroom.glb",
+  "sha256": "6dd40203be2590e1fdef172b0aca70f819e91bfeb1ae31ee9b6e10a20fc30136",
+  "tris": 1088,
+  "budget": 2000,
+  "size": [
+   4.3,
+   3.85,
+   4.3
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Гриб"
+ },
+ "conveyor": {
+  "file": "conveyor.glb",
+  "sha256": "cc5ceabb8717bcca9e0c51a4b002330975da07a0b7ce08c3067dbbae61f2b2f0",
+  "tris": 1732,
+  "budget": 2000,
+  "size": [
+   12.6,
+   1.53,
+   6.0
+  ],
+  "nodes": [
+   "Body"
+  ],
+  "desc": "Секция конвейера (лента вдоль +X, верх на 1.2)"
+ },
+ "portal": {
+  "file": "portal.glb",
+  "sha256": "7ab5256622c1dfb95c1ed4bc52a5ef6a10aa093805b36c08523162ec89fdc3b4",
+  "tris": 1684,
+  "budget": 2000,
+  "size": [
+   13.0,
+   14.3,
+   4.4
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_00E5FF_T35",
+   "Glow_7B2FF7",
+   "Glow_FFE066"
+  ],
+  "desc": "Портал-арка артефактов"
+ },
+ "bench": {
+  "file": "bench.glb",
+  "sha256": "017d60a3d33401681bd7760c17ba921144ec2dade8d57c73730a60286424e42a",
+  "tris": 1944,
+  "budget": 2000,
+  "size": [
+   6.0,
+   4.22,
+   3.35
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF"
+  ],
+  "desc": "Верстак"
+ },
+ "beacon": {
+  "file": "beacon.glb",
+  "sha256": "a0e04793da551e6cced73e3a4f42d14625b4e2e975f618ecbc5dfdb8aeb126fb",
+  "tris": 1664,
+  "budget": 2000,
+  "size": [
+   3.26,
+   10.05,
+   3.18
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FFE066"
+  ],
+  "desc": "Маяк базы"
+ },
+ "mine": {
+  "file": "mine.glb",
+  "sha256": "822fc0e8c76ad7a67e79a2e074b5fadb523fddd559e27cca25557a25e1e09ff8",
+  "tris": 688,
+  "budget": 2000,
+  "size": [
+   3.8,
+   2.33,
+   3.8
+  ],
+  "nodes": [
+   "Body",
+   "Glow_FF2E63"
+  ],
+  "desc": "Ловушка: мина"
+ },
+ "slowField": {
+  "file": "slowField.glb",
+  "sha256": "83c29dddc5be999bb4a0aee186bce42b8f3b37ce2ef4dcdd01f95752efef477e",
+  "tris": 1536,
+  "budget": 2000,
+  "size": [
+   5.93,
+   1.36,
+   5.93
+  ],
+  "nodes": [
+   "Body",
+   "Glow_00E5FF",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Ловушка: замедляющее поле"
+ },
+ "decoyPedestal": {
+  "file": "decoyPedestal.glb",
+  "sha256": "3b402534223f15bfc2097340fb45779fcdab913686cdafa7c3fc2761a265e6ae",
+  "tris": 1790,
+  "budget": 2000,
+  "size": [
+   6.87,
+   3.61,
+   6.87
+  ],
+  "nodes": [
+   "Body",
+   "Glow_7B2FF7"
+  ],
+  "desc": "Ловушка: ложный пьедестал"
+ },
+ "blackHole": {
+  "file": "blackHole.glb",
+  "sha256": "7584a90080f0603f9506b84376c0a3d1e67e338bdf79efc362a4ca7f1b97a22c",
+  "tris": 1972,
+  "budget": 2000,
+  "size": [
+   6.03,
+   4.05,
+   6.06
+  ],
+  "nodes": [
+   "Body",
+   "Glow_7B2FF7",
+   "Glow_FFB347"
+  ],
+  "desc": "Скин ловушки «Чёрная дыра»"
+ }
+}
