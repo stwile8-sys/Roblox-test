@@ -33,8 +33,15 @@ local function cageParts(): { BasePart }
 	return out
 end
 
+local function setState(st: string)
+	workspace:SetAttribute("SeasonState", st)
+end
+
 local function setCage(hp: number)
 	cageHp = hp
+	if anchor then
+		setState(if hp > 0 then "caged" else "open")
+	end
 	local broken = hp <= 0
 	for _, p in cageParts() do
 		p.Transparency = if broken then 1 else 0
@@ -53,7 +60,7 @@ local function spawnArt()
 		return
 	end
 	local id = "s" .. theme
-	anchor = Bases.makeAnchor(id, CFrame.new(vault.Position + Vector3.new(0, 3, 0)), { Kind = "season" })
+	anchor = Bases.makeAnchor(id, CFrame.new(vault.Position + Vector3.new(0, 3.2, 0)), { Kind = "season" })
 	setCage(Game.SEASON_CAGE_HP)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Steal"
@@ -92,6 +99,7 @@ function M.trySteal(S: any)
 	a:Destroy()
 	anchor = nil
 	carrying = true
+	setState("carried")
 	api.startCarry(S, {
 		id = id,
 		lvl = 1,
@@ -103,6 +111,8 @@ function M.trySteal(S: any)
 		onDeliver = function()
 			carrying = false
 			nextSpawn = os.clock() + Game.SEASON_ART_EVERY
+			setState("waiting")
+			workspace:SetAttribute("SeasonNext", workspace:GetServerTimeNow() + Game.SEASON_ART_EVERY)
 			return true, nil
 		end,
 	})
@@ -173,6 +183,8 @@ function M.init()
 	workspace:SetAttribute("SeasonEnds", Game.seasonEnds(os.time()))
 	portals()
 	nextSpawn = os.clock() + 60
+	setState("waiting")
+	workspace:SetAttribute("SeasonNext", workspace:GetServerTimeNow() + 60)
 	Ctx.doActions.hackCage = function(S)
 		M.hackCage(S)
 	end
@@ -190,6 +202,7 @@ function M.init()
 					anchor = nil
 				end
 				nextSpawn = 0
+				setState("waiting")
 			end
 			if not anchor and not carrying and os.clock() >= nextSpawn then
 				spawnArt()

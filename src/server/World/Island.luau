@@ -375,15 +375,38 @@ function M.build()
 	season.Parent = map
 	solid(season, { Name = "Ground", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4, 90, 90), CFrame = CFrame.new(0, 88, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#E9E1FF"), Material = Enum.Material.SmoothPlastic })
 	floatingIsland(season, Vector3.new(0, 86, 0), 48, 9)
-	solid(season, { Size = Vector3.new(10, 2, 10), CFrame = CFrame.new(0, 91, 0), Color = Palette.gold, Material = Enum.Material.SmoothPlastic })
-	mk(season, { Name = "Vault", Size = Vector3.new(4, 0.4, 4), CFrame = CFrame.new(0, 92.2, 0), Color = Palette.chrono, Material = Enum.Material.Neon })
+	-- алтарь: три круглых яруса
+	for k, t in { { 14, "#FFF4DE" }, { 11, "#F6D7A7" }, { 8, "#FFE9A8" } } do
+		solid(season, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, t[1], t[1]), CFrame = CFrame.new(0, 90 + k - 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex(t[2]), Material = Enum.Material.SmoothPlastic })
+		mk(season, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, t[1] + 0.4, t[1] + 0.4), CFrame = CFrame.new(0, 90 + k - 0.05, 0) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
+	end
+	mk(season, { Name = "Vault", Size = Vector3.new(4, 0.4, 4), CFrame = CFrame.new(0, 93.2, 0), Color = Palette.chrono, Material = Enum.Material.Neon })
+	-- клетка: прутья ломаются (Cage), каркас остаётся (CageFrame)
 	local cage = Instance.new("Model")
 	cage.Name = "Cage"
 	cage:SetAttribute("MaxHP", 3000)
 	cage.Parent = season
-	for i = 1, 8 do
-		local a = i / 8 * math.pi * 2
-		solid(cage, { Name = "Bar" .. i, Size = Vector3.new(4.2, 12, 1), CFrame = CFrame.new(math.cos(a) * 5, 96, math.sin(a) * 5) * CFrame.Angles(0, -a + math.pi / 2, 0), Color = Palette.thief, Material = Enum.Material.ForceField })
+	local frame = Instance.new("Folder")
+	frame.Name = "CageFrame"
+	frame.Parent = season
+	for i = 1, 10 do
+		local a = i / 10 * math.pi * 2
+		local pos = Vector3.new(math.cos(a) * 4.6, 99, math.sin(a) * 4.6)
+		solid(cage, { Name = "Bar" .. i, Shape = Enum.PartType.Cylinder, Size = Vector3.new(11, 0.9, 0.9), CFrame = CFrame.new(pos) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#4B3F8F"), Material = Enum.Material.SmoothPlastic })
+	end
+	for _, y in { 93.6, 104.6 } do
+		for i = 1, 20 do
+			local a = i / 20 * math.pi * 2
+			mk(frame, { Size = Vector3.new(1.6, 1, 1.8), CFrame = CFrame.new(math.cos(a) * 4.6, y, math.sin(a) * 4.6) * CFrame.Angles(0, -a, 0), Color = Color3.fromHex("#2A2140"), Material = Enum.Material.SmoothPlastic })
+		end
+	end
+	-- купол-крыша с камнем
+	mk(frame, { Shape = Enum.PartType.Ball, Size = Vector3.new(10, 4, 10), CFrame = CFrame.new(0, 105.6, 0), Color = Color3.fromHex("#FFC93C"), Material = Enum.Material.SmoothPlastic })
+	local top = mk(frame, { Name = "Top", Shape = Enum.PartType.Ball, Size = Vector3.new(2, 2, 2), CFrame = CFrame.new(0, 108, 0), Color = Palette.chrono, Material = Enum.Material.Neon })
+	CollectionService:AddTag(top, "Pulse")
+	-- дорожка от портала к алтарю
+	for k = 1, 5 do
+		mk(season, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, 4, 4), CFrame = CFrame.new(0, 90.1, 9 + k * 4.6) * CFrame.Angles(0, 0, math.pi / 2), Color = Color3.fromHex("#FFF4DE"), Material = Enum.Material.SmoothPlastic })
 	end
 	local ret = mk(season, { Name = "ReturnPortal", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1, 10, 10), CFrame = CFrame.new(0, 95, 36) * CFrame.Angles(0, math.pi / 2, 0), Color = Palette.chrono, Material = Enum.Material.Neon, Transparency = 0.3 })
 	ret.CanTouch = true
@@ -437,9 +460,13 @@ function M.setSeason(i: number)
 	decor:ClearAllChildren()
 	local main, acc = Color3.fromHex(t.main), Color3.fromHex(t.acc)
 	local rng = Random.new(i * 77)
-	for n = 1, 10 do
-		local a = n / 10 * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
-		local r = rng:NextNumber(22, 38)
+	for n = 1, 18 do
+		local a = n / 18 * math.pi * 2 + rng:NextNumber(-0.1, 0.1)
+		-- не ставить на дорожку к порталу
+		if math.abs(math.sin(a) - 1) < 0.12 then
+			continue
+		end
+		local r = if n % 2 == 0 then rng:NextNumber(30, 40) else rng:NextNumber(17, 25)
 		local pos = Vector3.new(math.cos(a) * r, 90, math.sin(a) * r)
 		if t.kind == "pumpkin" then
 			mk(decor, { Shape = Enum.PartType.Ball, Size = Vector3.new(4, 3.2, 4), CFrame = CFrame.new(pos + Vector3.new(0, 1.6, 0)), Color = main, Material = Enum.Material.SmoothPlastic })

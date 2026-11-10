@@ -314,6 +314,47 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
+-- ── Сезонный остров: табличка над алтарём ───────────────────
+task.spawn(function()
+	local map = workspace:WaitForChild("Map", 30)
+	local season = map and map:WaitForChild("Season", 30)
+	local frame = season and season:WaitForChild("CageFrame", 30)
+	local top = frame and frame:WaitForChild("Top", 30)
+	if not top then
+		return
+	end
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(300, 110)
+	bb.StudsOffset = Vector3.new(0, 6, 0)
+	bb.MaxDistance = 200
+	bb.Parent = top
+	local box = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.bg, Parent = bb }, { Kit.corner(18), Kit.stroke(Kit.C.line, 4) })
+	local title = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 24, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 30), Parent = box })
+	local sub = Kit.label({ Text = "", TextSize = 20, TextColor3 = Kit.C.dim, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 0, 26), Parent = box })
+	local barBg = Kit.frame({ Position = UDim2.new(0, 16, 1, -30), Size = UDim2.new(1, -32, 0, 16), BackgroundColor3 = Kit.C.soft, Parent = box }, { Kit.corner(8) })
+	local bar = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.thief, Parent = barBg }, { Kit.corner(8) })
+	while true do
+		local theme = workspace:GetAttribute("Season") or 1
+		local names = { "Тыквенный", "Ледяной", "Песчаный", "Цветущий", "Звёздный", "Коралловый" }
+		title.Text = "✨ " .. (names[theme] or "") .. " Титан"
+		local st = workspace:GetAttribute("SeasonState") or "waiting"
+		local hp = season:GetAttribute("CageHP") or 0
+		barBg.Visible = st == "caged"
+		if st == "waiting" then
+			local left = math.max(0, (workspace:GetAttribute("SeasonNext") or 0) - workspace:GetServerTimeNow())
+			sub.Text = "Появится через " .. L.duration(left)
+		elseif st == "caged" then
+			sub.Text = "Ломай клетку! ⛏️"
+			bar.Size = UDim2.fromScale(math.clamp(hp / 3000, 0, 1), 1)
+		elseif st == "open" then
+			sub.Text = "Клетка сломана — хватай!"
+		else
+			sub.Text = "Его несут! Догони и ударь 🏏"
+		end
+		task.wait(0.5)
+	end
+end)
+
 -- ── Атмосфера, музыка, декор ────────────────────────────────
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "MoodCC"
