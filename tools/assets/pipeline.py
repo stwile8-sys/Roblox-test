@@ -133,7 +133,7 @@ def multipart(fields, files=()):
 
 
 # иконки, которые надо перезалить у уже созданных товаров (один раз; отметка в state["iconsRefreshed"])
-REFRESH_ICONS = {}
+REFRESH_ICONS = {"VIP": "v2-crown"}  # у VIP осталась иконка прошлой игры
 
 
 def icon_file(key):
