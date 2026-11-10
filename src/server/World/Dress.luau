@@ -423,11 +423,14 @@ function M.hub(hub: Instance)
 		-- потом поворачиваем вокруг заднего верхнего ребра корпуса, чтобы приоткрыть
 		local lid = place("chestLid", chest, CFrame.new(0, py + by, 0), nil, "LidSkin")
 		if lid then
+			-- корпус сундука (без горки сокровищ) — 3.5 из 5.54 по высоте модели; крышка садится на край корпуса
+			local rim = py + by * (3.5 / 5.54)
 			local cf, size = lid:GetBoundingBox()
-			lid:PivotTo(lid:GetPivot() + Vector3.new(-cf.Position.X, (py + by) - (cf.Position.Y - size.Y / 2), -cf.Position.Z))
+			lid:PivotTo(lid:GetPivot() + Vector3.new(-cf.Position.X, rim - (cf.Position.Y - size.Y / 2), -cf.Position.Z))
 			local bsize = if body then body:GetExtentsSize() else Vector3.new(10, 5.5, 7.5)
-			local hinge = CFrame.new(0, py + by, bsize.Z / 2)
-			lid:PivotTo(hinge * CFrame.Angles(math.rad(0), 0, 0) * hinge:Inverse() * lid:GetPivot())
+			-- петли — задняя верхняя кромка корпуса; приоткрыта, чтобы были видны сокровища
+			local hinge = CFrame.new(0, rim, bsize.Z / 2 - 0.15)
+			lid:PivotTo(hinge * CFrame.Angles(math.rad(38), 0, 0) * hinge:Inverse() * lid:GetPivot())
 			lid:SetAttribute("Hinge", hinge)
 		end
 		hideList(old)
