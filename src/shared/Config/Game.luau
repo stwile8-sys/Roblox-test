@@ -5,7 +5,7 @@
 local M = {}
 
 -- Тестовые инструменты (боты, панель владельца). На релизе выключить: false.
-M.TEST_TOOLS = true
+M.TEST_TOOLS = false
 
 M.MAX_PLAYERS = 8
 M.PLOTS = 8

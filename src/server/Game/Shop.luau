@@ -50,9 +50,14 @@ function M.loadPasses(S: any)
 			end
 		end
 	end
+	-- тестовые пропуска действуют только в тестовом режиме; на релизе — стираются
 	if S.data.testPasses then
-		for key in S.data.testPasses do
-			applyPass(S, key)
+		if Game.TEST_TOOLS then
+			for key in S.data.testPasses do
+				applyPass(S, key)
+			end
+		else
+			S.data.testPasses = nil
 		end
 	end
 end
