@@ -37,6 +37,14 @@ if not okWorld then
 	warn("[Main] остров:", errWorld)
 end
 Bases.init()
+-- 3D-модели: переодеть мир, когда загрузятся (ловушки перерисовать моделями)
+local Dress = require(script.Parent.World.Dress)
+Dress.onReady = function()
+	for _, B in Ctx.bases do
+		Bases.renderTraps(B)
+	end
+end
+Dress.start()
 Economy.init()
 Raid.init()
 Seasons.init()

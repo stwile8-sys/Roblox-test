@@ -40,6 +40,10 @@ end
 
 -- Милый парящий остров: травяной диск сверху и сужающийся вниз земляной конус из цилиндров
 local function floatingIsland(parent: Instance, center: Vector3, radius: number, seed: number)
+	if parent:IsA("Instance") then
+		parent:SetAttribute("IslandCenter", center)
+		parent:SetAttribute("IslandRadius", radius)
+	end
 	local rng = Random.new(seed)
 	local grass = Instance.new("Part")
 	grass.Anchored = true
@@ -52,6 +56,7 @@ local function floatingIsland(parent: Instance, center: Vector3, radius: number,
 	grass.CFrame = CFrame.new(center + Vector3.new(0, -1.5, 0)) * CFrame.Angles(0, 0, math.pi / 2)
 	grass.Color = Color3.fromHex("#7DD87A")
 	grass.Material = Enum.Material.SmoothPlastic
+	grass:SetAttribute("IslandVis", true)
 	grass.Parent = parent
 	local layers = { { "#E2B98A", 0.92, 6 }, { "#D4A574", 0.74, 8 }, { "#C29166", 0.52, 9 }, { "#AE7F5A", 0.3, 10 } }
 	local y = -3
@@ -120,7 +125,14 @@ local function board(parent: Instance, name: string, title: string, deg: number)
 	end
 end
 
+M.bridges = {} :: { { a: Vector3, b: Vector3, w: number, parts: { BasePart } } }
 local function bridge(parent: Instance, a: Vector3, b: Vector3, width: number)
+	local rec = { a = a, b = b, w = width, parts = {} }
+	table.insert(M.bridges, rec)
+	local before = {}
+	for _, k in parent:GetChildren() do
+		before[k] = true
+	end
 	local mid = (a + b) / 2
 	local len = (b - a).Magnitude
 	local cf = CFrame.lookAt(mid, b)
@@ -134,6 +146,12 @@ local function bridge(parent: Instance, a: Vector3, b: Vector3, width: number)
 	for i = 1, n do
 		local c = mk(parent, { Size = Vector3.new(2, 8, 2), CFrame = cf * CFrame.new(0, -6, -len / 2 + i * len / (n + 1)) * CFrame.Angles(math.pi, 0, 0.3), Color = Palette.chrono, Material = Enum.Material.Neon, Transparency = 0.2 })
 		CollectionService:AddTag(c, "Float")
+		c:SetAttribute("Keep", true)
+	end
+	for _, k in parent:GetChildren() do
+		if not before[k] and k:IsA("BasePart") and not k:GetAttribute("Keep") then
+			table.insert(rec.parts, k)
+		end
 	end
 end
 

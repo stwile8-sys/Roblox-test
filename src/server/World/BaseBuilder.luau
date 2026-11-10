@@ -7,7 +7,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Palette = require(ReplicatedStorage.Shared.Config.Palette)
 
-local M = {}
+local M: any = {}
+M.dress = nil -- модуль Dress подставит себя, когда 3D-модели загрузятся
 
 local R = 230
 
@@ -38,6 +39,10 @@ end
 
 -- Милый парящий остров: травяной диск сверху и сужающийся вниз земляной конус из цилиндров
 local function floatingIsland(parent: Instance, center: Vector3, radius: number, seed: number)
+	if parent:IsA("Instance") then
+		parent:SetAttribute("IslandCenter", center)
+		parent:SetAttribute("IslandRadius", radius)
+	end
 	local rng = Random.new(seed)
 	local grass = Instance.new("Part")
 	grass.Anchored = true
@@ -50,6 +55,7 @@ local function floatingIsland(parent: Instance, center: Vector3, radius: number,
 	grass.CFrame = CFrame.new(center + Vector3.new(0, -1.5, 0)) * CFrame.Angles(0, 0, math.pi / 2)
 	grass.Color = Color3.fromHex("#7DD87A")
 	grass.Material = Enum.Material.SmoothPlastic
+	grass:SetAttribute("IslandVis", true)
 	grass.Parent = parent
 	local layers = { { "#E2B98A", 0.92, 6 }, { "#D4A574", 0.74, 8 }, { "#C29166", 0.52, 9 }, { "#AE7F5A", 0.3, 10 } }
 	local y = -3
@@ -157,6 +163,9 @@ function M.setWallLevel(base: any, level: number)
 				seg.Color = if level == 5 then Palette.chrono else style.trim
 			end
 			segDecor(seg, level)
+			if M.dress then
+				M.dress.wall(seg, level)
+			end
 			if seg:GetAttribute("Broken") then
 				M.setSegmentBroken(seg, true)
 			end
@@ -180,10 +189,19 @@ end
 function M.setSegmentBroken(seg: BasePart, broken: boolean)
 	seg:SetAttribute("Broken", broken)
 	local level = (seg:GetAttribute("Level") or 1) :: number
-	seg.Transparency = if broken then 1 else (if level == 5 then 0.15 else 0)
+	seg.Transparency = if broken or seg:FindFirstChild("Skin") then 1 else (if level == 5 then 0.15 else 0)
 	seg.CanCollide = not broken
+	local skin = seg:FindFirstChild("Skin")
+	if skin then
+		for _, p in skin:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.LocalTransparencyModifier = if broken then 1 else 0
+				p.Transparency = if broken then 1 else (p:GetAttribute("T0") or 0)
+			end
+		end
+	end
 	local decor = seg:FindFirstChild("Decor")
-	if decor then
+	if decor and not skin then
 		for _, p in decor:GetDescendants() do
 			if p:IsA("BasePart") and p.Parent == decor then
 				p.Transparency = if broken then 1 else 0
@@ -509,6 +527,9 @@ function M.setTrap(base: any, slot: number, kind: string?, skin: string?)
 	end
 	pad.Transparency = if kind then 0.6 else 0.3
 	if not kind then
+		return
+	end
+	if M.dress and M.dress.trap(pad, kind, skin) then
 		return
 	end
 	local f = Instance.new("Folder")
