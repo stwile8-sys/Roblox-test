@@ -324,14 +324,15 @@ task.spawn(function()
 		return
 	end
 	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(300, 110)
-	bb.StudsOffset = Vector3.new(0, 6, 0)
-	bb.MaxDistance = 200
+	-- маленькая и только вблизи: с базы и хаба её не видно
+	bb.Size = UDim2.fromOffset(210, 78)
+	bb.StudsOffset = Vector3.new(0, 5, 0)
+	bb.MaxDistance = 60
 	bb.Parent = top
-	local box = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.bg, Parent = bb }, { Kit.corner(18), Kit.stroke(Kit.C.line, 4) })
-	local title = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 24, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 30), Parent = box })
-	local sub = Kit.label({ Text = "", TextSize = 20, TextColor3 = Kit.C.dim, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 0, 26), Parent = box })
-	local barBg = Kit.frame({ Position = UDim2.new(0, 16, 1, -30), Size = UDim2.new(1, -32, 0, 16), BackgroundColor3 = Kit.C.soft, Parent = box }, { Kit.corner(8) })
+	local box = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.bg, Parent = bb }, { Kit.corner(14), Kit.stroke(Kit.C.line, 3) })
+	local title = Kit.label({ Text = "", Font = Kit.BLACK, TextSize = 18, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 0, 24), Parent = box })
+	local sub = Kit.label({ Text = "", TextSize = 15, TextColor3 = Kit.C.dim, Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 0, 20), Parent = box })
+	local barBg = Kit.frame({ Position = UDim2.new(0, 12, 1, -20), Size = UDim2.new(1, -24, 0, 10), BackgroundColor3 = Kit.C.soft, Parent = box }, { Kit.corner(8) })
 	local bar = Kit.frame({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = Kit.C.thief, Parent = barBg }, { Kit.corner(8) })
 	while true do
 		local theme = workspace:GetAttribute("Season") or 1

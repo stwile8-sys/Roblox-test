@@ -185,7 +185,7 @@ State.on("carry", function(c)
 end)
 
 -- плита сбора: сколько накопилось
-local pendingL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 22), Parent = root }))
+local pendingL = cap(Kit.label({ Text = "", TextSize = 18, TextColor3 = C.gold, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -96), Size = UDim2.fromOffset(360, 22), Parent = root }))
 State.on("pending", function(v)
 	pendingL.Text = if v > 0 then "На плите: " .. L.money(v) .. " — встань на неё" else ""
 end)
